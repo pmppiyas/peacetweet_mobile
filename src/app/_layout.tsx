@@ -1,18 +1,35 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import '../../global.css';
+import React, { useEffect } from 'react';
+import { View } from 'react-native';
+import { Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
-
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { UiProvider } from '@/providers/UiProvider';
+import { Navbar } from '@/components/navigation/Navbar';
+import { MobileNav } from '@/components/navigation/MobileNav';
+import { MenuDrawer } from '@/components/navigation/MenuDrawer';
+import { MobileComposerModal } from '@/components/feed/MobileComposerModal';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <UiProvider>
+        <SafeAreaView className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
+          <Navbar />
+          <View className="flex-1 min-h-0">
+            <Slot />
+          </View>
+          <MobileNav />
+          <MenuDrawer />
+          <MobileComposerModal />
+        </SafeAreaView>
+      </UiProvider>
+    </SafeAreaProvider>
   );
 }
