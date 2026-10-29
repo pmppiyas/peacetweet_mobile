@@ -77,14 +77,22 @@ async function request<T = any>(
   options?: RequestOptions
 ): Promise<ApiClientResponse<T>> {
   let response: Response;
+  const primaryUrl = API_CONFIG.primaryBaseUrl;
 
   try {
-    response = await rawFetch(activeBaseUrl, method, endpoint, body, options);
+    response = await rawFetch(primaryUrl, method, endpoint, body, options);
+    activeBaseUrl = primaryUrl;
   } catch (networkErr) {
-    // If local backend (:5000) is not running, automatically fall back to production backend
-    if (activeBaseUrl !== API_CONFIG.fallbackBaseUrl) {
+    // If local backend (:5000) is unreachable, try fallback for this request
+    if (primaryUrl !== API_CONFIG.fallbackBaseUrl) {
+      response = await rawFetch(
+        API_CONFIG.fallbackBaseUrl,
+        method,
+        endpoint,
+        body,
+        options
+      );
       activeBaseUrl = API_CONFIG.fallbackBaseUrl;
-      response = await rawFetch(activeBaseUrl, method, endpoint, body, options);
     } else {
       throw networkErr;
     }

@@ -6,13 +6,25 @@ import {
   Pressable,
   TextInput,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useUi } from '@/providers/UiProvider';
+import { useAuth } from '@/providers/AuthProvider';
+import { useFeed } from '@/providers/FeedProvider';
 import { AppIcon } from '@/components/ui/Icon';
 
 type PostMode = 'TEXT' | 'DUA' | 'BLOOD_REQUEST';
 
-const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const BLOOD_GROUPS = [
+  { label: 'A+', value: 'A_POSITIVE' },
+  { label: 'A-', value: 'A_NEGATIVE' },
+  { label: 'B+', value: 'B_POSITIVE' },
+  { label: 'B-', value: 'B_NEGATIVE' },
+  { label: 'AB+', value: 'AB_POSITIVE' },
+  { label: 'AB-', value: 'AB_NEGATIVE' },
+  { label: 'O+', value: 'O_POSITIVE' },
+  { label: 'O-', value: 'O_NEGATIVE' },
+];
 const URGENCIES = [
   { value: 'REGULAR', label: 'Regular' },
   { value: 'URGENT', label: 'Urgent' },
@@ -21,15 +33,20 @@ const URGENCIES = [
 
 export function MobileComposerModal() {
   const { isComposerModalOpen, setComposerModalOpen, locale, theme } = useUi();
+  const { user } = useAuth();
+  const { createPost } = useFeed();
 
   const [postType, setPostType] = useState<PostMode>('TEXT');
   const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Dua state
   const [duaTitle, setDuaTitle] = useState('');
   const [duaMeaning, setDuaMeaning] = useState('');
   const [duaTransliteration, setDuaTransliteration] = useState('');
   const [duaFadilah, setDuaFadilah] = useState('');
+  const [duaArabicText, setDuaArabicText] = useState('');
 
   // Blood request state
   const [bloodGroup, setBloodGroup] = useState('');
@@ -58,12 +75,73 @@ export function MobileComposerModal() {
     setDuaMeaning('');
     setDuaTransliteration('');
     setDuaFadilah('');
+    setDuaArabicText('');
     setBloodGroup('');
     setPatientName('');
     setHospitalName('');
     setContactNumber('');
+    setSubmitError(null);
     setPostType('TEXT');
     setComposerModalOpen(false);
+  };
+
+  const handleSubmit = async () => {
+    if (!isPostValid || isSubmitting) return;
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      if (postType === 'TEXT') {
+        await createPost({
+          type: 'TEXT',
+          content: content.trim(),
+          visibility: 'PUBLIC',
+          status: 'PUBLISHED',
+        });
+      } else if (postType === 'DUA') {
+        await createPost({
+          type: 'DUA',
+          content: duaTitle.trim() ? `🌙 ${duaTitle.trim()}` : undefined,
+          visibility: 'PUBLIC',
+          status: 'PUBLISHED',
+          duaData: {
+            title: duaTitle.trim() || undefined,
+            meaning: duaMeaning.trim(),
+            transliteration: duaTransliteration.trim() || undefined,
+            fadilah: duaFadilah.trim() || undefined,
+            arabicText: duaArabicText.trim() || undefined,
+          },
+        });
+      } else if (postType === 'BLOOD_REQUEST') {
+        await createPost({
+          type: 'BLOOD_REQUEST',
+          content: content.trim() || undefined,
+          visibility: 'PUBLIC',
+          status: 'PUBLISHED',
+          bloodRequestData: {
+            patientName: patientName.trim(),
+            bloodGroup,
+            urgency,
+            hospitalName: hospitalName.trim(),
+            location: hospitalName.trim(),
+            contactNumber: contactNumber.trim(),
+            neededDate: new Date().toISOString(),
+            units: 1,
+          },
+        });
+      }
+      handleClose();
+    } catch (err: any) {
+      setSubmitError(
+        err?.response?.data?.message ||
+          err?.message ||
+          (locale === 'bn'
+            ? 'পোস্ট করতে সমস্যা হয়েছে।'
+            : 'Failed to create post.')
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -98,8 +176,8 @@ export function MobileComposerModal() {
           </View>
 
           <Pressable
-            disabled={!isPostValid}
-            onPress={handleClose}
+            disabled={!isPostValid || isSubmitting}
+            onPress={handleSubmit}
             className={`flex-row items-center justify-center gap-1.5 px-4 py-1.5 rounded-full ${
               isPostValid
                 ? postType === 'BLOOD_REQUEST'
@@ -109,18 +187,26 @@ export function MobileComposerModal() {
                     : 'bg-primary-500'
                 : 'bg-gray-100 dark:bg-gray-800 opacity-60'
             }`}>
-            <AppIcon
-              android="send"
-              ios="paperplane.fill"
-              size={14}
-              color={isPostValid ? '#ffffff' : '#9ca3af'}
-            />
-            <Text
-              className={`text-xs font-bold ${
-                isPostValid ? 'text-white' : 'text-gray-400 dark:text-gray-500'
-              }`}>
-              {locale === 'bn' ? 'পোস্ট' : 'Post'}
-            </Text>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <>
+                <AppIcon
+                  android="send"
+                  ios="paperplane.fill"
+                  size={14}
+                  color={isPostValid ? '#ffffff' : '#9ca3af'}
+                />
+                <Text
+                  className={`text-xs font-bold ${
+                    isPostValid
+                      ? 'text-white'
+                      : 'text-gray-400 dark:text-gray-500'
+                  }`}>
+                  {locale === 'bn' ? 'পোস্ট' : 'Post'}
+                </Text>
+              </>
+            )}
           </Pressable>
         </View>
 
@@ -191,14 +277,24 @@ export function MobileComposerModal() {
 
         {/* 3. SCROLLABLE WRITING CANVAS */}
         <ScrollView className="flex-1 px-4 py-3.5" contentContainerClassName="pb-16">
+          {submitError && (
+            <View className="mb-3 rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/40 dark:border-rose-900/50 px-3 py-2">
+              <Text className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                {submitError}
+              </Text>
+            </View>
+          )}
+
           {/* User Identity Row */}
           <View className="flex-row items-center gap-2.5 mb-4">
             <View className="h-10 w-10 items-center justify-center rounded-full bg-primary-500">
-              <Text className="text-white font-bold text-sm">🕊️</Text>
+              <Text className="text-white font-bold text-sm">
+                {user?.name ? user.name.charAt(0).toUpperCase() : '🕊️'}
+              </Text>
             </View>
             <View>
               <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
-                PeaceTweet User
+                {user?.name || 'PeaceTweet User'}
               </Text>
               <View className="flex-row items-center gap-1 bg-primary-50 dark:bg-primary-950/60 px-2 py-0.5 rounded-full mt-0.5 self-start border border-primary-200/50 dark:border-primary-900/50">
                 <AppIcon android="public" size={12} color="#1054be" />
@@ -292,6 +388,21 @@ export function MobileComposerModal() {
               <View className="gap-1">
                 <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
                   {locale === 'bn'
+                    ? 'আরবি টেক্সট (Arabic Text)'
+                    : 'Arabic Text'}
+                </Text>
+                <TextInput
+                  value={duaArabicText}
+                  onChangeText={setDuaArabicText}
+                  placeholder="اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ"
+                  placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
+                  className="w-full rounded-2xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2.5 text-right text-base text-[#050505] dark:text-[#e4e6eb]"
+                />
+              </View>
+
+              <View className="gap-1">
+                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  {locale === 'bn'
                     ? 'ফজিলত ও হাদিস রেফারেন্স'
                     : 'Virtue & Hadith Reference'}
                 </Text>
@@ -326,20 +437,20 @@ export function MobileComposerModal() {
                 <View className="flex-row flex-wrap gap-2">
                   {BLOOD_GROUPS.map((group) => (
                     <Pressable
-                      key={group}
-                      onPress={() => setBloodGroup(group)}
+                      key={group.value}
+                      onPress={() => setBloodGroup(group.value)}
                       className={`w-[23%] py-2.5 rounded-2xl border items-center ${
-                        bloodGroup === group
+                        bloodGroup === group.value
                           ? 'bg-rose-600 border-rose-600'
                           : 'bg-[#f8f9fa] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
                       }`}>
                       <Text
                         className={`text-xs font-black ${
-                          bloodGroup === group
+                          bloodGroup === group.value
                             ? 'text-white'
                             : 'text-[#050505] dark:text-[#e4e6eb]'
                         }`}>
-                        {group}
+                        {group.label}
                       </Text>
                     </Pressable>
                   ))}
