@@ -1,26 +1,234 @@
-import React from 'react';
-import { ScrollView, View, Text } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
-import { AppIcon } from '@/components/ui/Icon';
+import { useAuth } from '@/providers/AuthProvider';
+import { chatApi } from '@/features/chat/api/chat.api';
+import {
+  ChatUser,
+  ConversationItem,
+  getOtherUserFromConversation,
+} from '@/features/chat/types/chat.types';
+import { ConversationSidebar } from '@/features/chat/components/ConversationSidebar';
+import { ChatView } from '@/features/chat/components/ChatView';
+import { EmptyChatPlaceholder } from '@/features/chat/components/EmptyChatPlaceholder';
 
 export default function MessagesScreen() {
-  const { locale } = useUi();
+  const { setActiveConversationId, setUnreadMessagesCount } = useUi();
+  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const params = useLocalSearchParams<{
+    conversationId?: string;
+    userId?: string;
+    user?: string;
+    username?: string;
+  }>();
+
+  const [conversations, setConversations] = useState<ConversationItem[]>([]);
+  const [selectedConversation, setSelectedConversation] =
+    useState<ConversationItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Sync activeConversationId with UiProvider so Navbar & MobileNav hide on mobile when inside an active chat
+  useEffect(() => {
+    setActiveConversationId(selectedConversation?.id || null);
+    return () => {
+      setActiveConversationId(null);
+    };
+  }, [selectedConversation?.id, setActiveConversationId]);
+
+  // Redirect to /login if unauthenticated (matches MessagesLayout.tsx lines 90-94)
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthLoading, isAuthenticated]);
+
+  const loadChatData = useCallback(
+    async (silent = false) => {
+      if (!isAuthenticated) {
+        setIsLoading(false);
+        return;
+      }
+
+      if (!silent) setIsLoading(true);
+      try {
+        const convList = await chatApi.getConversations().catch(() => []);
+        setConversations(convList);
+
+        const totalUnread = convList.reduce(
+          (sum, c) => sum + (c.unreadCount || 0),
+          0
+        );
+        setUnreadMessagesCount(totalUnread);
+
+        setSelectedConversation((prev) => {
+          if (!prev) return null;
+          const updated = convList.find((c) => c.id === prev.id);
+          if (!updated) return prev;
+          return {
+            ...updated,
+            otherUser:
+              getOtherUserFromConversation(updated) ||
+              getOtherUserFromConversation(prev) ||
+              undefined,
+          };
+        });
+      } finally {
+        if (!silent) setIsLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [isAuthenticated, setUnreadMessagesCount]
+  );
+
+  useEffect(() => {
+    loadChatData(false);
+
+    if (!isAuthenticated) return;
+    const interval = setInterval(() => {
+      loadChatData(true);
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [loadChatData, isAuthenticated]);
+
+  const handleStartChatWithUser = useCallback(
+    async (targetUser: ChatUser) => {
+      const existing = conversations.find((c) => {
+        const other = getOtherUserFromConversation(c);
+        return (
+          other?.id === targetUser.id ||
+          c.participantOneId === targetUser.id ||
+          c.participantTwoId === targetUser.id
+        );
+      });
+
+      if (existing) {
+        setSelectedConversation({
+          ...existing,
+          otherUser: getOtherUserFromConversation(existing) || targetUser,
+        });
+        return;
+      }
+
+      try {
+        const created = await chatApi.getOrCreateConversation(targetUser.id);
+        const enriched: ConversationItem = {
+          ...created,
+          otherUser: getOtherUserFromConversation(created) || targetUser,
+        };
+        setConversations((prev) => {
+          const filtered = prev.filter((c) => c.id !== enriched.id);
+          return [enriched, ...filtered];
+        });
+        setSelectedConversation(enriched);
+      } catch {}
+    },
+    [conversations]
+  );
+
+  // Handle deep-link params (?conversationId=... or ?userId=...)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    if (params.conversationId && conversations.length > 0) {
+      const match = conversations.find((c) => c.id === params.conversationId);
+      if (match) {
+        setSelectedConversation(match);
+      }
+    } else if (params.userId) {
+      chatApi
+        .getOrCreateConversation(params.userId)
+        .then((conv) => {
+          setSelectedConversation(conv);
+        })
+        .catch(() => {});
+    }
+  }, [params.conversationId, params.userId, isAuthenticated, conversations]);
+
+  const handleConversationUpdated = useCallback(
+    (
+      conversationId: string,
+      lastMessageText: string,
+      lastMessageAt: string
+    ) => {
+      setConversations((prev) => {
+        const idx = prev.findIndex((c) => c.id === conversationId);
+        if (idx === -1) return prev;
+        const updatedItem: ConversationItem = {
+          ...prev[idx],
+          lastMessageText,
+          lastMessageAt,
+          unreadCount: 0,
+        };
+        const rest = prev.filter((c) => c.id !== conversationId);
+        return [updatedItem, ...rest];
+      });
+    },
+    []
+  );
+
+  const handleConversationMarkedRead = useCallback((conversationId: string) => {
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === conversationId ? { ...c, unreadCount: 0 } : c
+      )
+    );
+  }, []);
+
+  const totalUnreadCount = conversations.reduce(
+    (sum, c) => sum + (c.unreadCount || 0),
+    0
+  );
+  const isChatActive = Boolean(selectedConversation);
 
   return (
-    <ScrollView className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a] px-3 pt-3">
-      <View className="w-full max-w-[720px] mx-auto bg-white dark:bg-[#242526] rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] p-5 items-center">
-        <View className="h-12 w-12 rounded-full bg-sky-100 dark:bg-sky-950/60 items-center justify-center mb-3">
-          <AppIcon android="chat_bubble" size={24} color="#0284c7" />
+    <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a] sm:bg-[#f0f2f5]">
+      <View className="flex-1 w-full max-w-[1440px] mx-auto px-0 sm:px-4 lg:px-6">
+        <View className="flex-1 flex-row h-full gap-4 lg:gap-6">
+          {/* 1. Left Sidebar: Chats / Conversations Sidebar (matches MessagesLayout.tsx lines 292-306) */}
+          <View
+            className={`w-full md:w-60 lg:w-60 xl:w-64 2xl:w-72 h-full shrink-0 flex-col ${
+              isChatActive ? 'hidden md:flex' : 'flex'
+            }`}>
+            <ConversationSidebar
+              conversations={conversations}
+              isLoading={isLoading}
+              isRefreshing={isRefreshing}
+              onRefresh={() => {
+                setIsRefreshing(true);
+                loadChatData(true);
+              }}
+              selectedId={selectedConversation?.id || null}
+              onSelectConversation={(conv) => setSelectedConversation(conv)}
+              onStartChatWithUser={handleStartChatWithUser}
+              currentUserId={user?.id}
+              totalUnreadCount={totalUnreadCount}
+            />
+          </View>
+
+          {/* 2. Main Area: Active Chat Window or Empty Placeholder (matches MessagesLayout.tsx lines 309-328) */}
+          <View
+            className={`flex-1 w-full min-w-0 h-full py-0 sm:py-3 lg:py-4 px-0 ${
+              isChatActive ? 'flex' : 'hidden md:flex'
+            }`}>
+            <View className="flex-1 w-full h-full bg-white dark:bg-[#242526] sm:rounded-2xl sm:border sm:border-[#e4e6eb] sm:dark:border-[#393a3b] overflow-hidden">
+              {selectedConversation ? (
+                <ChatView
+                  key={selectedConversation.id}
+                  conversation={selectedConversation}
+                  onBack={() => setSelectedConversation(null)}
+                  onConversationUpdated={handleConversationUpdated}
+                  onConversationMarkedRead={handleConversationMarkedRead}
+                />
+              ) : (
+                <EmptyChatPlaceholder />
+              )}
+            </View>
+          </View>
         </View>
-        <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] mb-1">
-          {locale === 'bn' ? 'মেসেজ ও কথোপকথন' : 'Messages & Chats'}
-        </Text>
-        <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center">
-          {locale === 'bn'
-            ? 'কমিউনিটি সদস্যদের সাথে বার্তা আদান-প্রদান করুন।'
-            : 'Connect and message with community members.'}
-        </Text>
       </View>
-    </ScrollView>
+    </View>
   );
 }

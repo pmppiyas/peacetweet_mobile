@@ -14,6 +14,12 @@ interface UiContextType {
   setSearchOpen: (open: boolean) => void;
   isComposerModalOpen: boolean;
   setComposerModalOpen: (open: boolean) => void;
+  chatSearchQuery: string;
+  setChatSearchQuery: (query: string) => void;
+  activeConversationId: string | null;
+  setActiveConversationId: (id: string | null) => void;
+  unreadMessagesCount: number;
+  setUnreadMessagesCount: (count: number) => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
 }
@@ -30,6 +36,11 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   const [isMenuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isComposerModalOpen, setComposerModalOpen] = useState(false);
+  const [chatSearchQuery, setChatSearchQuery] = useState('');
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
@@ -63,6 +74,12 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         setSearchOpen,
         isComposerModalOpen,
         setComposerModalOpen,
+        chatSearchQuery,
+        setChatSearchQuery,
+        activeConversationId,
+        setActiveConversationId,
+        unreadMessagesCount,
+        setUnreadMessagesCount,
         theme,
         toggleTheme,
       }}>

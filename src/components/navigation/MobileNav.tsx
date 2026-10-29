@@ -15,51 +15,63 @@ interface NavItem {
   badge?: number;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  {
-    id: 'nav-home',
-    labelBn: 'হোম',
-    labelEn: 'Home',
-    href: '/',
-    icon: 'home',
-  },
-  {
-    id: 'nav-bookmarks',
-    labelBn: 'সংরক্ষিত',
-    labelEn: 'Saved',
-    href: '/saved',
-    icon: 'bookmark',
-  },
-  {
-    id: 'nav-composer',
-    labelBn: 'পোস্ট',
-    labelEn: 'Post',
-    icon: 'add',
-    isComposer: true,
-  },
-  {
-    id: 'nav-messages',
-    labelBn: 'মেসেজ',
-    labelEn: 'Messages',
-    href: '/messages',
-    icon: 'chat_bubble',
-  },
-  {
-    id: 'nav-notifications',
-    labelBn: 'বিজ্ঞপ্তি',
-    labelEn: 'Alerts',
-    href: '/notifications',
-    icon: 'notifications',
-  },
-];
-
 export function MobileNav() {
   const pathname = usePathname();
-  const { locale, setComposerModalOpen, theme } = useUi();
+  const {
+    locale,
+    setComposerModalOpen,
+    activeConversationId,
+    unreadMessagesCount,
+    theme,
+  } = useUi();
   const { isAuthenticated } = useAuth();
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
-  if (isAuthPage) return null;
+  const isMessagesActive =
+    pathname === '/messages' || pathname.startsWith('/messages/');
+  const isInsideActiveChat =
+    isMessagesActive && Boolean(activeConversationId);
+
+  if (isAuthPage || isInsideActiveChat) return null;
+
+  const navItems: NavItem[] = [
+    {
+      id: 'nav-home',
+      labelBn: 'হোম',
+      labelEn: 'Home',
+      href: '/',
+      icon: 'home',
+    },
+    {
+      id: 'nav-bookmarks',
+      labelBn: 'সংরক্ষিত',
+      labelEn: 'Saved',
+      href: '/saved',
+      icon: 'bookmark',
+    },
+    {
+      id: 'nav-composer',
+      labelBn: 'পোস্ট',
+      labelEn: 'Post',
+      icon: 'add',
+      isComposer: true,
+    },
+    {
+      id: 'nav-messages',
+      labelBn: 'মেসেজ',
+      labelEn: 'Messages',
+      href: '/messages',
+      icon: 'chat_bubble',
+      badge: unreadMessagesCount,
+    },
+    {
+      id: 'nav-notifications',
+      labelBn: 'বিজ্ঞপ্তি',
+      labelEn: 'Alerts',
+      href: '/notifications',
+      icon: 'notifications',
+    },
+  ];
 
   const handleComposerPress = () => {
     if (!isAuthenticated) {
@@ -72,7 +84,7 @@ export function MobileNav() {
   return (
     <View className="w-full border-t border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526]">
       <View className="flex-row h-14 items-center">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const label = locale === 'bn' ? item.labelBn : item.labelEn;
 
           if (item.isComposer) {
@@ -119,13 +131,13 @@ export function MobileNav() {
                   weight="bold"
                   color={iconColor}
                 />
-                {typeof item.badge === 'number' && item.badge > 0 && (
+                {typeof item.badge === 'number' && item.badge > 0 ? (
                   <View className="absolute -top-1 -right-2 h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1">
                     <Text className="text-[9px] font-bold text-white">
                       {item.badge > 9 ? '9+' : item.badge}
                     </Text>
                   </View>
-                )}
+                ) : null}
               </View>
               <Text
                 className={`text-[10px] leading-tight ${
