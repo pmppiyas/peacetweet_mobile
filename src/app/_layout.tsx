@@ -11,6 +11,7 @@ import { Navbar } from '@/components/navigation/Navbar';
 import { MobileNav } from '@/components/navigation/MobileNav';
 import { MenuDrawer } from '@/components/navigation/MenuDrawer';
 import { MobileComposerModal } from '@/components/feed/MobileComposerModal';
+import { AppSplashLoader } from '@/components/ui/AppSplashLoader';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -24,15 +25,18 @@ export default function RootLayout() {
       <UiProvider>
         <AuthProvider>
           <FeedProvider>
-            <SafeAreaView className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
-              <Navbar />
-              <View className="flex-1 min-h-0">
-                <Slot />
-              </View>
-              <MobileNav />
-              <MenuDrawer />
-              <MobileComposerModal />
-            </SafeAreaView>
+            <View className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a] relative">
+              <AppSplashLoader />
+              <SafeAreaView className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
+                <Navbar />
+                <View className="flex-1 min-h-0">
+                  <Slot />
+                </View>
+                <MobileNav />
+                <MenuDrawer />
+                <MobileComposerModal />
+              </SafeAreaView>
+            </View>
           </FeedProvider>
         </AuthProvider>
       </UiProvider>

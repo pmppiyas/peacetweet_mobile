@@ -27,6 +27,7 @@ import {
 import { TasbihModal } from '@/features/bookmark/components/TasbihWidget';
 import { AppIcon } from '@/components/ui/Icon';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface SavedContentCardProps {
   item: SavedFeedItem;
@@ -534,29 +535,31 @@ export default function SavedScreen() {
                   </Text>
                 </View>
               ) : displayedItems.length === 0 ? (
-                <View className="w-full items-center justify-center border-y border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] p-12 text-center">
-                  <View className="h-14 w-14 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-950/60 mb-3">
-                    <AppIcon android="bookmark" size={28} color="#d97706" />
-                  </View>
-                  <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
-                    {selectedSlot !== 'all'
+                <EmptyState
+                  iconAndroid="bookmark"
+                  iconSize={28}
+                  iconColor="#d97706"
+                  iconBgClassName="bg-amber-50 dark:bg-amber-950/60"
+                  title={
+                    selectedSlot !== 'all'
                       ? locale === 'bn'
                         ? `${TIME_SLOTS.find((s) => s.id === selectedSlot)?.labelBn || ''}র কোনো সংরক্ষিত আইটেম নেই`
                         : `No saved items for ${selectedSlot}`
                       : locale === 'bn'
                         ? 'এখনো কোনো আইটেম সংরক্ষণ করা হয়নি'
-                        : 'No saved items yet'}
-                  </Text>
-                  <Text className="mt-1.5 text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-sm leading-relaxed">
-                    {selectedSlot !== 'all'
+                        : 'No saved items yet'
+                  }
+                  description={
+                    selectedSlot !== 'all'
                       ? locale === 'bn'
                         ? 'দোয়া বা পোস্ট সেভ করার সময় এই রুটিনটি নির্বাচন করলে তা এখানে সহজে পড়তে পারবেন।'
                         : 'Save Duas or Posts with this routine slot to organize and read them here.'
                       : locale === 'bn'
                         ? 'ফিড বা দোয়ার পাতা থেকে আপনার পছন্দের দোয়া ও পোস্টগুলো সেভ করে রাখুন।'
-                        : 'Save your favorite duas and posts from the feed or dua library to review later.'}
-                  </Text>
-                </View>
+                        : 'Save your favorite duas and posts from the feed or dua library to review later.'
+                  }
+                  className="w-full border-y border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] py-12"
+                />
               ) : (
                 <View className="w-full bg-white dark:bg-[#242526] border-y border-[#e4e6eb] dark:border-[#393a3b] overflow-hidden">
                   {displayedItems.map((item, index) => (

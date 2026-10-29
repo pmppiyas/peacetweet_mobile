@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
+import { useUi } from '@/providers/UiProvider';
 import { AppIcon, AndroidSymbol } from './Icon';
 import type { SFSymbol } from 'sf-symbols-typescript';
 
-export interface EmptyStateCardProps {
+export interface EmptyStateProps {
   iconAndroid?: AndroidSymbol;
   iconIos?: SFSymbol;
+  iconSize?: number;
   iconColor?: string;
   iconBgClassName?: string;
   title: string;
@@ -15,33 +17,39 @@ export interface EmptyStateCardProps {
   className?: string;
 }
 
-export function EmptyStateCard({
-  iconAndroid = 'chat_bubble',
-  iconIos = 'bubble.left.and.bubble.right.fill',
-  iconColor = '#1877f2',
-  iconBgClassName = 'bg-primary-100 dark:bg-primary-950/60',
+export function EmptyState({
+  iconAndroid = 'inbox',
+  iconIos,
+  iconSize = 32,
+  iconColor,
+  iconBgClassName = 'bg-[#f0f2f5] dark:bg-[#3a3b3c]',
   title,
   description,
   actionLabel,
   onAction,
   className = '',
-}: EmptyStateCardProps) {
+}: EmptyStateProps) {
+  const { theme } = useUi();
+  const defaultIconColor = theme === 'dark' ? '#b0b3b8' : '#65676b';
+  const effectiveIconColor = iconColor || defaultIconColor;
+
   return (
-    <View className={`items-center justify-center p-6 text-center ${className}`}>
+    <View
+      className={`flex-col items-center justify-center py-16 px-6 text-center ${className}`}>
       <View
-        className={`h-14 w-14 rounded-full items-center justify-center mb-3 ${iconBgClassName}`}>
+        className={`h-16 w-16 items-center justify-center rounded-full mb-3 ${iconBgClassName}`}>
         <AppIcon
           android={iconAndroid}
           ios={iconIos}
-          size={26}
-          color={iconColor}
+          size={iconSize}
+          color={effectiveIconColor}
         />
       </View>
-      <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
+      <Text className="font-bold text-[#050505] dark:text-[#e4e6eb] text-base text-center">
         {title}
       </Text>
       {description ? (
-        <Text className="mt-1 text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-[260px] leading-5">
+        <Text className="text-xs mt-1 text-[#65676b] dark:text-[#b0b3b8] max-w-sm text-center leading-relaxed">
           {description}
         </Text>
       ) : null}
@@ -55,3 +63,6 @@ export function EmptyStateCard({
     </View>
   );
 }
+
+export const EmptyStateCard = EmptyState;
+export const EmptyStateView = EmptyState;

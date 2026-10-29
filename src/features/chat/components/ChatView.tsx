@@ -11,6 +11,7 @@ import {
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { AppIcon } from '@/components/ui/Icon';
 import { CACHE_KEYS, queryCache } from '@/lib/cache/queryCache';
 import {
@@ -319,27 +320,23 @@ export function ChatView({
               </View>
             </View>
           ) : messages.length === 0 ? (
-            /* Empty Conversation State matching MessageFeed.tsx lines 153-165 */
-            <View className="flex-1 items-center justify-center p-6">
-              <View className="h-16 w-16 rounded-full bg-primary-50 dark:bg-primary-950/40 items-center justify-center mb-3">
-                <AppIcon
-                  android="chat_bubble"
-                  ios="bubble.left.and.bubble.right"
-                  size={32}
-                  color="#1877f2"
-                />
-              </View>
-              <Text className="text-base font-bold text-[#050505] dark:text-white text-center">
-                {locale === 'bn'
+            <EmptyState
+              iconAndroid="chat_bubble"
+              iconIos="bubble.left.and.bubble.right"
+              iconColor="#1877f2"
+              iconBgClassName="bg-primary-50 dark:bg-primary-950/40"
+              title={
+                locale === 'bn'
                   ? 'মেসেজ পাঠানো শুরু করুন'
-                  : 'Say Salam & start messaging'}
-              </Text>
-              <Text className="text-xs max-w-xs mt-1 text-[#65676b] dark:text-[#b0b3b8] leading-relaxed text-center">
-                {locale === 'bn'
+                  : 'Say Salam & start messaging'
+              }
+              description={
+                locale === 'bn'
                   ? 'প্রথম মেসেজটি পাঠিয়ে আন্তরিক যোগাযোগ গড়ে তুলুন'
-                  : 'Send your first message or a warm Salam to start messaging'}
-              </Text>
-            </View>
+                  : 'Send your first message or a warm Salam to start messaging'
+              }
+              className="flex-1 py-10"
+            />
           ) : (
             messages.map((msg, idx) => {
               const isMe = msg.senderId === user?.id || msg.senderId === 'me';

@@ -33,25 +33,16 @@ export function ConfirmDialog({
   if (!isOpen) return null;
 
   const iconBgClass =
-    variant === 'danger'
-      ? 'bg-rose-100 dark:bg-rose-950/50'
-      : variant === 'warning'
-        ? 'bg-amber-100 dark:bg-amber-950/50'
-        : 'bg-primary-100 dark:bg-primary-950/50';
+    variant === 'warning'
+      ? 'bg-amber-100 dark:bg-amber-950/50'
+      : 'bg-primary-100 dark:bg-primary-950/50';
 
-  const iconColor =
-    variant === 'danger'
-      ? '#e11d48'
-      : variant === 'warning'
-        ? '#d97706'
-        : '#1877f2';
+  const iconColor = variant === 'warning' ? '#d97706' : '#1877f2';
 
   const confirmBtnClass =
-    variant === 'danger'
-      ? 'bg-rose-600 active:bg-rose-700'
-      : variant === 'warning'
-        ? 'bg-amber-600 active:bg-amber-700'
-        : 'bg-primary-600 active:bg-primary-700';
+    variant === 'warning'
+      ? 'bg-amber-600 active:bg-amber-700'
+      : 'bg-primary-600 active:bg-primary-700';
 
   return (
     <Modal

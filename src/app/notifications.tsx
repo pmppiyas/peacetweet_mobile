@@ -17,6 +17,7 @@ import { notificationsApi } from '@/features/notifications/api/notifications.api
 import { NotificationItem } from '@/features/notifications/types/notification.types';
 import { NotificationSkeleton } from '@/features/notifications/components/NotificationSkeleton';
 import { NotificationItemRow } from '@/features/notifications/components/NotificationItemRow';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function NotificationsScreen() {
   const { width } = useWindowDimensions();
@@ -226,23 +227,20 @@ export default function NotificationsScreen() {
             {isInitialLoading ? (
               <NotificationSkeleton count={6} variant="page" />
             ) : notifications.length === 0 ? (
-              <View className="flex-col items-center justify-center py-16 px-6">
-                <View className="h-16 w-16 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] mb-3">
-                  <AppIcon
-                    android="inbox"
-                    ios="tray"
-                    size={32}
-                    color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
-                  />
-                </View>
-                <Text className="font-bold text-[#050505] dark:text-[#e4e6eb] text-base text-center">
-                  No notifications yet
-                </Text>
-                <Text className="text-xs mt-1 text-[#65676b] dark:text-[#b0b3b8] max-w-sm text-center leading-relaxed">
-                  When someone likes or comments on your posts, or sends you a
-                  friend request, you will see it here.
-                </Text>
-              </View>
+              <EmptyState
+                iconAndroid="inbox"
+                iconIos="tray"
+                title={
+                  locale === 'bn'
+                    ? 'কোনো বিজ্ঞপ্তি নেই'
+                    : 'No notifications yet'
+                }
+                description={
+                  locale === 'bn'
+                    ? 'কেউ আপনার পোস্টে লাইক বা কমেন্ট করলে, কিংবা ফ্রেন্ড রিকোয়েস্ট পাঠালে তা এখানে দেখতে পাবেন।'
+                    : 'When someone likes or comments on your posts, or sends you a friend request, you will see it here.'
+                }
+              />
             ) : (
               notifications.map((item) => (
                 <NotificationItemRow

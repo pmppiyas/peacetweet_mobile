@@ -21,6 +21,7 @@ import {
 import { chatApi } from '../api/chat.api';
 import { ChatAvatar } from './ChatAvatar';
 import { ConversationItemView } from './ConversationItemView';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export interface ConversationSidebarProps {
   conversations: ConversationItem[];
@@ -260,26 +261,20 @@ export function ConversationSidebar({
               </Text>
             </View>
           ) : friendResults.length === 0 && otherResults.length === 0 ? (
-            <View className="py-12 px-4 items-center">
-              <View className="mb-2 opacity-30">
-                <AppIcon
-                  android="person_off"
-                  ios="person.crop.circle.badge.xmark"
-                  size={40}
-                  color="#1877f2"
-                />
-              </View>
-              <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
-                {locale === 'bn'
+            <EmptyState
+              iconAndroid="person_off"
+              iconIos="person.crop.circle.badge.xmark"
+              title={
+                locale === 'bn'
                   ? 'কোনো ফলাফল পাওয়া যায়নি'
-                  : 'No results found'}
-              </Text>
-              <Text className="text-xs mt-1 max-w-[220px] text-[#65676b] dark:text-[#b0b3b8] text-center leading-relaxed">
-                {locale === 'bn'
+                  : 'No results found'
+              }
+              description={
+                locale === 'bn'
                   ? 'অন্য নাম বা ইউজারনেম দিয়ে আবার চেষ্টা করুন'
-                  : 'Try searching with a different name or username'}
-              </Text>
-            </View>
+                  : 'Try searching with a different name or username'
+              }
+            />
           ) : (
             <View className="flex-col gap-3">
               {/* 1. Friends Section (Top) */}
@@ -336,24 +331,18 @@ export function ConversationSidebar({
             ))}
           </View>
         ) : conversations.length === 0 ? (
-          <View className="py-12 px-4 items-center">
-            <View className="mb-3 opacity-30">
-              <AppIcon
-                android="chat_bubble"
-                ios="bubble.left.and.bubble.right"
-                size={40}
-                color="#1877f2"
-              />
-            </View>
-            <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
-              {locale === 'bn' ? 'এখনো কোনো মেসেজ নেই' : 'No messages yet'}
-            </Text>
-            <Text className="text-xs mt-1 max-w-[220px] text-[#65676b] dark:text-[#b0b3b8] text-center leading-relaxed">
-              {locale === 'bn'
-                ? 'ফ্রেন্ড খুঁজতে ওপরের সার্চ আইকন ব্যবহার করুন'
-                : 'Use search above to find a friend and start chatting'}
-            </Text>
-          </View>
+          <EmptyState
+            iconAndroid="chat_bubble"
+            iconIos="bubble.left.and.bubble.right"
+            title={
+              locale === 'bn' ? 'এখনো কোনো মেসেজ নেই' : 'No messages yet'
+            }
+            description={
+              locale === 'bn'
+                ? 'ফ্রেন্ড খুঁজতে ওপরের সার্চ ব্যবহার করুন অথবা কাউকে মেসেজ পাঠিয়ে নতুন কথোপকথন শুরু করুন।'
+                : 'Use search above to find a friend and start chatting.'
+            }
+          />
         ) : (
           <View className="flex-col gap-0.5">
             {conversations.map((conv) => {
