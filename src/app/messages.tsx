@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { chatApi } from '@/features/chat/api/chat.api';
+import { CACHE_KEYS, queryCache } from '@/lib/cache/queryCache';
 import {
   ChatUser,
   ConversationItem,
@@ -14,6 +15,8 @@ import { ChatView } from '@/features/chat/components/ChatView';
 import { EmptyChatPlaceholder } from '@/features/chat/components/EmptyChatPlaceholder';
 
 export default function MessagesScreen() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const { setActiveConversationId, setUnreadMessagesCount } = useUi();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const params = useLocalSearchParams<{
@@ -23,11 +26,30 @@ export default function MessagesScreen() {
     username?: string;
   }>();
 
-  const [conversations, setConversations] = useState<ConversationItem[]>([]);
+  const [conversations, setConversationsState] = useState<ConversationItem[]>(
+    () => queryCache.get<ConversationItem[]>(CACHE_KEYS.CHAT_CONVERSATIONS) || []
+  );
   const [selectedConversation, setSelectedConversation] =
     useState<ConversationItem | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(
+    () => !queryCache.has(CACHE_KEYS.CHAT_CONVERSATIONS)
+  );
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const setConversations = useCallback(
+    (
+      updater:
+        | ConversationItem[]
+        | ((prev: ConversationItem[]) => ConversationItem[])
+    ) => {
+      setConversationsState((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        queryCache.set(CACHE_KEYS.CHAT_CONVERSATIONS, next);
+        return next;
+      });
+    },
+    []
+  );
 
   // Sync activeConversationId with UiProvider so Navbar & MobileNav hide on mobile when inside an active chat
   useEffect(() => {
@@ -37,7 +59,7 @@ export default function MessagesScreen() {
     };
   }, [selectedConversation?.id, setActiveConversationId]);
 
-  // Redirect to /login if unauthenticated (matches MessagesLayout.tsx lines 90-94)
+  // Redirect to /login if unauthenticated (matches MessagesLayout.tsx)
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
       router.replace('/login');
@@ -51,7 +73,9 @@ export default function MessagesScreen() {
         return;
       }
 
-      if (!silent) setIsLoading(true);
+      if (!silent && !queryCache.has(CACHE_KEYS.CHAT_CONVERSATIONS)) {
+        setIsLoading(true);
+      }
       try {
         const convList = await chatApi.getConversations().catch(() => []);
         setConversations(convList);
@@ -83,7 +107,7 @@ export default function MessagesScreen() {
   );
 
   useEffect(() => {
-    loadChatData(false);
+    loadChatData(queryCache.has(CACHE_KEYS.CHAT_CONVERSATIONS));
 
     if (!isAuthenticated) return;
     const interval = setInterval(() => {
@@ -187,46 +211,44 @@ export default function MessagesScreen() {
     <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a] sm:bg-[#f0f2f5]">
       <View className="flex-1 w-full max-w-[1440px] mx-auto px-0 sm:px-4 lg:px-6">
         <View className="flex-1 flex-row h-full gap-4 lg:gap-6">
-          {/* 1. Left Sidebar: Chats / Conversations Sidebar (matches MessagesLayout.tsx lines 292-306) */}
-          <View
-            className={`w-full md:w-60 lg:w-60 xl:w-64 2xl:w-72 h-full shrink-0 flex-col ${
-              isChatActive ? 'hidden md:flex' : 'flex'
-            }`}>
-            <ConversationSidebar
-              conversations={conversations}
-              isLoading={isLoading}
-              isRefreshing={isRefreshing}
-              onRefresh={() => {
-                setIsRefreshing(true);
-                loadChatData(true);
-              }}
-              selectedId={selectedConversation?.id || null}
-              onSelectConversation={(conv) => setSelectedConversation(conv)}
-              onStartChatWithUser={handleStartChatWithUser}
-              currentUserId={user?.id}
-              totalUnreadCount={totalUnreadCount}
-            />
-          </View>
-
-          {/* 2. Main Area: Active Chat Window or Empty Placeholder (matches MessagesLayout.tsx lines 309-328) */}
-          <View
-            className={`flex-1 w-full min-w-0 h-full py-0 sm:py-3 lg:py-4 px-0 ${
-              isChatActive ? 'flex' : 'hidden md:flex'
-            }`}>
-            <View className="flex-1 w-full h-full bg-white dark:bg-[#242526] sm:rounded-2xl sm:border sm:border-[#e4e6eb] sm:dark:border-[#393a3b] overflow-hidden">
-              {selectedConversation ? (
-                <ChatView
-                  key={selectedConversation.id}
-                  conversation={selectedConversation}
-                  onBack={() => setSelectedConversation(null)}
-                  onConversationUpdated={handleConversationUpdated}
-                  onConversationMarkedRead={handleConversationMarkedRead}
-                />
-              ) : (
-                <EmptyChatPlaceholder />
-              )}
+          {/* 1. Left Sidebar: Chats / Conversations Sidebar */}
+          {!isChatActive || isDesktop ? (
+            <View className="w-full md:w-60 lg:w-60 xl:w-64 2xl:w-72 h-full shrink-0 flex-col">
+              <ConversationSidebar
+                conversations={conversations}
+                isLoading={isLoading}
+                isRefreshing={isRefreshing}
+                onRefresh={() => {
+                  setIsRefreshing(true);
+                  loadChatData(true);
+                }}
+                selectedId={selectedConversation?.id || null}
+                onSelectConversation={(conv) => setSelectedConversation(conv)}
+                onStartChatWithUser={handleStartChatWithUser}
+                currentUserId={user?.id}
+                totalUnreadCount={totalUnreadCount}
+              />
             </View>
-          </View>
+          ) : null}
+
+          {/* 2. Main Area: Active Chat Window or Empty Placeholder */}
+          {isChatActive || isDesktop ? (
+            <View className="flex-1 w-full min-w-0 h-full py-0 sm:py-3 lg:py-4 px-0">
+              <View className="flex-1 w-full h-full bg-white dark:bg-[#242526] sm:rounded-2xl sm:border sm:border-[#e4e6eb] sm:dark:border-[#393a3b] overflow-hidden">
+                {selectedConversation ? (
+                  <ChatView
+                    key={selectedConversation.id}
+                    conversation={selectedConversation}
+                    onBack={() => setSelectedConversation(null)}
+                    onConversationUpdated={handleConversationUpdated}
+                    onConversationMarkedRead={handleConversationMarkedRead}
+                  />
+                ) : (
+                  <EmptyChatPlaceholder />
+                )}
+              </View>
+            </View>
+          ) : null}
         </View>
       </View>
     </View>

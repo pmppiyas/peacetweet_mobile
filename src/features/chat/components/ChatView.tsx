@@ -12,6 +12,7 @@ import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { AppIcon } from '@/components/ui/Icon';
+import { CACHE_KEYS, queryCache } from '@/lib/cache/queryCache';
 import {
   ChatMessage,
   ConversationItem,
@@ -44,10 +45,26 @@ export function ChatView({
   const { user } = useAuth();
   const scrollViewRef = useRef<any>(null);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const cacheKey = CACHE_KEYS.CHAT_MESSAGES(conversation.id);
+  const [messages, setMessagesState] = useState<ChatMessage[]>(
+    () => queryCache.get<ChatMessage[]>(cacheKey) || []
+  );
   const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(
+    () => !queryCache.has(cacheKey)
+  );
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+
+  const setMessages = useCallback(
+    (updater: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+      setMessagesState((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        queryCache.set(cacheKey, next);
+        return next;
+      });
+    },
+    [cacheKey]
+  );
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(
@@ -68,7 +85,9 @@ export function ChatView({
 
   const loadMessages = useCallback(
     async (silent = false) => {
-      if (!silent) setIsLoading(true);
+      if (!silent && !queryCache.has(cacheKey)) {
+        setIsLoading(true);
+      }
       try {
         const res = await chatApi.getMessages(conversation.id, undefined, 30);
         setMessages(res.messages);
@@ -82,21 +101,29 @@ export function ChatView({
         }
       } catch {
       } finally {
-        if (!silent) setIsLoading(false);
+        setIsLoading(false);
       }
     },
     [
+      cacheKey,
       conversation.id,
       conversation.unreadCount,
       onConversationMarkedRead,
       scrollToBottom,
+      setMessages,
     ]
   );
 
   useEffect(() => {
     setEditingMessage(null);
     setText('');
-    loadMessages(false);
+    const cached = queryCache.get<ChatMessage[]>(cacheKey);
+    if (cached) {
+      setMessagesState(cached);
+      setIsLoading(false);
+      scrollToBottom(false);
+    }
+    loadMessages(Boolean(cached));
 
     const interval = setInterval(() => {
       loadMessages(true);
@@ -243,7 +270,9 @@ export function ChatView({
       <View className="relative flex-1 min-h-0 flex-col bg-[#f8f9fa] dark:bg-[#18191a]">
         <ScrollView
           ref={scrollViewRef}
-          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={!isLoading || messages.length > 0}
+          className="flex-1 no-scrollbar scrollbar-none"
           contentContainerClassName="flex-grow p-3 sm:p-5">
           {/* Loader or "Load Earlier Messages" Button */}
           {nextCursor ? (

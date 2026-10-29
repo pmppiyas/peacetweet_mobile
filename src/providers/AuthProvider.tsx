@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { authApi } from '@/features/auth/api/auth.api';
+import { queryCache } from '@/lib/cache/queryCache';
 import { tokenStorage, sessionStorage } from '@/lib/storage/secureStorage';
 import { LoginInput, RegisterInput, User } from '@/types/user.types';
 
@@ -100,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {}
     tokenStorage.clearTokens();
     sessionStorage.clearUser();
+    queryCache.clearAll();
     setUserState(null);
     router.replace('/');
   };

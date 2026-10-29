@@ -12,6 +12,9 @@ import {
   FeedItem,
 } from '@/features/feed/types/feed.types';
 import { bookmarkApi } from '@/features/bookmark/api/bookmark.api';
+import { chatApi } from '@/features/chat/api/chat.api';
+import { notificationsApi } from '@/features/notifications/api/notifications.api';
+import { CACHE_KEYS, queryCache } from '@/lib/cache/queryCache';
 import { TimeSlot } from '@/types/saved.types';
 import { useAuth } from './AuthProvider';
 
@@ -33,37 +36,88 @@ const FeedContext = createContext<FeedContextType | undefined>(undefined);
 
 export function FeedProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
-  const [items, setItems] = useState<FeedItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [items, setItems] = useState<FeedItem[]>(
+    () => queryCache.get<FeedItem[]>(CACHE_KEYS.FEED_ITEMS) || []
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(
+    () => !queryCache.has(CACHE_KEYS.FEED_ITEMS)
+  );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchFeed = useCallback(async (silent = false) => {
-    if (!silent) setIsLoading(true);
-    setError(null);
-    try {
-      const response = await feedApi.getFeed({ limit: 30 });
-      const feedData = (response as any)?.data ?? response;
-      const list: FeedItem[] = Array.isArray(feedData?.items)
-        ? feedData.items
-        : Array.isArray(feedData)
-          ? feedData
-          : [];
-      setItems(list);
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          'Failed to load feed from localhost:5000'
-      );
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, []);
+  const updateFeedState = useCallback(
+    (updater: FeedItem[] | ((prev: FeedItem[]) => FeedItem[])) => {
+      setItems((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        queryCache.set(CACHE_KEYS.FEED_ITEMS, next);
+        return next;
+      });
+    },
+    []
+  );
+
+  const fetchFeed = useCallback(
+    async (silent = false) => {
+      if (!silent && !queryCache.has(CACHE_KEYS.FEED_ITEMS)) {
+        setIsLoading(true);
+      }
+      setError(null);
+      try {
+        const response = await feedApi.getFeed({ limit: 30 });
+        const feedData = (response as any)?.data ?? response;
+        const list: FeedItem[] = Array.isArray(feedData?.items)
+          ? feedData.items
+          : Array.isArray(feedData)
+            ? feedData
+            : [];
+        updateFeedState(list);
+      } catch (err: any) {
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            'Failed to load feed from localhost:5000'
+        );
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [updateFeedState]
+  );
 
   useEffect(() => {
-    fetchFeed();
+    fetchFeed(queryCache.has(CACHE_KEYS.FEED_ITEMS));
+
+    // Pre-warm cache for Saved, Messages, and Notifications tabs when authenticated
+    if (isAuthenticated) {
+      if (!queryCache.has(CACHE_KEYS.SAVED_ITEMS)) {
+        bookmarkApi
+          .getSavedItems({ timeSlot: 'all', type: 'ALL', limit: 50 })
+          .then((res) => {
+            const list = ((res as any)?.data ?? res) as any[];
+            if (Array.isArray(list)) {
+              queryCache.set(CACHE_KEYS.SAVED_ITEMS, list);
+            }
+          })
+          .catch(() => {});
+      }
+      if (!queryCache.has(CACHE_KEYS.CHAT_CONVERSATIONS)) {
+        chatApi
+          .getConversations()
+          .then((list) => {
+            queryCache.set(CACHE_KEYS.CHAT_CONVERSATIONS, list);
+          })
+          .catch(() => {});
+      }
+      if (!queryCache.has(CACHE_KEYS.NOTIFICATIONS_LIST)) {
+        notificationsApi
+          .getNotifications({ page: 1, limit: 40 })
+          .then((res) => {
+            queryCache.set(CACHE_KEYS.NOTIFICATIONS_LIST, res.data || []);
+          })
+          .catch(() => {});
+      }
+    }
   }, [fetchFeed, isAuthenticated]);
 
   const refreshFeed = useCallback(async () => {

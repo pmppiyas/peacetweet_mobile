@@ -51,6 +51,7 @@ export const API_ENDPOINTS = {
     UNREAD_COUNT: '/notifications/unread-count',
     READ_ALL: '/notifications/read-all',
     MARK_READ: (id: string) => `/notifications/${id}/read`,
+    DELETE: (id: string) => `/notifications/${id}`,
   },
   CHAT: {
     CONVERSATIONS: '/chat/conversations',

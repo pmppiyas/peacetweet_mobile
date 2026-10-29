@@ -7,6 +7,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   TextInput,
+  useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
@@ -44,6 +45,8 @@ export function ConversationSidebar({
   currentUserId,
   totalUnreadCount = 0,
 }: ConversationSidebarProps) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const { locale, chatSearchQuery, setChatSearchQuery, theme } = useUi();
   const [isSearching, setIsSearching] = useState(false);
   const [creatingForUserId, setCreatingForUserId] = useState<string | null>(
@@ -53,6 +56,7 @@ export function ConversationSidebar({
   const [otherResults, setOtherResults] = useState<SearchedChatUser[]>([]);
 
   const activeQuery = chatSearchQuery.trim();
+  const isInitialLoading = isLoading && conversations.length === 0;
 
   useEffect(() => {
     if (!activeQuery) {
@@ -167,73 +171,78 @@ export function ConversationSidebar({
 
   return (
     <View className="w-full flex-1 flex-col bg-white dark:bg-[#18191a] md:bg-transparent overflow-hidden py-2 sm:py-3 lg:py-4 pr-0 md:pr-1">
-      {/* Top Header (Desktop only - Mobile has title & search in the top navbar) */}
-      <View className="hidden md:flex px-2 pb-2.5 flex-row items-center justify-between gap-2 shrink-0">
-        <View className="flex-row items-center gap-2 min-w-0">
-          <Pressable
-            onPress={() => router.push('/')}
-            className="h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e4e6eb]/70 dark:bg-[#3a3b3c]">
-            <AppIcon
-              android="arrow_back"
-              ios="chevron.left"
-              size={18}
-              color={theme === 'dark' ? '#e4e6eb' : '#050505'}
-            />
-          </Pressable>
-          <Text
-            numberOfLines={1}
-            className="text-xl font-bold tracking-tight text-[#050505] dark:text-white">
-            {locale === 'bn' ? 'মেসেজ' : 'Messages'}
-          </Text>
-          {totalUnreadCount > 0 ? (
-            <View className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary-600 items-center justify-center">
-              <Text className="text-[11px] font-bold text-white">
-                {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+      {/* Top Header & Search Input Bar (Desktop only - Mobile has title & search in the top navbar) */}
+      {isDesktop ? (
+        <>
+          <View className="px-2 pb-2.5 flex-row items-center justify-between gap-2 shrink-0">
+            <View className="flex-row items-center gap-2 min-w-0">
+              <Pressable
+                onPress={() => router.push('/')}
+                className="h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e4e6eb]/70 dark:bg-[#3a3b3c]">
+                <AppIcon
+                  android="arrow_back"
+                  ios="chevron.left"
+                  size={18}
+                  color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                />
+              </Pressable>
+              <Text
+                numberOfLines={1}
+                className="text-xl font-bold tracking-tight text-[#050505] dark:text-white">
+                {locale === 'bn' ? 'মেসেজ' : 'Messages'}
               </Text>
+              {totalUnreadCount > 0 ? (
+                <View className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary-600 items-center justify-center">
+                  <Text className="text-[11px] font-bold text-white">
+                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                  </Text>
+                </View>
+              ) : null}
             </View>
-          ) : null}
-        </View>
-      </View>
+          </View>
 
-      {/* Desktop Search Input Bar */}
-      <View className="hidden md:flex px-2 pb-2 shrink-0">
-        <View className="relative flex-row items-center rounded-xl bg-[#e4e6eb]/70 dark:bg-[#3a3b3c] px-3 py-2">
-          <AppIcon
-            android="search"
-            ios="magnifyingglass"
-            size={16}
-            color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
-          />
-          <TextInput
-            value={chatSearchQuery}
-            onChangeText={setChatSearchQuery}
-            placeholder={
-              locale === 'bn'
-                ? 'ফ্রেন্ড বা ইউজার খুঁজুন...'
-                : 'Search friends or users...'
-            }
-            placeholderTextColor={theme === 'dark' ? '#b0b3b8' : '#65676b'}
-            className="flex-1 ml-2 text-sm text-[#050505] dark:text-[#e4e6eb] py-0"
-          />
-          {chatSearchQuery.length > 0 ? (
-            <Pressable
-              onPress={() => setChatSearchQuery('')}
-              className="p-1 rounded-full">
+          <View className="px-2 pb-2 shrink-0">
+            <View className="relative flex-row items-center rounded-xl bg-[#e4e6eb]/70 dark:bg-[#3a3b3c] px-3 py-2">
               <AppIcon
-                android="close"
-                ios="xmark"
-                size={14}
-                color="#65676b"
+                android="search"
+                ios="magnifyingglass"
+                size={16}
+                color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
               />
-            </Pressable>
-          ) : null}
-        </View>
-      </View>
+              <TextInput
+                value={chatSearchQuery}
+                onChangeText={setChatSearchQuery}
+                placeholder={
+                  locale === 'bn'
+                    ? 'ফ্রেন্ড বা ইউজার খুঁজুন...'
+                    : 'Search friends or users...'
+                }
+                placeholderTextColor={theme === 'dark' ? '#b0b3b8' : '#65676b'}
+                className="flex-1 ml-2 text-sm text-[#050505] dark:text-[#e4e6eb] py-0"
+              />
+              {chatSearchQuery.length > 0 ? (
+                <Pressable
+                  onPress={() => setChatSearchQuery('')}
+                  className="p-1 rounded-full">
+                  <AppIcon
+                    android="close"
+                    ios="xmark"
+                    size={14}
+                    color="#65676b"
+                  />
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
+        </>
+      ) : null}
 
       {/* Content Area: Conversations or Friends Search Results */}
       <ScrollView
-        className="flex-1 px-1"
-        contentContainerClassName="pb-16 md:pb-2"
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={!isInitialLoading}
+        className="flex-1 px-1 no-scrollbar scrollbar-none"
+        contentContainerClassName={isInitialLoading ? 'pb-0' : 'pb-6 md:pb-2'}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -272,10 +281,10 @@ export function ConversationSidebar({
               </Text>
             </View>
           ) : (
-            <View className="space-y-3">
+            <View className="flex-col gap-3">
               {/* 1. Friends Section (Top) */}
               {friendResults.length > 0 ? (
-                <View className="space-y-0.5">
+                <View className="flex-col gap-0.5">
                   <View className="px-2.5 py-1 flex-row items-center justify-between">
                     <Text className="text-[11px] font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
                       {locale === 'bn' ? 'ফ্রেন্ডস' : 'Friends'}
@@ -292,7 +301,7 @@ export function ConversationSidebar({
 
               {/* 2. Others Section (Bottom) */}
               {otherResults.length > 0 ? (
-                <View className="space-y-0.5 mt-2">
+                <View className="flex-col gap-0.5">
                   <View className="px-2.5 py-1 flex-row items-center justify-between">
                     <Text className="text-[11px] font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
                       {locale === 'bn' ? 'অন্যান্য' : 'Others'}
@@ -308,16 +317,20 @@ export function ConversationSidebar({
               ) : null}
             </View>
           )
-        ) : isLoading ? (
-          <View className="space-y-0.5">
+        ) : isInitialLoading ? (
+          <View className="flex-col gap-0.5">
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <View
                 key={i}
                 className="flex-row items-center gap-2.5 px-2 py-2 rounded-xl">
                 <View className="h-11 w-11 rounded-full bg-gray-200 dark:bg-gray-700/60 shrink-0" />
-                <View className="flex-1 space-y-1.5 min-w-0">
-                  <View className="h-3.5 bg-gray-200 dark:bg-gray-700/60 rounded-md w-3/5" />
-                  <View className="h-3 bg-gray-200 dark:bg-gray-700/60 rounded-md w-4/5 mt-1.5" />
+                <View className="flex-1 gap-1.5 min-w-0">
+                  <View
+                    className={`h-3.5 bg-gray-200 dark:bg-gray-700/60 rounded-md ${
+                      i % 3 === 0 ? 'w-3/4' : i % 3 === 1 ? 'w-5/6' : 'w-2/3'
+                    }`}
+                  />
+                  <View className="h-3 bg-gray-200 dark:bg-gray-700/60 rounded-md w-16" />
                 </View>
               </View>
             ))}
@@ -342,7 +355,7 @@ export function ConversationSidebar({
             </Text>
           </View>
         ) : (
-          <View className="space-y-0.5">
+          <View className="flex-col gap-0.5">
             {conversations.map((conv) => {
               const other = getOtherUserFromConversation(conv);
               return (

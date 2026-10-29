@@ -13,6 +13,7 @@ import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
 import { bookmarkApi } from '@/features/bookmark/api/bookmark.api';
+import { CACHE_KEYS, queryCache } from '@/lib/cache/queryCache';
 import {
   SavedFeedItem,
   TimeSlot,
@@ -300,21 +301,42 @@ export default function SavedScreen() {
     }
   }, [params?.slot]);
 
-  const [allSavedItems, setAllSavedItems] = useState<SavedFeedItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [allSavedItems, setAllSavedItemsState] = useState<SavedFeedItem[]>(
+    () => queryCache.get<SavedFeedItem[]>(CACHE_KEYS.SAVED_ITEMS) || []
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(
+    () => !queryCache.has(CACHE_KEYS.SAVED_ITEMS)
+  );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isGlobalTasbihOpen, setIsGlobalTasbihOpen] = useState(false);
+
+  const setAllSavedItems = useCallback(
+    (
+      updater:
+        | SavedFeedItem[]
+        | ((prev: SavedFeedItem[]) => SavedFeedItem[])
+    ) => {
+      setAllSavedItemsState((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        queryCache.set(CACHE_KEYS.SAVED_ITEMS, next);
+        return next;
+      });
+    },
+    []
+  );
 
   const fetchSaved = useCallback(
     async (silent = false) => {
       if (!isAuthenticated) {
-        setAllSavedItems([]);
+        setAllSavedItemsState([]);
         setIsLoading(false);
         setIsRefreshing(false);
         return;
       }
 
-      if (!silent) setIsLoading(true);
+      if (!silent && !queryCache.has(CACHE_KEYS.SAVED_ITEMS)) {
+        setIsLoading(true);
+      }
       try {
         const res = await bookmarkApi.getSavedItems({
           timeSlot: 'all',
@@ -340,11 +362,11 @@ export default function SavedScreen() {
         setIsRefreshing(false);
       }
     },
-    [isAuthenticated, feedItems]
+    [isAuthenticated, feedItems, setAllSavedItems]
   );
 
   useEffect(() => {
-    fetchSaved();
+    fetchSaved(queryCache.has(CACHE_KEYS.SAVED_ITEMS));
   }, [fetchSaved]);
 
   const handleRefresh = async () => {

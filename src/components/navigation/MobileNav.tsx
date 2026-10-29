@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon, type AndroidSymbol } from '@/components/ui/Icon';
+import { notificationsApi } from '@/features/notifications/api/notifications.api';
 
 interface NavItem {
   id: string;
@@ -22,9 +23,29 @@ export function MobileNav() {
     setComposerModalOpen,
     activeConversationId,
     unreadMessagesCount,
+    unreadNotificationsCount,
+    setUnreadNotificationsCount,
     theme,
   } = useUi();
   const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUnreadNotificationsCount(0);
+      return;
+    }
+
+    const fetchUnread = () => {
+      notificationsApi
+        .getUnreadCount()
+        .then((count) => setUnreadNotificationsCount(count))
+        .catch(() => {});
+    };
+
+    fetchUnread();
+    const timer = setInterval(fetchUnread, 15000);
+    return () => clearInterval(timer);
+  }, [isAuthenticated, setUnreadNotificationsCount]);
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isMessagesActive =
@@ -70,6 +91,7 @@ export function MobileNav() {
       labelEn: 'Alerts',
       href: '/notifications',
       icon: 'notifications',
+      badge: unreadNotificationsCount,
     },
   ];
 

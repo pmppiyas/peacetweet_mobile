@@ -20,6 +20,8 @@ interface UiContextType {
   setActiveConversationId: (id: string | null) => void;
   unreadMessagesCount: number;
   setUnreadMessagesCount: (count: number) => void;
+  unreadNotificationsCount: number;
+  setUnreadNotificationsCount: (count: number) => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
 }
@@ -41,6 +43,7 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
     string | null
   >(null);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
@@ -80,6 +83,8 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         setActiveConversationId,
         unreadMessagesCount,
         setUnreadMessagesCount,
+        unreadNotificationsCount,
+        setUnreadNotificationsCount,
         theme,
         toggleTheme,
       }}>
