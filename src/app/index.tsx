@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, View, Pressable } from 'react-native';
+import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
 
 interface SamplePost {
@@ -375,6 +377,7 @@ function FeedPostCard({ post }: { post: SamplePost }) {
 
 export default function HomeScreen() {
   const { locale, setComposerModalOpen } = useUi();
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <ScrollView
@@ -383,64 +386,88 @@ export default function HomeScreen() {
       <View className="w-full max-w-[720px] mx-auto">
         {/* 1. Post Composer Card matching peacetweet_frontend PostComposer.tsx */}
         <View className="mx-2 mt-2 bg-white dark:bg-[#242526] rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] pt-2.5 pb-1 px-3">
-          <View className="flex-row items-center gap-2.5">
-            <View className="h-9 w-9 items-center justify-center rounded-full bg-primary-500">
-              <Text className="text-white font-bold text-xs">🕊️</Text>
+          {!isAuthenticated ? (
+            <View className="flex-row items-center justify-between gap-3 pb-1.5">
+              <View className="flex-row items-center gap-2.5 flex-1">
+                <View className="h-9 w-9 items-center justify-center rounded-xl bg-primary-500">
+                  <Text className="text-white font-black text-base">P</Text>
+                </View>
+                <Text className="flex-1 text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                  Sign in to share reflections, Duas, or blood donation requests.
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => router.push('/login')}
+                className="rounded-lg bg-primary-500 px-3.5 py-2">
+                <Text className="text-white text-xs font-semibold">Log In</Text>
+              </Pressable>
             </View>
+          ) : (
+            <>
+              <View className="flex-row items-center gap-2.5">
+                <View className="h-9 w-9 items-center justify-center rounded-full bg-primary-500">
+                  <Text className="text-white font-bold text-xs">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : '🕊️'}
+                  </Text>
+                </View>
 
-            <Pressable
-              onPress={() => setComposerModalOpen(true)}
-              className="h-9 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 justify-center">
-              <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
-                What&apos;s on your mind?
-              </Text>
-            </Pressable>
-          </View>
+                <Pressable
+                  onPress={() => setComposerModalOpen(true)}
+                  className="h-9 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 justify-center">
+                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                    {user?.name
+                      ? `${user.name.split(' ')[0]}, what's on your mind?`
+                      : "What's on your mind?"}
+                  </Text>
+                </Pressable>
+              </View>
 
-          {/* Compact 3-Column Bottom Action Buttons */}
-          <View className="flex-row gap-1 pt-1 mt-2 border-t border-[#e4e6eb] dark:border-[#393a3b]">
-            <Pressable
-              onPress={() => setComposerModalOpen(true)}
-              className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
-              <AppIcon
-                android="image"
-                ios="photo"
-                size={18}
-                color="#10b981"
-              />
-              <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn' ? 'ছবি / মিডিয়া' : 'Photo/video'}
-              </Text>
-            </Pressable>
+              {/* Compact 3-Column Bottom Action Buttons */}
+              <View className="flex-row gap-1 pt-1 mt-2 border-t border-[#e4e6eb] dark:border-[#393a3b]">
+                <Pressable
+                  onPress={() => setComposerModalOpen(true)}
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  <AppIcon
+                    android="image"
+                    ios="photo"
+                    size={18}
+                    color="#10b981"
+                  />
+                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'ছবি / মিডিয়া' : 'Photo/video'}
+                  </Text>
+                </Pressable>
 
-            <Pressable
-              onPress={() => setComposerModalOpen(true)}
-              className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
-              <AppIcon
-                android="menu_book"
-                ios="book"
-                size={18}
-                color="#6366f1"
-              />
-              <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn' ? 'দোয়া' : 'Dua'}
-              </Text>
-            </Pressable>
+                <Pressable
+                  onPress={() => setComposerModalOpen(true)}
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  <AppIcon
+                    android="menu_book"
+                    ios="book"
+                    size={18}
+                    color="#6366f1"
+                  />
+                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'দোয়া' : 'Dua'}
+                  </Text>
+                </Pressable>
 
-            <Pressable
-              onPress={() => setComposerModalOpen(true)}
-              className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
-              <AppIcon
-                android="sentiment_satisfied"
-                ios="face.smiling"
-                size={18}
-                color="#f59e0b"
-              />
-              <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn' ? 'অনুভূতি' : 'Feeling'}
-              </Text>
-            </Pressable>
-          </View>
+                <Pressable
+                  onPress={() => setComposerModalOpen(true)}
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  <AppIcon
+                    android="sentiment_satisfied"
+                    ios="face.smiling"
+                    size={18}
+                    color="#f59e0b"
+                  />
+                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'অনুভূতি' : 'Feeling'}
+                  </Text>
+                </Pressable>
+              </View>
+            </>
+          )}
         </View>
 
         {/* 2. Feed List Card matching peacetweet_frontend Feed.tsx & FeedList.tsx */}

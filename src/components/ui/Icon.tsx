@@ -1,14 +1,31 @@
 import React from 'react';
 import { SymbolView, SymbolViewProps } from 'expo-symbols';
-import boldWeight from 'expo-symbols/androidWeights/bold';
-import semiboldWeight from 'expo-symbols/androidWeights/semibold';
-import regularWeight from 'expo-symbols/androidWeights/regular';
+import {
+  MaterialSymbols_400Regular,
+  MaterialSymbols_600SemiBold,
+  MaterialSymbols_700Bold,
+} from '@expo-google-fonts/material-symbols';
 import type { SFSymbol } from 'sf-symbols-typescript';
 import { StyleProp, ViewStyle } from 'react-native';
 
 export type AndroidSymbol = NonNullable<
   Extract<SymbolViewProps['name'], { android?: string }>['android']
 >;
+
+const WEIGHT_MAP = {
+  regular: {
+    name: 'MaterialSymbols_400Regular',
+    font: MaterialSymbols_400Regular,
+  },
+  semibold: {
+    name: 'MaterialSymbols_600SemiBold',
+    font: MaterialSymbols_600SemiBold,
+  },
+  bold: {
+    name: 'MaterialSymbols_700Bold',
+    font: MaterialSymbols_700Bold,
+  },
+} as const;
 
 export interface AppIconProps {
   android: AndroidSymbol;
@@ -27,20 +44,13 @@ export function AppIcon({
   weight = 'bold',
   style,
 }: AppIconProps) {
-  const androidWeight =
-    weight === 'bold'
-      ? boldWeight
-      : weight === 'semibold'
-        ? semiboldWeight
-        : regularWeight;
-
   return (
     <SymbolView
       key={`${android}-${weight}`}
       name={{ ios, android, web: android }}
       size={size}
       tintColor={color}
-      weight={{ ios: weight, android: androidWeight }}
+      weight={{ ios: weight, android: WEIGHT_MAP[weight] }}
       style={style}
     />
   );

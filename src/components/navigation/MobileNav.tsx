@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon, type AndroidSymbol } from '@/components/ui/Icon';
 
 interface NavItem {
@@ -55,9 +56,18 @@ const NAV_ITEMS: NavItem[] = [
 export function MobileNav() {
   const pathname = usePathname();
   const { locale, setComposerModalOpen, theme } = useUi();
+  const { isAuthenticated } = useAuth();
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
   if (isAuthPage) return null;
+
+  const handleComposerPress = () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    setComposerModalOpen(true);
+  };
 
   return (
     <View className="w-full border-t border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526]">
@@ -69,7 +79,7 @@ export function MobileNav() {
             return (
               <Pressable
                 key={item.id}
-                onPress={() => setComposerModalOpen(true)}
+                onPress={handleComposerPress}
                 className="flex-1 flex-col items-center justify-center -top-2.5 z-20 h-full px-0.5 active:scale-95">
                 <View className="h-11 w-11 items-center justify-center rounded-full bg-primary-500 shadow-lg border-2 border-white dark:border-[#242526]">
                   <AppIcon

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon, type AndroidSymbol } from '@/components/ui/Icon';
 
 interface MenuItem {
@@ -114,6 +115,7 @@ export function MenuDrawer() {
     theme,
     toggleTheme,
   } = useUi();
+  const { user, isAuthenticated, logout } = useAuth();
 
   if (!isMenuDrawerOpen) return null;
 
@@ -158,49 +160,92 @@ export function MenuDrawer() {
 
           {/* Scrollable Content */}
           <ScrollView className="flex-1 p-3.5" contentContainerClassName="pb-8">
-            {/* Welcome / Auth Card */}
-            <View className="p-3.5 rounded-2xl border border-[#e4e6eb] bg-[#f0f2f5]/60 dark:border-[#393a3b] dark:bg-[#3a3b3c]/40 mb-3">
-              <Text className="font-bold text-sm text-[#050505] dark:text-white">
-                {locale === 'bn'
-                  ? 'PeaceTweet এ স্বাগতম'
-                  : 'Welcome to PeaceTweet'}
-              </Text>
-              <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5 mb-3">
-                {locale === 'bn'
-                  ? 'দোয়া ও ইসলামিক চিন্তার প্ল্যাটফর্মে যুক্ত হন'
-                  : 'Join the peaceful Dua & Islamic platform'}
-              </Text>
-
-              <View className="flex-row gap-2">
+            {/* User Account / Auth Section matching peacetweet_frontend MenuDrawer.tsx */}
+            {isAuthenticated && user ? (
+              <View className="mb-3 gap-2">
                 <Pressable
-                  onPress={() => closeAndNavigate('/login')}
-                  className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-primary-500 py-2">
+                  onPress={() => closeAndNavigate('/profile')}
+                  className="flex-row items-center gap-3 p-3 rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c]">
+                  <View className="h-11 w-11 items-center justify-center rounded-full bg-primary-500">
+                    <Text className="text-white font-bold text-base">
+                      {user.name?.charAt(0)?.toUpperCase() || 'P'}
+                    </Text>
+                  </View>
+                  <View className="flex-1">
+                    <Text
+                      numberOfLines={1}
+                      className="font-bold text-sm text-[#050505] dark:text-white">
+                      {user.name}
+                    </Text>
+                    <Text
+                      numberOfLines={1}
+                      className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                      {user.username ? `@${user.username}` : user.email}
+                    </Text>
+                  </View>
                   <AppIcon
-                    android="login"
-                    ios="arrow.right.square"
-                    size={14}
-                    color="#ffffff"
+                    android="chevron_right"
+                    size={18}
+                    color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
                   />
-                  <Text className="text-xs font-bold text-white">
-                    {locale === 'bn' ? 'লগইন' : 'Log In'}
-                  </Text>
                 </Pressable>
 
                 <Pressable
-                  onPress={() => closeAndNavigate('/register')}
-                  className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-[#e4e6eb] bg-white py-2 dark:border-[#393a3b] dark:bg-[#242526]">
-                  <AppIcon
-                    android="person_add"
-                    ios="person.badge.plus"
-                    size={14}
-                    color={theme === 'dark' ? '#e4e6eb' : '#050505'}
-                  />
-                  <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
-                    {locale === 'bn' ? 'যোগ দিন' : 'Join'}
+                  onPress={async () => {
+                    setMenuDrawerOpen(false);
+                    await logout();
+                  }}
+                  className="flex-row items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 dark:border-rose-900/60 dark:bg-rose-950/40">
+                  <AppIcon android="logout" size={15} color="#e11d48" />
+                  <Text className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                    {locale === 'bn' ? 'লগআউট করুন' : 'Log Out'}
                   </Text>
                 </Pressable>
               </View>
-            </View>
+            ) : (
+              <View className="p-3.5 rounded-2xl border border-[#e4e6eb] bg-[#f0f2f5]/60 dark:border-[#393a3b] dark:bg-[#3a3b3c]/40 mb-3">
+                <Text className="font-bold text-sm text-[#050505] dark:text-white">
+                  {locale === 'bn'
+                    ? 'PeaceTweet এ স্বাগতম'
+                    : 'Welcome to PeaceTweet'}
+                </Text>
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5 mb-3">
+                  {locale === 'bn'
+                    ? 'দোয়া ও ইসলামিক চিন্তার প্ল্যাটফর্মে যুক্ত হন'
+                    : 'Join the peaceful Dua & Islamic platform'}
+                </Text>
+
+                <View className="flex-row gap-2">
+                  <Pressable
+                    onPress={() => closeAndNavigate('/login')}
+                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-primary-500 py-2">
+                    <AppIcon
+                      android="login"
+                      ios="arrow.right.square"
+                      size={14}
+                      color="#ffffff"
+                    />
+                    <Text className="text-xs font-bold text-white">
+                      {locale === 'bn' ? 'লগইন' : 'Log In'}
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => closeAndNavigate('/register')}
+                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-[#e4e6eb] bg-white py-2 dark:border-[#393a3b] dark:bg-[#242526]">
+                    <AppIcon
+                      android="person_add"
+                      ios="person.badge.plus"
+                      size={14}
+                      color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                    />
+                    <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                      {locale === 'bn' ? 'যোগ দিন' : 'Join'}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
 
             {/* All Shortcuts */}
             <Text className="px-2 pb-1.5 text-[11px] font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">

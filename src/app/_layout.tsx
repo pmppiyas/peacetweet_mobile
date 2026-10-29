@@ -5,6 +5,7 @@ import { Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { UiProvider } from '@/providers/UiProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
 import { Navbar } from '@/components/navigation/Navbar';
 import { MobileNav } from '@/components/navigation/MobileNav';
 import { MenuDrawer } from '@/components/navigation/MenuDrawer';
@@ -20,15 +21,17 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <UiProvider>
-        <SafeAreaView className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
-          <Navbar />
-          <View className="flex-1 min-h-0">
-            <Slot />
-          </View>
-          <MobileNav />
-          <MenuDrawer />
-          <MobileComposerModal />
-        </SafeAreaView>
+        <AuthProvider>
+          <SafeAreaView className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
+            <Navbar />
+            <View className="flex-1 min-h-0">
+              <Slot />
+            </View>
+            <MobileNav />
+            <MenuDrawer />
+            <MobileComposerModal />
+          </SafeAreaView>
+        </AuthProvider>
       </UiProvider>
     </SafeAreaProvider>
   );

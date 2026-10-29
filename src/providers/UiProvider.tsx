@@ -1,5 +1,9 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'nativewind';
+import { appStorage } from '@/lib/storage/secureStorage';
+
+const LOCALE_STORAGE_KEY = 'peacetweet_locale';
+const THEME_STORAGE_KEY = 'peacetweet_theme';
 
 interface UiContextType {
   locale: 'bn' | 'en';
@@ -16,17 +20,36 @@ interface UiContextType {
 
 const UiContext = createContext<UiContextType | undefined>(undefined);
 
+function getInitialLocale(): 'bn' | 'en' {
+  const saved = appStorage.getItem(LOCALE_STORAGE_KEY);
+  return saved === 'en' || saved === 'bn' ? saved : 'bn';
+}
+
 export function UiProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocale] = useState<'bn' | 'en'>('bn');
+  const [locale, setLocaleState] = useState<'bn' | 'en'>(getInitialLocale);
   const [isMenuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isComposerModalOpen, setComposerModalOpen] = useState(false);
   const { colorScheme, setColorScheme } = useColorScheme();
 
+  useEffect(() => {
+    const savedTheme = appStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      setColorScheme(savedTheme);
+    }
+  }, [setColorScheme]);
+
+  const setLocale = (nextLocale: 'bn' | 'en') => {
+    setLocaleState(nextLocale);
+    appStorage.setItem(LOCALE_STORAGE_KEY, nextLocale);
+  };
+
   const theme = colorScheme === 'dark' ? 'dark' : 'light';
 
   const toggleTheme = () => {
-    setColorScheme(theme === 'dark' ? 'light' : 'dark');
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setColorScheme(nextTheme);
+    appStorage.setItem(THEME_STORAGE_KEY, nextTheme);
   };
 
   return (
