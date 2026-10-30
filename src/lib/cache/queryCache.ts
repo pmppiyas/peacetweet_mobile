@@ -14,6 +14,7 @@ export const CACHE_KEYS = {
   CHAT_CONVERSATIONS: 'chat:conversations',
   CHAT_MESSAGES: (conversationId: string) => `chat:messages:${conversationId}`,
   NOTIFICATIONS_LIST: 'notifications:list',
+  SEARCH_HISTORY: 'search:history',
 } as const;
 
 export const queryCache = {

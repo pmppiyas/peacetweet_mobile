@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Platform } from 'react-native';
 import { useUi } from '@/providers/UiProvider';
 import { AppIcon } from '@/components/ui/Icon';
@@ -66,6 +66,22 @@ export function MessageFeedItem({
 }: MessageFeedItemProps) {
   const { locale, theme } = useUi();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const isDeleted = Boolean(message.isDeleted);
   const isTemp = message.id.startsWith('temp');
@@ -118,12 +134,25 @@ export function MessageFeedItem({
 
         {/* Action Controls for Me */}
         {isMe && !isDeleted && !isTemp ? (
-          <View className="flex-row items-center gap-1 shrink-0 relative self-center">
+          <View
+            ref={menuRef}
+            className="relative shrink-0 self-center z-30">
+            <Pressable
+              onPress={() => setIsMenuOpen((prev) => !prev)}
+              className="p-1.5 rounded-full active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
+              <AppIcon
+                android="more_vert"
+                ios="ellipsis"
+                size={16}
+                color="#65676b"
+              />
+            </Pressable>
+
             {isMenuOpen ? (
-              <View className="w-36 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] shadow-xl py-1.5 mr-1 z-30">
+              <View className="absolute right-0 bottom-full mb-1.5 w-36 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] shadow-xl py-1.5 z-50">
                 <Pressable
                   onPress={handleCopy}
-                  className="w-full flex-row items-center gap-2.5 px-3 py-1.5 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  className="w-full flex-row items-center gap-2.5 px-3 py-2 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
                   <AppIcon
                     android="content_copy"
                     ios="doc.on.doc"
@@ -141,7 +170,7 @@ export function MessageFeedItem({
                       setIsMenuOpen(false);
                       onStartEdit(message);
                     }}
-                    className="w-full flex-row items-center gap-2.5 px-3 py-1.5 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                    className="w-full flex-row items-center gap-2.5 px-3 py-2 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
                     <AppIcon
                       android="edit"
                       ios="pencil"
@@ -160,7 +189,7 @@ export function MessageFeedItem({
                       setIsMenuOpen(false);
                       onRequestDelete(message);
                     }}
-                    className="w-full flex-row items-center gap-2.5 px-3 py-1.5 active:bg-red-50 dark:active:bg-red-950/30">
+                    className="w-full flex-row items-center gap-2.5 px-3 py-2 active:bg-red-50 dark:active:bg-red-950/30">
                     <AppIcon
                       android="delete"
                       ios="trash"
@@ -174,17 +203,6 @@ export function MessageFeedItem({
                 ) : null}
               </View>
             ) : null}
-
-            <Pressable
-              onPress={() => setIsMenuOpen((prev) => !prev)}
-              className="p-1.5 rounded-full active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
-              <AppIcon
-                android="more_vert"
-                ios="ellipsis"
-                size={16}
-                color="#65676b"
-              />
-            </Pressable>
           </View>
         ) : null}
 

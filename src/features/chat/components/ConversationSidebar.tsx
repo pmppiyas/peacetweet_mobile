@@ -22,6 +22,10 @@ import { chatApi } from '../api/chat.api';
 import { ChatAvatar } from './ChatAvatar';
 import { ConversationItemView } from './ConversationItemView';
 import { EmptyState } from '@/components/ui/EmptyState';
+import {
+  ConversationListSkeleton,
+  UserSearchSkeleton,
+} from './ChatSkeleton';
 
 export interface ConversationSidebarProps {
   conversations: ConversationItem[];
@@ -254,12 +258,7 @@ export function ConversationSidebar({
         }>
         {activeQuery ? (
           isSearching ? (
-            <View className="items-center justify-center py-12">
-              <ActivityIndicator size="small" color="#1877f2" />
-              <Text className="mt-2 text-xs font-medium text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn' ? 'খোঁজা হচ্ছে...' : 'Searching...'}
-              </Text>
-            </View>
+            <UserSearchSkeleton count={4} />
           ) : friendResults.length === 0 && otherResults.length === 0 ? (
             <EmptyState
               iconAndroid="person_off"
@@ -313,23 +312,7 @@ export function ConversationSidebar({
             </View>
           )
         ) : isInitialLoading ? (
-          <View className="flex-col gap-0.5">
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <View
-                key={i}
-                className="flex-row items-center gap-2.5 px-2 py-2 rounded-xl">
-                <View className="h-11 w-11 rounded-full bg-gray-200 dark:bg-gray-700/60 shrink-0" />
-                <View className="flex-1 gap-1.5 min-w-0">
-                  <View
-                    className={`h-3.5 bg-gray-200 dark:bg-gray-700/60 rounded-md ${
-                      i % 3 === 0 ? 'w-3/4' : i % 3 === 1 ? 'w-5/6' : 'w-2/3'
-                    }`}
-                  />
-                  <View className="h-3 bg-gray-200 dark:bg-gray-700/60 rounded-md w-16" />
-                </View>
-              </View>
-            ))}
-          </View>
+          <ConversationListSkeleton count={6} />
         ) : conversations.length === 0 ? (
           <EmptyState
             iconAndroid="chat_bubble"

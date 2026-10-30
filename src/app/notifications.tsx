@@ -33,6 +33,7 @@ export default function NotificationsScreen() {
     () => !queryCache.has(CACHE_KEYS.NOTIFICATIONS_LIST)
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [pendingDeleteItem, setPendingDeleteItem] =
     useState<NotificationItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -70,6 +71,7 @@ export default function NotificationsScreen() {
       if (!silent && !queryCache.has(CACHE_KEYS.NOTIFICATIONS_LIST)) {
         setIsLoading(true);
       }
+      setError(null);
       try {
         const res = await notificationsApi.getNotifications({
           page: 1,
@@ -96,6 +98,13 @@ export default function NotificationsScreen() {
             .catch(() => {});
         }
       } catch {
+        if (!silent && notifications.length === 0) {
+          setError(
+            locale === 'bn'
+              ? 'বিজ্ঞপ্তি লোড করতে সমস্যা হয়েছে। ইন্টারনেট সংযোগ পরীক্ষা করুন।'
+              : 'Failed to load notifications. Please check your connection.'
+          );
+        }
       } finally {
         if (!silent) setIsLoading(false);
         setIsRefreshing(false);
@@ -226,6 +235,25 @@ export default function NotificationsScreen() {
           <View className="flex-col gap-0.5">
             {isInitialLoading ? (
               <NotificationSkeleton count={6} variant="page" />
+            ) : error && notifications.length === 0 ? (
+              <View className="py-12 items-center justify-center gap-3 px-4">
+                <AppIcon
+                  android="error_outline"
+                  ios="exclamationmark.triangle"
+                  size={36}
+                  color="#ef4444"
+                />
+                <Text className="text-sm font-semibold text-rose-600 dark:text-rose-400 text-center">
+                  {error}
+                </Text>
+                <Pressable
+                  onPress={() => loadNotifications(false)}
+                  className="rounded-xl bg-primary-500 px-4 py-2 mt-1 active:opacity-90">
+                  <Text className="text-xs font-bold text-white">
+                    {locale === 'bn' ? 'আবার চেষ্টা করুন' : 'Retry'}
+                  </Text>
+                </Pressable>
+              </View>
             ) : notifications.length === 0 ? (
               <EmptyState
                 iconAndroid="inbox"

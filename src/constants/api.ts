@@ -67,5 +67,8 @@ export const API_ENDPOINTS = {
   },
   SEARCH: {
     GLOBAL: '/search',
+    HISTORY: '/search/history',
+    DELETE_HISTORY: (id: string) => `/search/history/${id}`,
+    CLEAR_HISTORY: '/search/history',
   },
 } as const;

@@ -24,6 +24,7 @@ import { ChatViewHeader } from './ChatViewHeader';
 import { MessageFeedItem } from './MessageFeedItem';
 import { MessageComposerView } from './MessageComposerView';
 import { ConversationDetailsModal } from './ConversationDetailsModal';
+import { ChatMessagesSkeleton } from './ChatSkeleton';
 
 export interface ChatViewProps {
   conversation: ConversationItem;
@@ -302,23 +303,7 @@ export function ChatView({
           ) : null}
 
           {isLoading && messages.length === 0 ? (
-            /* Skeleton matching MessageFeed.tsx lines 135-150 */
-            <View className="flex-1 justify-end p-2 space-y-4">
-              <View className="flex-row items-end gap-2 max-w-[80%]">
-                <View className="h-7 w-7 rounded-full bg-gray-200 dark:bg-gray-700/60 shrink-0" />
-                <View className="h-12 w-52 rounded-2xl rounded-bl-xs bg-gray-200 dark:bg-gray-700/60" />
-              </View>
-              <View className="flex-row items-end justify-end mt-3">
-                <View className="h-10 w-40 rounded-2xl rounded-br-xs bg-primary-100 dark:bg-primary-950/40" />
-              </View>
-              <View className="flex-row items-end gap-2 max-w-[80%] mt-3">
-                <View className="h-7 w-7 rounded-full bg-gray-200 dark:bg-gray-700/60 shrink-0" />
-                <View className="h-16 w-60 rounded-2xl rounded-bl-xs bg-gray-200 dark:bg-gray-700/60" />
-              </View>
-              <View className="flex-row items-end justify-end mt-3">
-                <View className="h-12 w-52 rounded-2xl rounded-br-xs bg-primary-100 dark:bg-primary-950/40" />
-              </View>
-            </View>
+            <ChatMessagesSkeleton />
           ) : messages.length === 0 ? (
             <EmptyState
               iconAndroid="chat_bubble"

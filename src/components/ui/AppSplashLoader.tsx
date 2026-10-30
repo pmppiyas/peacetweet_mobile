@@ -3,13 +3,37 @@ import { Animated, Easing, Platform, StyleSheet } from 'react-native';
 import { FullPageLoader } from './FullPageLoader';
 
 export function AppSplashLoader() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      // If the HTML pre-hydration #pt-splash-loader is present, we fade IT out directly
+      // without mounting a duplicate React loader.
+      return !Boolean(document.getElementById('pt-splash-loader'));
+    }
+    return true;
+  });
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // On Web, public/index.html already displays the exact FullPageLoader from 0ms while the JS bundle downloads.
-    // Once React mounts, we only need a brief smooth fade-out so there is zero white flash and no double delay.
-    const holdDuration = Platform.OS === 'web' ? 80 : 550;
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const htmlLoader = document.getElementById('pt-splash-loader');
+      if (htmlLoader) {
+        const fadeTimer = setTimeout(() => {
+          htmlLoader.style.opacity = '0';
+          htmlLoader.style.pointerEvents = 'none';
+        }, 120);
+
+        const removeTimer = setTimeout(() => {
+          htmlLoader.remove();
+        }, 380);
+
+        return () => {
+          clearTimeout(fadeTimer);
+          clearTimeout(removeTimer);
+        };
+      }
+    }
+
+    const holdDuration = 550;
     const fadeDuration = 220;
 
     const fadeTimer = setTimeout(() => {

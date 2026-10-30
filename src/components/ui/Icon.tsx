@@ -123,6 +123,17 @@ export function AppIcon({
       case 'chevron_left':
         return <Path d="m15 18-6-6 6-6" />;
 
+      case 'article':
+        return (
+          <>
+            <Path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+            <Path d="M14 2v4a2 2 0 0 0 2 2h4" />
+            <Path d="M10 9H8" />
+            <Path d="M16 13H8" />
+            <Path d="M16 17H8" />
+          </>
+        );
+
       case 'chevron_right':
         return <Path d="m9 18 6-6-6-6" />;
 

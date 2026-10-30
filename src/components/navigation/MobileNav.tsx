@@ -21,6 +21,8 @@ export function MobileNav() {
   const {
     locale,
     setComposerModalOpen,
+    isSearchOpen,
+    setSearchOpen,
     activeConversationId,
     unreadMessagesCount,
     unreadNotificationsCount,
@@ -53,7 +55,7 @@ export function MobileNav() {
   const isInsideActiveChat =
     isMessagesActive && Boolean(activeConversationId);
 
-  if (isAuthPage || isInsideActiveChat) return null;
+  if (isAuthPage || isInsideActiveChat || isSearchOpen) return null;
 
   const navItems: NavItem[] = [
     {
@@ -144,7 +146,10 @@ export function MobileNav() {
           return (
             <Pressable
               key={item.id}
-              onPress={() => router.push(href as any)}
+              onPress={() => {
+                setSearchOpen(false);
+                router.push(href as any);
+              }}
               className="flex-1 flex-col items-center justify-center gap-0.5 h-full px-0.5">
               <View className="relative items-center justify-center">
                 <AppIcon

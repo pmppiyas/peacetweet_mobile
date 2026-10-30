@@ -48,6 +48,7 @@
       }
       #root {
         display: flex;
+        flex-direction: column;
         height: 100%;
         flex: 1;
       }
@@ -60,111 +61,134 @@
           opacity: 1;
         }
       }
-      .pt-initial-loader {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        width: 100%;
-        height: 100%;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #ffffff;
-        user-select: none;
-        overflow: hidden;
+      #pt-splash-loader {
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        z-index: 99999 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background-color: #ffffff !important;
+        user-select: none !important;
+        overflow: hidden !important;
+        opacity: 1;
+        transition: opacity 0.25s ease-out;
       }
-      html.dark .pt-initial-loader {
-        background-color: #18191a;
+      html.dark #pt-splash-loader {
+        background-color: #18191a !important;
+      }
+      .pt-center-wrap {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
       .pt-center-logo {
-        width: 80px;
-        height: 80px;
-        border-radius: 24px;
-        overflow: hidden;
+        width: 80px !important;
+        height: 80px !important;
+        border-radius: 24px !important;
+        overflow: hidden !important;
         filter: drop-shadow(0 4px 6px rgba(24, 119, 242, 0.15));
         animation: pt-pulse-fade 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
       @media (min-width: 640px) {
         .pt-center-logo {
-          width: 96px;
-          height: 96px;
+          width: 96px !important;
+          height: 96px !important;
         }
       }
       .pt-bottom-brand {
-        position: absolute;
-        bottom: 32px;
-        left: 0;
-        right: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        text-align: center;
-        padding: 0 16px;
+        position: absolute !important;
+        bottom: 32px !important;
+        left: 0 !important;
+        right: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        text-align: center !important;
+        padding: 0 16px !important;
       }
       @media (min-width: 640px) {
         .pt-bottom-brand {
-          bottom: 40px;
+          bottom: 40px !important;
         }
       }
       .pt-from-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #8a8d91;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
+        display: block !important;
+        font-size: 11px !important;
+        line-height: 14px !important;
+        font-weight: 600 !important;
+        color: #8a8d91 !important;
+        letter-spacing: 0.1em !important;
+        text-transform: uppercase !important;
       }
       html.dark .pt-from-label {
-        color: #b0b3b8;
+        color: #b0b3b8 !important;
       }
       .pt-brand-row {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 8px;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
       }
       .pt-mini-logo {
-        width: 20px;
-        height: 20px;
-        border-radius: 6px;
-        overflow: hidden;
-        flex-shrink: 0;
+        width: 20px !important;
+        height: 20px !important;
+        border-radius: 6px !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
       .pt-brand-name {
-        font-size: 16px;
-        font-weight: 800;
-        letter-spacing: -0.025em;
-        background: linear-gradient(to right, #1565d8, #1877f2, #0d9488);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        color: transparent;
+        display: inline-block !important;
+        font-size: 16px !important;
+        line-height: 22px !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.025em !important;
+        background: linear-gradient(to right, #1565d8, #1877f2, #0d9488) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        color: transparent !important;
       }
       .pt-slogan {
-        margin: 0;
-        padding-top: 2px;
-        font-size: 12px;
-        font-weight: 500;
-        color: #65676b;
-        letter-spacing: 0.025em;
+        display: block !important;
+        margin: 0 !important;
+        padding-top: 2px !important;
+        font-size: 12px !important;
+        line-height: 18px !important;
+        font-weight: 500 !important;
+        color: #65676b !important;
+        letter-spacing: 0.025em !important;
       }
       @media (min-width: 640px) {
         .pt-slogan {
-          font-size: 13px;
+          font-size: 13px !important;
         }
       }
       html.dark .pt-slogan {
-        color: #b0b3b8;
+        color: #b0b3b8 !important;
       }
     </style>
   </head>
 
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root">
-      <div class="pt-initial-loader" role="status" aria-label="Loading PeaceTweet">
+
+    <!-- Pre-hydration Main App Loader (persists untouched across React mount, then fades out smoothly) -->
+    <div id="pt-splash-loader" role="status" aria-label="Loading PeaceTweet">
+      <div class="pt-center-wrap">
         <div class="pt-center-logo">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
             <defs>
@@ -182,32 +206,34 @@
             />
           </svg>
         </div>
+      </div>
 
-        <div class="pt-bottom-brand">
-          <span class="pt-from-label">from</span>
-          <div class="pt-brand-row">
-            <div class="pt-mini-logo">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="20">
-                <defs>
-                  <linearGradient id="pt-html-g2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="#1877f2" />
-                    <stop offset="1" stop-color="#1054be" />
-                  </linearGradient>
-                </defs>
-                <rect width="512" height="512" rx="112" fill="url(#pt-html-g2)" />
-                <path
-                  fill="#e8f0fe"
-                  fill-rule="evenodd"
-                  transform="translate(-29 0)"
-                  d="M170 110H285A115 115 0 0 1 285 340H250V512H170Z M250 190H285A35 35 0 0 1 285 260H250Z"
-                />
-              </svg>
-            </div>
-            <span class="pt-brand-name">PeaceTweet</span>
+      <div class="pt-bottom-brand">
+        <span class="pt-from-label">from</span>
+        <div class="pt-brand-row">
+          <div class="pt-mini-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="20">
+              <defs>
+                <linearGradient id="pt-html-g2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#1877f2" />
+                  <stop offset="1" stop-color="#1054be" />
+                </linearGradient>
+              </defs>
+              <rect width="512" height="512" rx="112" fill="url(#pt-html-g2)" />
+              <path
+                fill="#e8f0fe"
+                fill-rule="evenodd"
+                transform="translate(-29 0)"
+                d="M170 110H285A115 115 0 0 1 285 340H250V512H170Z M250 190H285A35 35 0 0 1 285 260H250Z"
+              />
+            </svg>
           </div>
-          <p class="pt-slogan">সুন্নাহ আঁকড়ে, উম্মাহর পাশে</p>
+          <span class="pt-brand-name">PeaceTweet</span>
         </div>
+        <p class="pt-slogan">সুন্নাহ আঁকড়ে, উম্মাহর পাশে</p>
       </div>
     </div>
+
+    <div id="root"></div>
   </body>
 </html>
