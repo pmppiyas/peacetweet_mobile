@@ -43,7 +43,7 @@ const MENU_ITEMS: MenuItem[] = [
     id: 'menu-categories',
     labelBn: 'বিষয়ভিত্তিক ক্যাটাগরি',
     labelEn: 'Categories',
-    href: '/explore',
+    href: '/categories',
     icon: 'layers',
     iconBg: 'bg-blue-600',
   },
@@ -51,7 +51,7 @@ const MENU_ITEMS: MenuItem[] = [
     id: 'menu-friends',
     labelBn: 'ফ্রেন্ডস',
     labelEn: 'Friends',
-    href: '/profile',
+    href: '/friends',
     icon: 'group',
     iconBg: 'bg-indigo-600',
   },
@@ -59,7 +59,7 @@ const MENU_ITEMS: MenuItem[] = [
     id: 'menu-groups',
     labelBn: 'গ্রুপসমূহ',
     labelEn: 'Groups',
-    href: '/explore',
+    href: '/groups',
     icon: 'groups',
     iconBg: 'bg-primary-600',
   },
@@ -67,7 +67,7 @@ const MENU_ITEMS: MenuItem[] = [
     id: 'menu-blood',
     labelBn: 'রক্তদান',
     labelEn: 'Blood Donation',
-    href: '/explore',
+    href: '/blood',
     icon: 'water_drop',
     iconBg: 'bg-rose-600',
   },
@@ -83,7 +83,7 @@ const MENU_ITEMS: MenuItem[] = [
     id: 'menu-settings',
     labelBn: 'সেটিংস',
     labelEn: 'Settings',
-    href: '/profile',
+    href: '/settings',
     icon: 'settings',
     iconBg: 'bg-gray-600',
   },
@@ -91,7 +91,7 @@ const MENU_ITEMS: MenuItem[] = [
     id: 'menu-purpose',
     labelBn: 'আমাদের উদ্দেশ্য',
     labelEn: 'Our Purpose',
-    href: '/explore',
+    href: '/purpose',
     icon: 'auto_awesome',
     iconBg: 'bg-emerald-600',
   },
@@ -99,7 +99,7 @@ const MENU_ITEMS: MenuItem[] = [
     id: 'menu-feedback',
     labelBn: 'পরামর্শ ও অভিযোগ',
     labelEn: 'Feedback & Report',
-    href: '/explore',
+    href: '/feedback',
     icon: 'feedback',
     iconBg: 'bg-teal-600',
   },
@@ -258,7 +258,10 @@ export function MenuDrawer() {
               {MENU_ITEMS.map((item) => {
                 const isActive = item.exact
                   ? pathname === item.href
-                  : pathname.startsWith(item.href) && item.href !== '/';
+                  : item.href === '/categories'
+                    ? pathname === '/categories' || pathname === '/explore'
+                    : pathname === item.href ||
+                      (pathname.startsWith(item.href + '/') && item.href !== '/');
 
                 return (
                   <Pressable

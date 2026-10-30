@@ -291,7 +291,7 @@ export function SearchPageView() {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       className="flex-1 bg-white dark:bg-[#242526] no-scrollbar scrollbar-none"
-      contentContainerClassName="py-3 px-3 sm:px-6 pb-24"
+      contentContainerClassName="py-3 px-3 sm:px-6 pb-6"
     >
       <View className="w-full max-w-[720px] mx-auto gap-3.5">
         {/* Category Filter Tabs (Shown when typing or exploring) */}

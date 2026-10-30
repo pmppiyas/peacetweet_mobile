@@ -450,7 +450,7 @@ export default function SavedScreen() {
     <View className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-24"
+        contentContainerClassName="pb-6"
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}

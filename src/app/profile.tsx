@@ -11,7 +11,9 @@ export default function ProfileScreen() {
 
   if (!isAuthenticated || !user) {
     return (
-      <ScrollView className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a] px-3 pt-4">
+      <ScrollView
+        className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+        contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 20 }}>
         <View className="w-full max-w-[720px] mx-auto bg-white dark:bg-[#242526] rounded-2xl p-6 border border-[#e4e6eb] dark:border-[#393a3b] items-center">
           <View className="w-16 h-16 rounded-full bg-primary-50 dark:bg-primary-950/60 items-center justify-center mb-3">
             <AppIcon android="person" size={28} color="#1877f2" />
@@ -49,7 +51,9 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a] px-3 pt-3">
+    <ScrollView
+      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 20 }}>
       <View className="w-full max-w-[720px] mx-auto bg-white dark:bg-[#242526] rounded-2xl p-5 border border-[#e4e6eb] dark:border-[#393a3b] items-center">
         <View className="w-20 h-20 rounded-full bg-primary-500 items-center justify-center mb-3 shadow-sm">
           <Text className="text-white text-3xl font-black">
