@@ -13,6 +13,7 @@ import { useUi } from '@/providers/UiProvider';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/constants/api';
 import { AppIcon, type AndroidSymbol } from '@/components/ui/Icon';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface CategoryItem {
   id: string;
@@ -252,9 +253,28 @@ export default function CategoriesScreen() {
         {/* Categories Grid */}
         <View className="space-y-2.5">
           {isLoading ? (
-            <View className="py-12 items-center justify-center">
-              <ActivityIndicator size="small" color="#1877f2" />
-            </View>
+            Array.from({ length: 6 }).map((_, i) => (
+              <View
+                key={i}
+                className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 flex-row items-center justify-between">
+                <View className="flex-row items-center gap-3.5 flex-1 pr-3">
+                  <Skeleton className="h-11 w-11 rounded-2xl shrink-0" />
+                  <View className="flex-1 gap-1.5">
+                    <Skeleton
+                      className={`h-4 rounded-md ${
+                        i % 3 === 0 ? 'w-36' : i % 3 === 1 ? 'w-44' : 'w-32'
+                      }`}
+                    />
+                    <Skeleton
+                      className={`h-3 rounded-md ${
+                        i % 2 === 0 ? 'w-56' : 'w-48'
+                      }`}
+                    />
+                  </View>
+                </View>
+                <Skeleton className="h-4 w-4 rounded-md" />
+              </View>
+            ))
           ) : filteredCategories.length === 0 ? (
             <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center bg-white dark:bg-[#242526]">
               <AppIcon android="info" size={24} color="#65676b" />

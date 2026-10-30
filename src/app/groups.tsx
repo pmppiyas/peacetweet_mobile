@@ -10,6 +10,7 @@ import {
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
+import { AuthPromptCard } from '@/components/ui/AuthPromptCard';
 
 interface CommunityGroup {
   id: string;
@@ -237,7 +238,17 @@ export default function GroupsScreen() {
 
         {/* Groups List */}
         <View className="space-y-3">
-          {filteredGroups.length === 0 ? (
+          {activeTab === 'my' && !isAuthenticated ? (
+            <AuthPromptCard
+              icon="groups"
+              iconBgColor="bg-emerald-50 dark:bg-emerald-950/60"
+              iconColor="#059669"
+              titleBn="আপনার গ্রুপসমূহ দেখতে লগইন করুন"
+              titleEn="Sign in to view your Groups"
+              descriptionBn="আপনার যুক্ত থাকা গ্রুপসমূহ দেখতে এবং নতুন গ্রুপে যোগ দিতে অ্যাকাউন্টে প্রবেশ করুন।"
+              descriptionEn="Log in to your account to view your joined communities and manage group activities."
+            />
+          ) : filteredGroups.length === 0 ? (
             <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center bg-white dark:bg-[#242526]">
               <AppIcon android="info" size={24} color="#65676b" />
               <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">

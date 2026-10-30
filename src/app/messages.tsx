@@ -13,6 +13,7 @@ import {
 import { ConversationSidebar } from '@/features/chat/components/ConversationSidebar';
 import { ChatView } from '@/features/chat/components/ChatView';
 import { EmptyChatPlaceholder } from '@/features/chat/components/EmptyChatPlaceholder';
+import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
 
 export default function MessagesScreen() {
   const { width } = useWindowDimensions();
@@ -59,12 +60,20 @@ export default function MessagesScreen() {
     };
   }, [selectedConversation?.id, setActiveConversationId]);
 
-  // Redirect to /login if unauthenticated (matches MessagesLayout.tsx)
-  useEffect(() => {
-    if (!isAuthLoading && !isAuthenticated) {
-      router.replace('/login');
-    }
-  }, [isAuthLoading, isAuthenticated]);
+  // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
+  if (!isAuthLoading && !isAuthenticated) {
+    return (
+      <AuthPromptScreen
+        icon="chat_bubble"
+        iconBgColor="bg-blue-50 dark:bg-blue-950/60"
+        iconColor="#1877f2"
+        titleBn="মেসেজ দেখতে লগইন করুন"
+        titleEn="Sign in to view Messages"
+        descriptionBn="আপনার কনভারসেশন ও ফ্রেন্ডদের সাথে বার্তা আদান-প্রদান করতে অ্যাকাউন্টে প্রবেশ করুন।"
+        descriptionEn="Log in to your account to view conversations, send direct messages, and chat with friends."
+      />
+    );
+  }
 
   const loadChatData = useCallback(
     async (silent = false) => {

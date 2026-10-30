@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
+import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
 
 export default function ProfileScreen() {
   const { locale } = useUi();
@@ -11,42 +12,15 @@ export default function ProfileScreen() {
 
   if (!isAuthenticated || !user) {
     return (
-      <ScrollView
-        className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-        contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}>
-        <View className="w-full max-w-[720px] mx-auto bg-white dark:bg-[#242526] rounded-2xl p-4 border border-[#e4e6eb] dark:border-[#393a3b] items-center">
-          <View className="w-16 h-16 rounded-full bg-primary-50 dark:bg-primary-950/60 items-center justify-center mb-3">
-            <AppIcon android="person" size={28} color="#1877f2" />
-          </View>
-          <Text className="text-lg font-bold text-[#050505] dark:text-[#e4e6eb] mb-1">
-            {locale === 'bn'
-              ? 'প্রোফাইল দেখতে লগইন করুন'
-              : 'Sign in to view your Profile'}
-          </Text>
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center mb-4">
-            {locale === 'bn'
-              ? 'আপনার পোস্ট, সংরক্ষিত দোয়া এবং প্রোফাইল তথ্য দেখতে অ্যাকাউন্টে প্রবেশ করুন।'
-              : 'Log in to access your posts, saved Duas, and profile settings.'}
-          </Text>
-
-          <View className="flex-row gap-2.5 w-full max-w-[280px]">
-            <Pressable
-              onPress={() => router.push('/login')}
-              className="flex-1 rounded-xl bg-primary-500 py-2.5 items-center">
-              <Text className="text-xs font-bold text-white">
-                {locale === 'bn' ? 'লগইন করুন' : 'Log In'}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => router.push('/register')}
-              className="flex-1 rounded-xl bg-emerald-600 py-2.5 items-center">
-              <Text className="text-xs font-bold text-white">
-                {locale === 'bn' ? 'রেজিস্টার' : 'Register'}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </ScrollView>
+      <AuthPromptScreen
+        icon="person"
+        iconBgColor="bg-primary-50 dark:bg-primary-950/60"
+        iconColor="#1877f2"
+        titleBn="প্রোফাইল দেখতে লগইন করুন"
+        titleEn="Sign in to view your Profile"
+        descriptionBn="আপনার পোস্ট, সংরক্ষিত দোয়া এবং প্রোফাইল তথ্য দেখতে অ্যাকাউন্টে প্রবেশ করুন।"
+        descriptionEn="Log in to access your profile, personal posts, saved Duas, and account settings."
+      />
     );
   }
 

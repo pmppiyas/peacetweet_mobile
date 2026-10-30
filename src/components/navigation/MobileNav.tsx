@@ -99,7 +99,7 @@ export function MobileNav() {
 
   const handleComposerPress = () => {
     if (!isAuthenticated) {
-      router.push('/login');
+      router.push('/create');
       return;
     }
     setComposerModalOpen(true);

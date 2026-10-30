@@ -28,6 +28,8 @@ import { TasbihModal } from '@/features/bookmark/components/TasbihWidget';
 import { AppIcon } from '@/components/ui/Icon';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { AuthPromptCard } from '@/components/ui/AuthPromptCard';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface SavedContentCardProps {
   item: SavedFeedItem;
@@ -489,28 +491,16 @@ export default function SavedScreen() {
 
           {/* 2. Content Area */}
           {!isAuthenticated ? (
-            <View className="mx-3 mt-3 bg-white dark:bg-[#242526] rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center">
-              <View className="h-14 w-14 rounded-full bg-amber-50 dark:bg-amber-950/60 items-center justify-center mb-3">
-                <AppIcon android="bookmark" size={28} color="#d97706" />
-              </View>
-              <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
-                {locale === 'bn'
-                  ? 'সংরক্ষিত দোয়া ও পোস্ট দেখতে লগইন করুন'
-                  : 'Sign in to view Saved Duas & Posts'}
-              </Text>
-              <Text className="mt-1.5 text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-xs leading-relaxed">
-                {locale === 'bn'
-                  ? 'আপনার পছন্দের দোয়া ও পোস্টগুলো সকাল-সন্ধ্যার রুটিন অনুযায়ী সেভ করে রাখতে লগইন করুন।'
-                  : 'Log in to save your favorite Duas and posts organized by daily prayer routines.'}
-              </Text>
-              <Pressable
-                onPress={() => router.push('/login')}
-                className="mt-4 rounded-xl bg-primary-500 px-5 py-2.5">
-                <Text className="text-white text-xs font-bold">
-                  {locale === 'bn' ? 'লগইন করুন' : 'Log In'}
-                </Text>
-              </Pressable>
-            </View>
+            <AuthPromptCard
+              icon="bookmark"
+              iconBgColor="bg-amber-50 dark:bg-amber-950/60"
+              iconColor="#d97706"
+              titleBn="সংরক্ষিত দোয়া ও পোস্ট দেখতে লগইন করুন"
+              titleEn="Sign in to view Saved Duas & Posts"
+              descriptionBn="আপনার পছন্দের দোয়া ও পোস্টগুলো সকাল-সন্ধ্যার রুটিন অনুযায়ী সেভ করে রাখতে লগইন করুন।"
+              descriptionEn="Log in to save your favorite Duas and posts organized by daily prayer routines."
+              className="mt-3"
+            />
           ) : (
             <View className="mt-2.5 gap-2.5">
               {/* Fallback Banner when routine time has no items */}
@@ -526,13 +516,32 @@ export default function SavedScreen() {
               )}
 
               {isLoading ? (
-                <View className="py-12 items-center justify-center gap-2 bg-white dark:bg-[#242526] border-y border-[#e4e6eb] dark:border-[#393a3b]">
-                  <ActivityIndicator size="large" color="#1877f2" />
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
-                    {locale === 'bn'
-                      ? 'সংরক্ষিত তালিকা লোড হচ্ছে...'
-                      : 'Loading saved items...'}
-                  </Text>
+                <View className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <View
+                      key={i}
+                      className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] p-3.5 space-y-3">
+                      <View className="flex-row items-center justify-between">
+                        <View className="flex-row items-center gap-2 flex-1">
+                          <Skeleton className="h-9 w-9 rounded-full" />
+                          <View className="gap-1.5 flex-1">
+                            <Skeleton className="h-3.5 w-32 rounded-md" />
+                            <Skeleton className="h-3 w-20 rounded-md" />
+                          </View>
+                        </View>
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                      </View>
+                      <View className="space-y-1.5 py-1">
+                        <Skeleton className="h-4 w-4/5 rounded-md" />
+                        <Skeleton className="h-3.5 w-full rounded-md" />
+                        <Skeleton className="h-3.5 w-2/3 rounded-md" />
+                      </View>
+                      <View className="pt-2 border-t border-[#f0f2f5] dark:border-[#393a3b] flex-row items-center justify-between">
+                        <Skeleton className="h-7 w-20 rounded-xl" />
+                        <Skeleton className="h-7 w-24 rounded-xl" />
+                      </View>
+                    </View>
+                  ))}
                 </View>
               ) : displayedItems.length === 0 ? (
                 <EmptyState

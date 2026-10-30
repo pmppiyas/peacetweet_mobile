@@ -13,6 +13,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
 import { AppIcon } from '@/components/ui/Icon';
 import { FeedPostCard } from '@/features/feed/components/FeedPostCard';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function HomeScreen() {
   const { locale, setComposerModalOpen } = useUi();
@@ -119,13 +120,30 @@ export default function HomeScreen() {
 
         {/* 2. Feed List Card synced with http://localhost:5000/api/v1/feed */}
         {isLoading && items.length === 0 ? (
-          <View className="py-12 items-center justify-center gap-2">
-            <ActivityIndicator size="large" color="#1877f2" />
-            <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
-              {locale === 'bn'
-                ? 'ফিড লোড হচ্ছে...'
-                : 'Loading feed from server...'}
-            </Text>
+          <View className="w-full mt-2.5 space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <View
+                key={i}
+                className="bg-white dark:bg-[#242526] border-y border-[#e4e6eb] dark:border-[#393a3b] p-3 space-y-3">
+                <View className="flex-row items-center gap-2.5">
+                  <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                  <View className="flex-1 gap-1.5">
+                    <Skeleton className="h-3.5 w-32 rounded-md" />
+                    <Skeleton className="h-2.5 w-20 rounded-md" />
+                  </View>
+                </View>
+                <View className="space-y-1.5">
+                  <Skeleton className="h-4 w-5/6 rounded-md" />
+                  <Skeleton className="h-4 w-full rounded-md" />
+                  <Skeleton className="h-4 w-3/4 rounded-md" />
+                </View>
+                <View className="pt-2 border-t border-[#f0f2f5] dark:border-[#393a3b] flex-row justify-around">
+                  <Skeleton className="h-7 w-20 rounded-xl" />
+                  <Skeleton className="h-7 w-20 rounded-xl" />
+                  <Skeleton className="h-7 w-20 rounded-xl" />
+                </View>
+              </View>
+            ))}
           </View>
         ) : error && items.length === 0 ? (
           <View className="mx-2 mt-3 rounded-2xl bg-white dark:bg-[#242526] p-6 items-center gap-3 border border-[#e4e6eb] dark:border-[#393a3b]">

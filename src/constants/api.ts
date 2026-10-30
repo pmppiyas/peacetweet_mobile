@@ -63,6 +63,14 @@ export const API_ENDPOINTS = {
   },
   FRIENDS: {
     LIST: '/friends',
+    RECEIVED_REQUESTS: '/friends/requests/received',
+    SENT_REQUESTS: '/friends/requests/sent',
+    STATUS: (userId: string) => `/friends/status/${userId}`,
+    SEND_REQUEST: '/friends/requests',
+    CANCEL_REQUEST: (requestId: string) => `/friends/requests/${requestId}`,
+    ACCEPT_REQUEST: (requestId: string) => `/friends/requests/${requestId}/accept`,
+    REJECT_REQUEST: (requestId: string) => `/friends/requests/${requestId}/reject`,
+    UNFRIEND: (userId: string) => `/friends/${userId}`,
     SUGGESTIONS: '/friends/suggestions',
   },
   SEARCH: {

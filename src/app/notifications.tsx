@@ -18,6 +18,7 @@ import { NotificationItem } from '@/features/notifications/types/notification.ty
 import { NotificationSkeleton } from '@/features/notifications/components/NotificationSkeleton';
 import { NotificationItemRow } from '@/features/notifications/components/NotificationItemRow';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
 
 export default function NotificationsScreen() {
   const { width } = useWindowDimensions();
@@ -54,12 +55,20 @@ export default function NotificationsScreen() {
     []
   );
 
-  // Auth protection matching frontend protected route
-  useEffect(() => {
-    if (!isAuthLoading && !isAuthenticated) {
-      router.replace('/login');
-    }
-  }, [isAuthLoading, isAuthenticated]);
+  // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
+  if (!isAuthLoading && !isAuthenticated) {
+    return (
+      <AuthPromptScreen
+        icon="notifications"
+        iconBgColor="bg-amber-50 dark:bg-amber-950/60"
+        iconColor="#d97706"
+        titleBn="বিজ্ঞপ্তি দেখতে লগইন করুন"
+        titleEn="Sign in to view Notifications"
+        descriptionBn="আপনার পোস্টের প্রতিক্রিয়া, কমেন্ট ও গুরুত্বপূর্ণ নোটিফিকেশন পেতে অ্যাকাউন্টে প্রবেশ করুন।"
+        descriptionEn="Log in to your account to view reactions, comments, mentions, and updates."
+      />
+    );
+  }
 
   const loadNotifications = useCallback(
     async (silent = false) => {
