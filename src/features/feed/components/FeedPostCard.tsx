@@ -200,7 +200,9 @@ export function PostBody({
     <View className="gap-3">
       {/* Caption / editorial note */}
       {post.content ? (
-        <Text className="text-[15px] text-[#050505] dark:text-[#e4e6eb] leading-6">
+        <Text
+          selectable={true}
+          className="text-[15px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
           {post.content}
         </Text>
       ) : null}
@@ -209,16 +211,22 @@ export function PostBody({
       {post.type === 'DUA' && dua && !(dua as any).isUnavailable ? (
         <View className="gap-3">
           {dua.title && (!post.content || post.content !== dua.title) ? (
-            <Text className="text-[16px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+            <Text
+              selectable={true}
+              className="text-[16px] font-bold text-[#050505] dark:text-[#e4e6eb] select-text">
               🌙 {dua.title}
             </Text>
           ) : null}
           {dua.fadilah ? (
             <View className="gap-1">
-              <Text className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+              <Text
+                selectable={false}
+                className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
                 {locale === 'bn' ? 'ফযীলত:' : 'Virtue:'}
               </Text>
-              <Text className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6">
+              <Text
+                selectable={true}
+                className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
                 {dua.fadilah}
               </Text>
             </View>
@@ -228,13 +236,15 @@ export function PostBody({
             <View className="gap-2">
               <Pressable
                 onPress={() => setShowArabic(!showArabic)}
-                className="flex-row items-center gap-1.5 py-1 self-start">
+                className="flex-row items-center gap-1.5 py-1 self-start select-none">
                 <AppIcon
                   android="translate"
                   size={14}
                   color={theme === 'dark' ? '#4a80f5' : '#1565d8'}
                 />
-                <Text className="text-xs font-semibold text-primary-600 dark:text-primary-400">
+                <Text
+                  selectable={false}
+                  className="text-xs font-semibold text-primary-600 dark:text-primary-400 select-none">
                   {showArabic
                     ? 'আরবি লুকান'
                     : 'আরবি টেক্সট দেখুন (Arabic Text)'}
@@ -243,7 +253,9 @@ export function PostBody({
 
               {showArabic ? (
                 <View className="py-2 px-3 rounded-xl bg-[#f8f9fa] dark:bg-[#18191a]">
-                  <Text className="text-right text-2xl text-[#050505] dark:text-[#e4e6eb] leading-10">
+                  <Text
+                    selectable={true}
+                    className="text-right text-2xl text-[#050505] dark:text-[#e4e6eb] leading-10 select-text">
                     {dua.arabicText}
                   </Text>
                 </View>
@@ -253,10 +265,14 @@ export function PostBody({
 
           {dua.transliteration ? (
             <View className="gap-1">
-              <Text className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+              <Text
+                selectable={false}
+                className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
                 {locale === 'bn' ? 'উচ্চারণ:' : 'Pronunciation:'}
               </Text>
-              <Text className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6">
+              <Text
+                selectable={true}
+                className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
                 {dua.transliteration}
               </Text>
             </View>
@@ -264,10 +280,14 @@ export function PostBody({
 
           {dua.meaning || dua.meaningBangla ? (
             <View className="gap-1">
-              <Text className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+              <Text
+                selectable={false}
+                className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
                 {locale === 'bn' ? 'অর্থ:' : 'Meaning:'}
               </Text>
-              <Text className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6">
+              <Text
+                selectable={true}
+                className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
                 {dua.meaning || dua.meaningBangla}
               </Text>
             </View>
@@ -275,7 +295,9 @@ export function PostBody({
 
           {dua.references && dua.references.length > 0 ? (
             <View className="pt-0.5">
-              <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+              <Text
+                selectable={true}
+                className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] select-text">
                 📖{' '}
                 {dua.references
                   .map((r) =>
@@ -293,18 +315,24 @@ export function PostBody({
       {/* Blood request details */}
       {post.type === 'BLOOD_REQUEST' && blood && !(blood as any).isUnavailable ? (
         <View className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/20 p-3 gap-2">
-          <View className="flex-row items-center gap-2">
-            <View className="h-9 w-9 rounded-lg bg-rose-600 items-center justify-center">
-              <Text className="text-white font-black text-xs">
+          <View className="flex-row items-center gap-2 select-none">
+            <View className="h-9 w-9 rounded-lg bg-rose-600 items-center justify-center select-none">
+              <Text
+                selectable={false}
+                className="text-white font-black text-xs select-none">
                 {BLOOD_LABEL_MAP[blood.bloodGroup] || blood.bloodGroup}
               </Text>
             </View>
             <View className="flex-1">
-              <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+              <Text
+                selectable={true}
+                className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-text">
                 {blood.patientName}
                 {blood.patientAge ? ` (${blood.patientAge})` : ''}
               </Text>
-              <Text className="text-xs text-rose-600 dark:text-rose-400 font-semibold">
+              <Text
+                selectable={false}
+                className="text-xs text-rose-600 dark:text-rose-400 font-semibold select-none">
                 {blood.urgency} • {blood.units}{' '}
                 {locale === 'bn' ? 'ব্যাগ' : 'Bag(s)'}
                 {typeof blood.unitsFulfilled === 'number'
@@ -315,26 +343,36 @@ export function PostBody({
           </View>
 
           {blood.problem ? (
-            <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+            <Text
+              selectable={true}
+              className="text-xs text-[#050505] dark:text-[#e4e6eb] select-text">
               🩺 {blood.problem}
             </Text>
           ) : null}
-          <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+          <Text
+            selectable={true}
+            className="text-xs text-[#050505] dark:text-[#e4e6eb] select-text">
             🏥 {blood.hospitalName}
             {blood.hospitalAddress ? `, ${blood.hospitalAddress}` : ''} (
             {blood.location})
           </Text>
           {neededDate ? (
-            <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+            <Text
+              selectable={false}
+              className="text-xs text-[#050505] dark:text-[#e4e6eb] select-none">
               📅 {neededDate}
             </Text>
           ) : null}
-          <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+          <Text
+            selectable={true}
+            className="text-xs font-bold text-primary-600 dark:text-primary-400 select-text">
             📞 {blood.contactNumber}
             {blood.alternateContact ? ` / ${blood.alternateContact}` : ''}
           </Text>
           {blood.note ? (
-            <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+            <Text
+              selectable={true}
+              className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-text">
               📝 {blood.note}
             </Text>
           ) : null}
@@ -462,9 +500,11 @@ export function FeedPostCard({
               size="md"
             />
 
-            <View className="flex-1">
-              <View className="flex-row items-center gap-1.5 flex-wrap">
-                <Text className="font-bold text-[15px] text-[#050505] dark:text-[#e4e6eb]">
+            <View className="flex-1 select-none">
+              <View className="flex-row items-center gap-1.5 flex-wrap select-none">
+                <Text
+                  selectable={false}
+                  className="font-bold text-[15px] text-[#050505] dark:text-[#e4e6eb] select-none">
                   {authorName}
                 </Text>
                 <AppIcon
@@ -474,9 +514,13 @@ export function FeedPostCard({
                   color="#1877f2"
                 />
                 {feelingItem && (
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text
+                    selectable={false}
+                    className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
                     is feeling{' '}
-                    <Text className="font-semibold text-[#050505] dark:text-[#e4e6eb]">
+                    <Text
+                      selectable={false}
+                      className="font-semibold text-[#050505] dark:text-[#e4e6eb] select-none">
                       {feelingItem.label}
                     </Text>{' '}
                     {feelingItem.emoji}
@@ -484,17 +528,25 @@ export function FeedPostCard({
                 )}
               </View>
 
-              <View className="flex-row items-center gap-1.5 mt-0.5">
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+              <View className="flex-row items-center gap-1.5 mt-0.5 select-none">
+                <Text
+                  selectable={false}
+                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
                   @{authorUsername}
                 </Text>
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                <Text
+                  selectable={false}
+                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
                   •
                 </Text>
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                <Text
+                  selectable={false}
+                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
                   {formatRelativeDate(post.createdAt, locale)}
                 </Text>
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                <Text
+                  selectable={false}
+                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
                   •
                 </Text>
                 <AppIcon
@@ -564,11 +616,11 @@ export function FeedPostCard({
       </View>
 
       {/* 3. 4-Column Action Bar matching FeedItem.tsx */}
-      <View className="flex-row px-2 py-1 mt-2 border-t border-[#e4e6eb]/70 dark:border-[#393a3b]/70">
+      <View className="flex-row px-2 py-1 mt-2 border-t border-[#e4e6eb]/70 dark:border-[#393a3b]/70 select-none">
         {/* Reaction (Ameen / Like) */}
         <Pressable
           onPress={() => toggleReaction(post.id, hasReacted)}
-          className={`flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg ${
+          className={`flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg select-none ${
             hasReacted ? 'bg-rose-50/50 dark:bg-rose-950/20' : ''
           }`}>
           <AppIcon
@@ -584,7 +636,8 @@ export function FeedPostCard({
             }
           />
           <Text
-            className={`text-xs font-semibold ${
+            selectable={false}
+            className={`text-xs font-semibold select-none ${
               hasReacted
                 ? 'text-rose-600 dark:text-rose-400'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -598,7 +651,8 @@ export function FeedPostCard({
                 : 'Like'}
           </Text>
           <Text
-            className={`text-[11px] font-bold opacity-80 ${
+            selectable={false}
+            className={`text-[11px] font-bold opacity-80 select-none ${
               hasReacted
                 ? 'text-rose-600 dark:text-rose-400'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -610,7 +664,7 @@ export function FeedPostCard({
         {/* Comment */}
         <Pressable
           onPress={handleToggleComments}
-          className={`flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg ${
+          className={`flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg select-none ${
             showComments ? 'bg-primary-50/50 dark:bg-primary-950/20' : ''
           }`}>
           <AppIcon
@@ -626,14 +680,17 @@ export function FeedPostCard({
             }
           />
           <Text
-            className={`text-xs font-semibold ${
+            selectable={false}
+            className={`text-xs font-semibold select-none ${
               showComments
                 ? 'text-primary-600 dark:text-primary-400'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
             }`}>
             {locale === 'bn' ? 'মন্তব্য' : 'Comment'}
           </Text>
-          <Text className="text-[11px] font-bold opacity-80 text-[#65676b] dark:text-[#b0b3b8]">
+          <Text
+            selectable={false}
+            className="text-[11px] font-bold opacity-80 text-[#65676b] dark:text-[#b0b3b8] select-none">
             ({commentCount})
           </Text>
         </Pressable>
@@ -641,7 +698,7 @@ export function FeedPostCard({
         {/* Save */}
         <Pressable
           onPress={handleToggleSave}
-          className={`flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg ${
+          className={`flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg select-none ${
             hasSaved ? 'bg-amber-50/50 dark:bg-amber-950/20' : ''
           }`}>
           <AppIcon
@@ -657,7 +714,8 @@ export function FeedPostCard({
             }
           />
           <Text
-            className={`text-xs font-semibold ${
+            selectable={false}
+            className={`text-xs font-semibold select-none ${
               hasSaved
                 ? 'text-amber-600 dark:text-amber-400'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -671,7 +729,8 @@ export function FeedPostCard({
                 : 'Save'}
           </Text>
           <Text
-            className={`text-[11px] font-bold opacity-80 ${
+            selectable={false}
+            className={`text-[11px] font-bold opacity-80 select-none ${
               hasSaved
                 ? 'text-amber-600 dark:text-amber-400'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -681,17 +740,21 @@ export function FeedPostCard({
         </Pressable>
 
         {/* Share */}
-        <Pressable className="flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg">
+        <Pressable className="flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg select-none">
           <AppIcon
             android="share"
             ios="square.and.arrow.up"
             size={16}
             color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
           />
-          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+          <Text
+            selectable={false}
+            className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] select-none">
             {locale === 'bn' ? 'শেয়ার' : 'Share'}
           </Text>
-          <Text className="text-[11px] font-bold opacity-80 text-[#65676b] dark:text-[#b0b3b8]">
+          <Text
+            selectable={false}
+            className="text-[11px] font-bold opacity-80 text-[#65676b] dark:text-[#b0b3b8] select-none">
             ({shareCount})
           </Text>
         </Pressable>
@@ -782,10 +845,14 @@ export function FeedPostCard({
                     </Text>
                   </View>
                   <View className="flex-1 rounded-2xl bg-white dark:bg-[#242526] px-3 py-1.5 border border-[#e4e6eb]/60 dark:border-[#393a3b]/60">
-                    <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                    <Text
+                      selectable={false}
+                      className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
                       {c.author?.name || 'User'}
                     </Text>
-                    <Text className="text-xs text-[#050505] dark:text-[#e4e6eb] mt-0.5">
+                    <Text
+                      selectable={true}
+                      className="text-xs text-[#050505] dark:text-[#e4e6eb] mt-0.5 select-text">
                       {c.content}
                     </Text>
                   </View>

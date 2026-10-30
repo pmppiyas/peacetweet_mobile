@@ -178,7 +178,7 @@ export function Navbar() {
         };
 
   return (
-    <View className="w-full h-14 border-b border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526] px-3 flex-row items-center justify-between">
+    <View className="w-full h-14 border-b border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526] px-3 flex-row items-center justify-between select-none">
       {/* Left: Brand Logo */}
       <Pressable
         onPress={() => {
@@ -190,8 +190,10 @@ export function Navbar() {
             router.push('/');
           }
         }}
-        className="flex-row items-center gap-2.5 shrink-0">
-        <Text className="text-2xl sm:text-[27px] font-black tracking-tight text-primary-700 dark:text-white">
+        className="flex-row items-center gap-2.5 shrink-0 select-none">
+        <Text
+          selectable={false}
+          className="text-2xl sm:text-[27px] font-black tracking-tight text-primary-700 dark:text-white select-none">
           PeaceTweet
         </Text>
       </Pressable>

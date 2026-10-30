@@ -106,8 +106,8 @@ export function MobileNav() {
   };
 
   return (
-    <View className="w-full border-t border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526]">
-      <View className="flex-row h-14 items-center">
+    <View className="w-full border-t border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526] select-none">
+      <View className="flex-row h-14 items-center select-none">
         {navItems.map((item) => {
           const label = locale === 'bn' ? item.labelBn : item.labelEn;
 
@@ -116,8 +116,8 @@ export function MobileNav() {
               <Pressable
                 key={item.id}
                 onPress={handleComposerPress}
-                className="flex-1 flex-col items-center justify-center -top-2.5 z-20 h-full px-0.5 active:scale-95">
-                <View className="h-11 w-11 items-center justify-center rounded-full bg-primary-500 shadow-lg border-2 border-white dark:border-[#242526]">
+                className="flex-1 flex-col items-center justify-center -top-2.5 z-20 h-full px-0.5 active:scale-95 select-none">
+                <View className="h-11 w-11 items-center justify-center rounded-full bg-primary-500 shadow-lg border-2 border-white dark:border-[#242526] select-none">
                   <AppIcon
                     android="add"
                     ios="plus"
@@ -126,7 +126,9 @@ export function MobileNav() {
                     color="#ffffff"
                   />
                 </View>
-                <Text className="text-[10px] font-bold mt-0.5 text-primary-600 dark:text-primary-400">
+                <Text
+                  selectable={false}
+                  className="text-[10px] font-bold mt-0.5 text-primary-600 dark:text-primary-400 select-none">
                   {label}
                 </Text>
               </Pressable>
@@ -150,8 +152,8 @@ export function MobileNav() {
                 setSearchOpen(false);
                 router.push(href as any);
               }}
-              className="flex-1 flex-col items-center justify-center gap-0.5 h-full px-0.5">
-              <View className="relative items-center justify-center">
+              className="flex-1 flex-col items-center justify-center gap-0.5 h-full px-0.5 select-none">
+              <View className="relative items-center justify-center select-none">
                 <AppIcon
                   android={item.icon}
                   size={22}
@@ -159,15 +161,18 @@ export function MobileNav() {
                   color={iconColor}
                 />
                 {typeof item.badge === 'number' && item.badge > 0 ? (
-                  <View className="absolute -top-1 -right-2 h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1">
-                    <Text className="text-[9px] font-bold text-white">
+                  <View className="absolute -top-1 -right-2 h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 select-none">
+                    <Text
+                      selectable={false}
+                      className="text-[9px] font-bold text-white select-none">
                       {item.badge > 9 ? '9+' : item.badge}
                     </Text>
                   </View>
                 ) : null}
               </View>
               <Text
-                className={`text-[10px] leading-tight ${
+                selectable={false}
+                className={`text-[10px] leading-tight select-none ${
                   isActive
                     ? 'text-primary-500 dark:text-primary-400 font-bold'
                     : 'text-[#65676b] dark:text-[#b0b3b8] font-semibold'

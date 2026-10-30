@@ -300,7 +300,7 @@ export function SearchPageView() {
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            className="w-full bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-xl p-1 no-scrollbar scrollbar-none"
+            className="w-full bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-xl p-1 no-scrollbar scrollbar-none select-none"
             contentContainerClassName="flex-row items-center gap-1.5"
           >
             {TABS.map((tab) => {
@@ -309,7 +309,7 @@ export function SearchPageView() {
                 <Pressable
                   key={tab.id}
                   onPress={() => setActiveTab(tab.id)}
-                  className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-lg ${
+                  className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-lg select-none ${
                     isActive
                       ? 'bg-primary-500 shadow-xs'
                       : 'bg-transparent hover:bg-white/60 dark:hover:bg-[#242526]'
@@ -323,7 +323,8 @@ export function SearchPageView() {
                     }
                   />
                   <Text
-                    className={`text-xs font-bold ${
+                    selectable={false}
+                    className={`text-xs font-bold select-none ${
                       isActive
                         ? 'text-white'
                         : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -339,16 +340,18 @@ export function SearchPageView() {
 
         {/* STATE 1: Empty Query -> Dedicated Full-Page Recent Searches */}
         {trimmedQuery.length === 0 ? (
-          <View className="w-full">
-            <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-3 mb-2 px-1">
-              <View className="flex-row items-center gap-2">
+          <View className="w-full select-none">
+            <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-3 mb-2 px-1 select-none">
+              <View className="flex-row items-center gap-2 select-none">
                 <AppIcon
                   android="schedule"
                   ios="clock"
                   size={17}
                   color={isDark ? '#b0b3b8' : '#65676b'}
                 />
-                <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+                <Text
+                  selectable={false}
+                  className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
                   {locale === 'bn' ? 'সাম্প্রতিক অনুসন্ধান' : 'Recent Searches'}
                 </Text>
               </View>
@@ -356,9 +359,11 @@ export function SearchPageView() {
                 <Pressable
                   onPress={handleClearAllHistory}
                   hitSlop={8}
-                  className="px-2.5 py-1 rounded-md active:opacity-75"
+                  className="px-2.5 py-1 rounded-md active:opacity-75 select-none"
                 >
-                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                  <Text
+                    selectable={false}
+                    className="text-xs font-bold text-primary-600 dark:text-primary-400 select-none">
                     {locale === 'bn' ? 'সব মুছুন' : 'Clear all'}
                   </Text>
                 </Pressable>
@@ -366,9 +371,9 @@ export function SearchPageView() {
             </View>
 
             {isHistoryLoading ? (
-              <View className="gap-2.5 py-3 px-1">
+              <View className="gap-2.5 py-3 px-1 select-none">
                 {[1, 2, 3].map((i) => (
-                  <View key={i} className="flex-row items-center gap-3 py-1.5">
+                  <View key={i} className="flex-row items-center gap-3 py-1.5 select-none">
                     <View className="h-9 w-9 rounded-full bg-[#e4e6eb] dark:bg-[#3a3b3c]" />
                     <View className="flex-1 gap-1.5">
                       <View className="h-3.5 w-1/2 rounded bg-[#e4e6eb] dark:bg-[#3a3b3c]" />
@@ -391,17 +396,17 @@ export function SearchPageView() {
                     ? 'মানুষ, দোয়া, গ্রুপ বা পোস্ট খুঁজলে সেগুলো এখানে দেখতে পাবেন।'
                     : 'Search for people, duas, or groups to see them here.'
                 }
-                className="py-14"
+                className="py-14 select-none"
               />
             ) : (
-              <View className="divide-y divide-[#e4e6eb]/60 dark:divide-[#393a3b]/60">
+              <View className="divide-y divide-[#e4e6eb]/60 dark:divide-[#393a3b]/60 select-none">
                 {history.map((item) => (
                   <Pressable
                     key={item.id}
                     onPress={() => handleSelectHistoryItem(item)}
-                    className="flex-row items-center justify-between gap-3 py-2.5 px-2 rounded-xl hover:bg-[#f0f2f5] active:bg-[#e4e6eb] dark:hover:bg-[#3a3b3c] dark:active:bg-[#4e4f50]"
+                    className="flex-row items-center justify-between gap-3 py-2.5 px-2 rounded-xl hover:bg-[#f0f2f5] active:bg-[#e4e6eb] dark:hover:bg-[#3a3b3c] dark:active:bg-[#4e4f50] select-none"
                   >
-                    <View className="flex-row items-center gap-3 min-w-0 flex-1">
+                    <View className="flex-row items-center gap-3 min-w-0 flex-1 select-none">
                       {item.entityType === 'USER' ? (
                         <UserAvatar
                           avatarUrl={item.entityAvatar}
@@ -409,7 +414,7 @@ export function SearchPageView() {
                           size="sm"
                         />
                       ) : item.entityType === 'DUA' ? (
-                        <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/50">
+                        <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/50 select-none">
                           <AppIcon
                             android="menu_book"
                             size={18}
@@ -417,11 +422,11 @@ export function SearchPageView() {
                           />
                         </View>
                       ) : item.entityType === 'GROUP' ? (
-                        <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-950/50">
+                        <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-950/50 select-none">
                           <AppIcon android="groups" size={18} color="#2563eb" />
                         </View>
                       ) : (
-                        <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c]">
+                        <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] select-none">
                           <AppIcon
                             android="schedule"
                             ios="clock"
@@ -431,17 +436,19 @@ export function SearchPageView() {
                         </View>
                       )}
 
-                      <View className="min-w-0 flex-1">
+                      <View className="min-w-0 flex-1 select-none">
                         <Text
+                          selectable={false}
                           numberOfLines={1}
-                          className="text-sm font-semibold text-[#050505] dark:text-[#e4e6eb]"
+                          className="text-sm font-semibold text-[#050505] dark:text-[#e4e6eb] select-none"
                         >
                           {item.entityName || item.query}
                         </Text>
                         {item.entitySubtext ? (
                           <Text
+                            selectable={false}
                             numberOfLines={1}
-                            className="text-xs text-[#65676b] dark:text-[#b0b3b8]"
+                            className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none"
                           >
                             {item.entitySubtext}
                           </Text>
@@ -455,7 +462,7 @@ export function SearchPageView() {
                         handleDeleteHistoryItem(item.id);
                       }}
                       hitSlop={8}
-                      className="h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-[#e4e6eb] dark:hover:bg-[#4e4f50] active:scale-95"
+                      className="h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-[#e4e6eb] dark:hover:bg-[#4e4f50] active:scale-95 select-none"
                     >
                       <AppIcon
                         android="close"
@@ -471,7 +478,7 @@ export function SearchPageView() {
           </View>
         ) : (
           /* STATE 2: User is typing -> Full Page Categorized Search Results */
-          <View className="gap-3.5">
+          <View className="gap-3.5 select-none">
             {/* Quick Search Keyword Row */}
             <Pressable
               onPress={() => {
@@ -481,22 +488,25 @@ export function SearchPageView() {
                 });
                 executeSearch(trimmedQuery, activeTab);
               }}
-              className="flex-row items-center gap-3 rounded-xl bg-white dark:bg-[#242526] p-3 border border-[#e4e6eb] dark:border-[#393a3b] active:opacity-85"
+              className="flex-row items-center gap-3 rounded-xl bg-white dark:bg-[#242526] p-3 border border-[#e4e6eb] dark:border-[#393a3b] active:opacity-85 select-none"
             >
-              <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-500">
+              <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-500 select-none">
                 <AppIcon android="search" size={18} color="#ffffff" />
               </View>
-              <View className="min-w-0 flex-1">
+              <View className="min-w-0 flex-1 select-none">
                 <Text
+                  selectable={false}
                   numberOfLines={1}
-                  className="text-sm text-[#050505] dark:text-[#e4e6eb]"
+                  className="text-sm text-[#050505] dark:text-[#e4e6eb] select-none"
                 >
                   {locale === 'bn' ? 'অনুসন্ধান করুন ' : 'Search for '}
-                  <Text className="font-bold text-primary-600 dark:text-primary-400">
+                  <Text className="font-bold text-primary-600 dark:text-primary-400 select-none">
                     &quot;{trimmedQuery}&quot;
                   </Text>
                 </Text>
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                <Text
+                  selectable={false}
+                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
                   {locale === 'bn'
                     ? 'সকল মানুষ, দোয়া, গ্রুপ এবং পোস্ট খুঁজুন'
                     : 'Search all posts, people, duas, and groups'}
@@ -560,40 +570,44 @@ export function SearchPageView() {
                 {/* 1. PEOPLE */}
                 {(activeTab === 'ALL' || activeTab === 'USERS') &&
                 results.users.length > 0 ? (
-                  <View className="rounded-xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b] gap-2">
-                    <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-2">
-                      <View className="flex-row items-center gap-1.5">
+                  <View className="rounded-xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b] gap-2 select-none">
+                    <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-2 select-none">
+                      <View className="flex-row items-center gap-1.5 select-none">
                         <AppIcon android="person" size={16} color="#1877f2" />
-                        <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        <Text
+                          selectable={false}
+                          className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
                           {locale === 'bn' ? 'মানুষ' : 'People'} (
                           {results.users.length})
                         </Text>
                       </View>
                     </View>
 
-                    <View className="divide-y divide-[#e4e6eb] dark:divide-[#393a3b]">
+                    <View className="divide-y divide-[#e4e6eb] dark:divide-[#393a3b] select-none">
                       {results.users.map((u) => (
                         <Pressable
                           key={u.id}
                           onPress={() => handleSelectUser(u)}
-                          className="flex-row items-center justify-between py-2.5 gap-3"
+                          className="flex-row items-center justify-between py-2.5 gap-3 select-none"
                         >
-                          <View className="flex-row items-center gap-3 min-w-0 flex-1">
+                          <View className="flex-row items-center gap-3 min-w-0 flex-1 select-none">
                             <UserAvatar
                               avatarUrl={u.avatarUrl}
                               name={u.name}
                               size="md"
                             />
-                            <View className="min-w-0 flex-1">
+                            <View className="min-w-0 flex-1 select-none">
                               <Text
+                                selectable={false}
                                 numberOfLines={1}
-                                className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb]"
+                                className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb] select-none"
                               >
                                 {u.name}
                               </Text>
                               <Text
+                                selectable={false}
                                 numberOfLines={1}
-                                className="text-xs text-[#65676b] dark:text-[#b0b3b8]"
+                                className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none"
                               >
                                 @{u.username}
                               </Text>
@@ -602,9 +616,11 @@ export function SearchPageView() {
 
                           <Pressable
                             onPress={() => handleSelectUser(u)}
-                            className="rounded-lg bg-primary-50 dark:bg-primary-950/40 px-3 py-1.5"
+                            className="rounded-lg bg-primary-50 dark:bg-primary-950/40 px-3 py-1.5 select-none"
                           >
-                            <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                            <Text
+                              selectable={false}
+                              className="text-xs font-bold text-primary-600 dark:text-primary-400 select-none">
                               {locale === 'bn' ? 'মেসেজ' : 'Message'}
                             </Text>
                           </Pressable>
@@ -618,14 +634,16 @@ export function SearchPageView() {
                 {(activeTab === 'ALL' || activeTab === 'DUAS') &&
                 results.duas.length > 0 ? (
                   <View className="rounded-xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b] gap-2">
-                    <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-2">
-                      <View className="flex-row items-center gap-1.5">
+                    <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-2 select-none">
+                      <View className="flex-row items-center gap-1.5 select-none">
                         <AppIcon
                           android="menu_book"
                           size={16}
                           color="#10b981"
                         />
-                        <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        <Text
+                          selectable={false}
+                          className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
                           {locale === 'bn'
                             ? 'দোয়া ও যিকির'
                             : 'Duas & Supplications'}{' '}
@@ -643,34 +661,43 @@ export function SearchPageView() {
                         >
                           <View className="flex-row items-start justify-between gap-2">
                             <View className="flex-1 gap-1">
-                              <Text className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb]">
+                              <Text
+                                selectable={true}
+                                className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb] select-text">
                                 {dua.title}
                               </Text>
                               {dua.category ? (
-                                <View className="self-start rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5">
-                                  <Text className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                                <View className="self-start rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 select-none">
+                                  <Text
+                                    selectable={false}
+                                    className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 select-none">
                                     {dua.category.name}
                                   </Text>
                                 </View>
                               ) : null}
                             </View>
-                            <View className="rounded-lg bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1.5 shrink-0">
-                              <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                            <View className="rounded-lg bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1.5 shrink-0 select-none">
+                              <Text
+                                selectable={false}
+                                className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
                                 {locale === 'bn' ? 'দোয়া পড়ুন' : 'Read Dua'}
                               </Text>
                             </View>
                           </View>
 
                           {dua.arabicText ? (
-                            <Text className="text-base text-right text-[#050505] dark:text-[#e4e6eb] leading-relaxed pt-1">
+                            <Text
+                              selectable={true}
+                              className="text-base text-right text-[#050505] dark:text-[#e4e6eb] leading-relaxed pt-1 select-text">
                               {dua.arabicText}
                             </Text>
                           ) : null}
 
                           {dua.meaningBangla ? (
                             <Text
+                              selectable={true}
                               numberOfLines={2}
-                              className="text-xs text-[#65676b] dark:text-[#b0b3b8]"
+                              className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-text"
                             >
                               {dua.meaningBangla}
                             </Text>
@@ -684,48 +711,55 @@ export function SearchPageView() {
                 {/* 3. GROUPS */}
                 {(activeTab === 'ALL' || activeTab === 'GROUPS') &&
                 results.groups.length > 0 ? (
-                  <View className="rounded-xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b] gap-2">
-                    <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-2">
-                      <View className="flex-row items-center gap-1.5">
+                  <View className="rounded-xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b] gap-2 select-none">
+                    <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-2 select-none">
+                      <View className="flex-row items-center gap-1.5 select-none">
                         <AppIcon android="groups" size={16} color="#3b82f6" />
-                        <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        <Text
+                          selectable={false}
+                          className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
                           {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} (
                           {results.groups.length})
                         </Text>
                       </View>
                     </View>
 
-                    <View className="divide-y divide-[#e4e6eb] dark:divide-[#393a3b]">
+                    <View className="divide-y divide-[#e4e6eb] dark:divide-[#393a3b] select-none">
                       {results.groups.map((group) => (
                         <Pressable
                           key={group.id}
                           onPress={() => handleSelectGroup(group)}
-                          className="flex-row items-center justify-between py-2.5 gap-3"
+                          className="flex-row items-center justify-between py-2.5 gap-3 select-none"
                         >
-                          <View className="flex-row items-center gap-3 min-w-0 flex-1">
-                            <View className="h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-950/50">
+                          <View className="flex-row items-center gap-3 min-w-0 flex-1 select-none">
+                            <View className="h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-950/50 select-none">
                               <AppIcon
                                 android="groups"
                                 size={20}
                                 color="#2563eb"
                               />
                             </View>
-                            <View className="min-w-0 flex-1">
+                            <View className="min-w-0 flex-1 select-none">
                               <Text
+                                selectable={false}
                                 numberOfLines={1}
-                                className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb]"
+                                className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb] select-none"
                               >
                                 {group.name}
                               </Text>
-                              <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                              <Text
+                                selectable={false}
+                                className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
                                 {group._count?.members || 0} members •{' '}
                                 {group.visibility.toLowerCase()}
                               </Text>
                             </View>
                           </View>
 
-                          <View className="rounded-lg bg-blue-50 dark:bg-blue-950/40 px-3 py-1.5">
-                            <Text className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                          <View className="rounded-lg bg-blue-50 dark:bg-blue-950/40 px-3 py-1.5 select-none">
+                            <Text
+                              selectable={false}
+                              className="text-xs font-bold text-blue-600 dark:text-blue-400 select-none">
                               {locale === 'bn' ? 'গ্রুপ দেখুন' : 'View Group'}
                             </Text>
                           </View>

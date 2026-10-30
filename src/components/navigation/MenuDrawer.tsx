@@ -138,10 +138,12 @@ export function MenuDrawer() {
         />
 
         {/* Drawer Panel matching peacetweet_frontend MenuDrawer */}
-        <View className="w-80 max-w-[85%] h-full bg-white dark:bg-[#242526] border-l border-[#e4e6eb] dark:border-[#393a3b] flex-col">
+        <View className="w-80 max-w-[85%] h-full bg-white dark:bg-[#242526] border-l border-[#e4e6eb] dark:border-[#393a3b] flex-col select-none">
           {/* Drawer Header */}
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#e4e6eb] dark:border-[#393a3b]">
-            <Text className="text-lg font-bold text-[#050505] dark:text-[#e4e6eb]">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#e4e6eb] dark:border-[#393a3b] select-none">
+            <Text
+              selectable={false}
+              className="text-lg font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
               {locale === 'bn' ? 'মেনু ও সেটিংস' : 'Menu & Settings'}
             </Text>
 

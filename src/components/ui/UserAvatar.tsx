@@ -58,18 +58,19 @@ export function UserAvatar({
   const showImage = Boolean(avatarUrl && !imageFailed);
 
   return (
-    <View className={`relative shrink-0 ${sizeConfig.container} ${className}`}>
+    <View className={`relative shrink-0 select-none ${sizeConfig.container} ${className}`} pointerEvents="none">
       {showImage ? (
         <Image
           source={{ uri: avatarUrl! }}
           onError={() => setImageFailed(true)}
-          className="h-full w-full rounded-full bg-primary-100 dark:bg-primary-950/60"
+          className="h-full w-full rounded-full bg-primary-100 dark:bg-primary-950/60 select-none"
           resizeMode="cover"
         />
       ) : (
-        <View className="h-full w-full rounded-full bg-primary-100 dark:bg-primary-950/70 border border-primary-200/70 dark:border-primary-800/60 items-center justify-center">
+        <View className="h-full w-full rounded-full bg-primary-100 dark:bg-primary-950/70 border border-primary-200/70 dark:border-primary-800/60 items-center justify-center select-none">
           <Text
-            className={`font-bold text-primary-700 dark:text-primary-300 ${sizeConfig.text}`}>
+            selectable={false}
+            className={`font-bold text-primary-700 dark:text-primary-300 select-none ${sizeConfig.text}`}>
             {initial}
           </Text>
         </View>

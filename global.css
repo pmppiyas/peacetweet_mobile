@@ -40,3 +40,24 @@
   scrollbar-width: none !important;
   scrollbar-color: transparent transparent !important;
 }
+
+/* Prevent unwanted copy/callout/selection on buttons, icons, avatars, and UI chrome */
+button,
+[role="button"],
+[data-selectable="false"],
+.select-none,
+img,
+svg {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Explicitly allowed selectable content (Quran, Duas, Posts, Translations) */
+.select-text,
+.selectable-text,
+[data-selectable="true"] {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
