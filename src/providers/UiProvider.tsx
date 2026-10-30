@@ -5,6 +5,8 @@ import { appStorage } from '@/lib/storage/secureStorage';
 const LOCALE_STORAGE_KEY = 'peacetweet_locale';
 const THEME_STORAGE_KEY = 'peacetweet_theme';
 
+export type PostUploadType = 'STANDARD' | 'BLOOD';
+
 interface UiContextType {
   locale: 'bn' | 'en';
   setLocale: (locale: 'bn' | 'en') => void;
@@ -22,6 +24,12 @@ interface UiContextType {
   setUnreadMessagesCount: (count: number) => void;
   unreadNotificationsCount: number;
   setUnreadNotificationsCount: (count: number) => void;
+  isUploadingPost: boolean;
+  postUploadType: PostUploadType;
+  setIsUploadingPost: (val: boolean, type?: PostUploadType) => void;
+  isPostUploadSuccess: boolean;
+  setIsPostUploadSuccess: (val: boolean) => void;
+  triggerPostSuccess: () => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
 }
@@ -44,6 +52,25 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   >(null);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [isUploadingPost, setIsUploadingPostState] = useState(false);
+  const [postUploadType, setPostUploadType] = useState<PostUploadType>('STANDARD');
+  const [isPostUploadSuccess, setIsPostUploadSuccess] = useState(false);
+
+  const setIsUploadingPost = (val: boolean, type: PostUploadType = 'STANDARD') => {
+    setIsUploadingPostState(val);
+    if (val) {
+      setPostUploadType(type);
+    }
+  };
+
+  const triggerPostSuccess = () => {
+    setIsUploadingPostState(false);
+    setIsPostUploadSuccess(true);
+    setTimeout(() => {
+      setIsPostUploadSuccess(false);
+    }, 2500);
+  };
+
   const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
@@ -85,6 +112,12 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         setUnreadMessagesCount,
         unreadNotificationsCount,
         setUnreadNotificationsCount,
+        isUploadingPost,
+        postUploadType,
+        setIsUploadingPost,
+        isPostUploadSuccess,
+        setIsPostUploadSuccess,
+        triggerPostSuccess,
         theme,
         toggleTheme,
       }}>

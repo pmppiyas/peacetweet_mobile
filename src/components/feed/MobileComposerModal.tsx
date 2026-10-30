@@ -25,14 +25,16 @@ const BLOOD_GROUPS = [
   { label: 'O+', value: 'O_POSITIVE' },
   { label: 'O-', value: 'O_NEGATIVE' },
 ];
-const URGENCIES = [
-  { value: 'REGULAR', label: 'Regular' },
-  { value: 'URGENT', label: 'Urgent' },
-  { value: 'EMERGENCY', label: 'Emergency 🚨' },
-];
 
 export function MobileComposerModal() {
-  const { isComposerModalOpen, setComposerModalOpen, locale, theme } = useUi();
+  const {
+    isComposerModalOpen,
+    setComposerModalOpen,
+    locale,
+    theme,
+    setIsUploadingPost,
+    triggerPostSuccess,
+  } = useUi();
   const { user } = useAuth();
   const { createPost } = useFeed();
 
@@ -50,7 +52,6 @@ export function MobileComposerModal() {
 
   // Blood request state
   const [bloodGroup, setBloodGroup] = useState('');
-  const [urgency, setUrgency] = useState('REGULAR');
   const [patientName, setPatientName] = useState('');
   const [hospitalName, setHospitalName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
@@ -88,6 +89,7 @@ export function MobileComposerModal() {
   const handleSubmit = async () => {
     if (!isPostValid || isSubmitting) return;
     setIsSubmitting(true);
+    setIsUploadingPost(true, postType === 'BLOOD_REQUEST' ? 'BLOOD' : 'STANDARD');
     setSubmitError(null);
 
     try {
@@ -121,7 +123,6 @@ export function MobileComposerModal() {
           bloodRequestData: {
             patientName: patientName.trim(),
             bloodGroup,
-            urgency,
             hospitalName: hospitalName.trim(),
             location: hospitalName.trim(),
             contactNumber: contactNumber.trim(),
@@ -131,7 +132,9 @@ export function MobileComposerModal() {
         });
       }
       handleClose();
+      triggerPostSuccess();
     } catch (err: any) {
+      setIsUploadingPost(false);
       setSubmitError(
         err?.response?.data?.message ||
           err?.message ||
@@ -451,33 +454,6 @@ export function MobileComposerModal() {
                             : 'text-[#050505] dark:text-[#e4e6eb]'
                         }`}>
                         {group.label}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-
-              <View className="gap-1.5">
-                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {locale === 'bn' ? 'জরুরিতার মাত্রা' : 'Urgency Level'}
-                </Text>
-                <View className="flex-row gap-2">
-                  {URGENCIES.map((u) => (
-                    <Pressable
-                      key={u.value}
-                      onPress={() => setUrgency(u.value)}
-                      className={`flex-1 py-2 rounded-xl border items-center ${
-                        urgency === u.value
-                          ? 'border-rose-600 bg-rose-50 dark:bg-rose-950/60'
-                          : 'border-[#e4e6eb] dark:border-[#393a3b]'
-                      }`}>
-                      <Text
-                        className={`text-xs font-bold ${
-                          urgency === u.value
-                            ? 'text-rose-700 dark:text-rose-300'
-                            : 'text-[#65676b] dark:text-[#b0b3b8]'
-                        }`}>
-                        {u.label}
                       </Text>
                     </Pressable>
                   ))}

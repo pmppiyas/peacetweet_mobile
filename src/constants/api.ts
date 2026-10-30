@@ -87,4 +87,15 @@ export const API_ENDPOINTS = {
     LEAVE: (groupId: string) => `/groups/${groupId}/leave`,
     CANCEL_REQUEST: (groupId: string) => `/groups/${groupId}/join-request`,
   },
+  BLOOD: {
+    REQUESTS: '/blood/requests',
+    REQUEST_DETAIL: (id: string) => `/blood/requests/${id}`,
+    DELETE_REQUEST: (id: string) => `/blood/requests/${id}`,
+    CREATE_REQUEST: '/blood/requests',
+    ACCEPT_REQUEST: (id: string) => `/blood/requests/${id}/accept`,
+    CANCEL_DONATION: (id: string) => `/blood/requests/${id}/donations/cancel`,
+    UPDATE_STATUS: (id: string) => `/blood/requests/${id}/status`,
+    DONORS: '/blood/donors',
+    DONOR_MODE: '/blood/donor-mode',
+  },
 } as const;

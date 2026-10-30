@@ -12,7 +12,7 @@ export interface ConfirmDialogProps {
   description?: string;
   confirmText?: string;
   cancelText?: string;
-  variant?: 'danger' | 'warning' | 'primary';
+  variant?: 'danger' | 'warning' | 'primary' | 'success';
   isLoading?: boolean;
 }
 
@@ -35,14 +35,47 @@ export function ConfirmDialog({
   const iconBgClass =
     variant === 'warning'
       ? 'bg-amber-100 dark:bg-amber-950/50'
+      : variant === 'success'
+      ? 'bg-emerald-100 dark:bg-emerald-950/50'
+      : variant === 'danger'
+      ? 'bg-rose-100 dark:bg-rose-950/50'
       : 'bg-primary-100 dark:bg-primary-950/50';
 
-  const iconColor = variant === 'warning' ? '#d97706' : '#1877f2';
+  const iconColor =
+    variant === 'warning'
+      ? '#d97706'
+      : variant === 'success'
+      ? '#059669'
+      : variant === 'danger'
+      ? '#e11d48'
+      : '#1877f2';
 
   const confirmBtnClass =
     variant === 'warning'
       ? 'bg-amber-600 active:bg-amber-700'
+      : variant === 'success'
+      ? 'bg-emerald-600 active:bg-emerald-700'
+      : variant === 'danger'
+      ? 'bg-rose-600 active:bg-rose-700'
       : 'bg-primary-600 active:bg-primary-700';
+
+  const androidHeaderIcon =
+    variant === 'danger'
+      ? 'delete'
+      : variant === 'success'
+      ? 'check_circle'
+      : variant === 'warning'
+      ? 'warning'
+      : 'info';
+
+  const iosHeaderIcon =
+    variant === 'danger'
+      ? 'trash'
+      : variant === 'success'
+      ? 'checkmark.circle'
+      : variant === 'warning'
+      ? 'exclamationmark.triangle.fill'
+      : 'info.circle';
 
   return (
     <Modal
@@ -60,12 +93,8 @@ export function ConfirmDialog({
             <View
               className={`h-11 w-11 items-center justify-center rounded-full ${iconBgClass}`}>
               <AppIcon
-                android={variant === 'danger' ? 'delete' : 'warning'}
-                ios={
-                  variant === 'danger'
-                    ? 'trash'
-                    : 'exclamationmark.triangle.fill'
-                }
+                android={androidHeaderIcon}
+                ios={iosHeaderIcon}
                 size={20}
                 color={iconColor}
               />
@@ -119,7 +148,7 @@ export function ConfirmDialog({
                   />
                   <Text className="text-xs font-semibold text-white">
                     {confirmText ||
-                      (locale === 'bn' ? 'হ্যাঁ, মুছে ফেলুন' : 'Delete')}
+                      (locale === 'bn' ? 'হ্যাঁ, নিশ্চিত করুন' : 'Confirm')}
                   </Text>
                 </>
               )}

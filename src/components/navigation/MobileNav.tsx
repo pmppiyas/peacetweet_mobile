@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
@@ -27,6 +27,9 @@ export function MobileNav() {
     unreadMessagesCount,
     unreadNotificationsCount,
     setUnreadNotificationsCount,
+    isUploadingPost,
+    postUploadType,
+    isPostUploadSuccess,
     theme,
   } = useUi();
   const { isAuthenticated } = useAuth();
@@ -97,7 +100,17 @@ export function MobileNav() {
     },
   ];
 
+  const isBloodContext =
+    postUploadType === 'BLOOD' ||
+    pathname === '/blood' ||
+    pathname.startsWith('/blood') ||
+    pathname.includes('blood');
+
   const handleComposerPress = () => {
+    if (isBloodContext && (pathname === '/blood' || pathname.startsWith('/blood') || pathname.includes('blood'))) {
+      router.replace({ pathname: '/blood', params: { tab: 'create' } } as any);
+      return;
+    }
     if (!isAuthenticated) {
       router.push('/create');
       return;
@@ -112,24 +125,63 @@ export function MobileNav() {
           const label = locale === 'bn' ? item.labelBn : item.labelEn;
 
           if (item.isComposer) {
+            const activeBg = isPostUploadSuccess
+              ? '#059669'
+              : isBloodContext
+              ? '#e11d48'
+              : '#1877f2';
+
+            const activeTextColor = isPostUploadSuccess
+              ? '#059669'
+              : isBloodContext
+              ? '#e11d48'
+              : '#1877f2';
+
             return (
               <Pressable
                 key={item.id}
+                disabled={isUploadingPost}
                 onPress={handleComposerPress}
                 className="flex-1 flex-col items-center justify-center -top-2.5 z-20 h-full px-0.5 active:scale-95 select-none">
-                <View className="h-11 w-11 items-center justify-center rounded-full bg-primary-500 shadow-lg border-2 border-white dark:border-[#242526] select-none">
-                  <AppIcon
-                    android="add"
-                    ios="plus"
-                    size={26}
-                    weight="bold"
-                    color="#ffffff"
-                  />
+                <View
+                  style={{
+                    backgroundColor: activeBg,
+                    borderColor: theme === 'dark' ? '#242526' : '#ffffff',
+                  }}
+                  className="h-11 w-11 items-center justify-center rounded-full shadow-lg border-2 select-none">
+                  {isUploadingPost ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : isPostUploadSuccess ? (
+                    <AppIcon
+                      android="check"
+                      ios="checkmark"
+                      size={22}
+                      weight="bold"
+                      color="#ffffff"
+                    />
+                  ) : (
+                    <AppIcon
+                      android="add"
+                      ios="plus"
+                      size={26}
+                      weight="bold"
+                      color="#ffffff"
+                    />
+                  )}
                 </View>
                 <Text
                   selectable={false}
-                  className="text-[10px] font-bold mt-0.5 text-primary-600 dark:text-primary-400 select-none">
-                  {label}
+                  style={{ color: activeTextColor }}
+                  className="text-[10px] font-bold mt-0.5 select-none">
+                  {isUploadingPost
+                    ? locale === 'bn'
+                      ? 'পোস্ট হচ্ছে...'
+                      : 'Posting...'
+                    : isPostUploadSuccess
+                    ? locale === 'bn'
+                      ? 'সফল!'
+                      : 'Done!'
+                    : label}
                 </Text>
               </Pressable>
             );

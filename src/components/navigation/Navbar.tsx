@@ -58,6 +58,7 @@ export function Navbar() {
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isMessagesActive =
     pathname === '/messages' || pathname.startsWith('/messages/');
+  const isBloodRoute = pathname === '/blood' || pathname.startsWith('/blood');
   const isInsideActiveChat =
     isMessagesActive && Boolean(activeConversationId);
 
@@ -190,10 +191,17 @@ export function Navbar() {
             router.push('/');
           }
         }}
-        className="flex-row items-center gap-2.5 shrink-0 select-none">
+        className="flex-row items-center gap-2 shrink-0 select-none">
+        {isBloodRoute ? (
+          <AppIcon android="water_drop" size={24} color="#e11d48" />
+        ) : null}
         <Text
           selectable={false}
-          className="text-2xl sm:text-[27px] font-black tracking-tight text-primary-700 dark:text-white select-none">
+          className={`text-2xl sm:text-[27px] font-black tracking-tight select-none ${
+            isBloodRoute
+              ? 'text-rose-600 dark:text-rose-500'
+              : 'text-primary-700 dark:text-white'
+          }`}>
           PeaceTweet
         </Text>
       </Pressable>

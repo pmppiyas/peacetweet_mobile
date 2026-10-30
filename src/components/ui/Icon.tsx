@@ -11,9 +11,20 @@ import Svg, {
 import type { SymbolViewProps } from 'expo-symbols';
 import type { SFSymbol } from 'sf-symbols-typescript';
 
-export type AndroidSymbol = NonNullable<
-  Extract<SymbolViewProps['name'], { android?: string }>['android']
->;
+export type AndroidSymbol =
+  | NonNullable<Extract<SymbolViewProps['name'], { android?: string }>['android']>
+  | 'chevron_down'
+  | 'chevron_up'
+  | 'arrow_drop_down'
+  | 'arrow_drop_up'
+  | 'keyboard_arrow_down'
+  | 'keyboard_arrow_up'
+  | 'pin_drop'
+  | 'call'
+  | 'cancel'
+  | 'check_box'
+  | 'check_box_outline_blank'
+  | 'error_outline';
 
 export interface AppIconProps {
   android: AndroidSymbol;
@@ -465,6 +476,7 @@ export function AppIcon({
           </>
         );
 
+      case 'pin_drop':
       case 'location_on':
         return (
           <>
@@ -472,6 +484,52 @@ export function AppIcon({
             <Circle cx="12" cy="10" r="3" />
           </>
         );
+
+      case 'chevron_down':
+      case 'arrow_drop_down':
+      case 'expand_more':
+      case 'keyboard_arrow_down':
+        return <Path d="m6 9 6 6 6-6" />;
+
+      case 'chevron_up':
+      case 'arrow_drop_up':
+      case 'expand_less':
+      case 'keyboard_arrow_up':
+        return <Path d="m18 15-6-6-6 6" />;
+
+      case 'call':
+        return (
+          <Path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+        );
+
+      case 'cancel':
+        return (
+          <>
+            <Circle cx="12" cy="12" r="10" />
+            <Path d="m15 9-6 6" />
+            <Path d="m9 9 6 6" />
+          </>
+        );
+
+      case 'error_outline':
+        return (
+          <>
+            <Circle cx="12" cy="12" r="10" />
+            <Line x1="12" y1="8" x2="12" y2="12" />
+            <Line x1="12" y1="16" x2="12.01" y2="16" />
+          </>
+        );
+
+      case 'check_box':
+        return (
+          <>
+            <Rect width="18" height="18" x="3" y="3" rx="3" />
+            <Path d="m9 12 2 2 4-4" />
+          </>
+        );
+
+      case 'check_box_outline_blank':
+        return <Rect width="18" height="18" x="3" y="3" rx="2" />;
 
       case 'visibility':
         return (

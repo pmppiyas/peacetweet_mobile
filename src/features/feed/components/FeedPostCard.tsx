@@ -190,9 +190,16 @@ export function PostBody({
   const dua = post.dua;
 
   const neededDate = blood?.neededDate
-    ? new Date(blood.neededDate).toLocaleDateString(
+    ? new Date(blood.neededDate).toLocaleString(
         locale === 'bn' ? 'bn-BD' : 'en-US',
-        { year: 'numeric', month: 'short', day: 'numeric' }
+        {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        }
       )
     : null;
 
@@ -333,7 +340,7 @@ export function PostBody({
               <Text
                 selectable={false}
                 className="text-xs text-rose-600 dark:text-rose-400 font-semibold select-none">
-                {blood.urgency} • {blood.units}{' '}
+                {blood.units}{' '}
                 {locale === 'bn' ? 'ব্যাগ' : 'Bag(s)'}
                 {typeof blood.unitsFulfilled === 'number'
                   ? ` • ${blood.unitsFulfilled}/${blood.units}`
@@ -352,9 +359,7 @@ export function PostBody({
           <Text
             selectable={true}
             className="text-xs text-[#050505] dark:text-[#e4e6eb] select-text">
-            🏥 {blood.hospitalName}
-            {blood.hospitalAddress ? `, ${blood.hospitalAddress}` : ''} (
-            {blood.location})
+            🏥 {blood.hospitalName} ({blood.location})
           </Text>
           {neededDate ? (
             <Text
@@ -369,13 +374,6 @@ export function PostBody({
             📞 {blood.contactNumber}
             {blood.alternateContact ? ` / ${blood.alternateContact}` : ''}
           </Text>
-          {blood.note ? (
-            <Text
-              selectable={true}
-              className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-text">
-              📝 {blood.note}
-            </Text>
-          ) : null}
         </View>
       ) : null}
 

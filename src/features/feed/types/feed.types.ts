@@ -55,14 +55,11 @@ export interface BloodRequestItem {
   units: number;
   unitsFulfilled?: number;
   hospitalName: string;
-  hospitalAddress?: string | null;
   location: string;
   contactNumber: string;
   alternateContact?: string | null;
   neededDate: string;
-  urgency: string;
   status?: string;
-  note?: string | null;
 }
 
 export interface FeedStats {
@@ -142,13 +139,10 @@ export interface CreatePostInput {
     bloodGroup: string;
     units?: number;
     hospitalName: string;
-    hospitalAddress?: string;
     location: string;
     contactNumber: string;
     alternateContact?: string;
     neededDate: string;
-    urgency?: string;
-    note?: string;
     forMyself?: boolean;
   };
   visibility?: PostVisibility;

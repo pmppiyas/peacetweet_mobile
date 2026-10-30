@@ -53,6 +53,37 @@ svg {
   user-select: none !important;
 }
 
+/* Remove ugly default browser black outline on web */
+*,
+*:focus,
+*:focus-visible,
+*:active {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+input,
+textarea,
+select,
+button,
+[role="button"],
+[tabindex] {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+button:focus,
+[role="button"]:focus,
+[tabindex]:focus,
+:focus,
+:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Explicitly allowed selectable content (Quran, Duas, Posts, Translations) */
 .select-text,
 .selectable-text,
