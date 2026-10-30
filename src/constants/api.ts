@@ -79,4 +79,12 @@ export const API_ENDPOINTS = {
     DELETE_HISTORY: (id: string) => `/search/history/${id}`,
     CLEAR_HISTORY: '/search/history',
   },
+  GROUPS: {
+    LIST: '/groups',
+    MY: '/groups/me',
+    DETAIL: (groupId: string) => `/groups/by-id/${groupId}`,
+    JOIN: (groupId: string) => `/groups/${groupId}/join`,
+    LEAVE: (groupId: string) => `/groups/${groupId}/leave`,
+    CANCEL_REQUEST: (groupId: string) => `/groups/${groupId}/join-request`,
+  },
 } as const;

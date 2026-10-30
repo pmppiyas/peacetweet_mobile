@@ -1,340 +1,339 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ScrollView,
   View,
   Text,
   Pressable,
-  TextInput,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
+import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
 import { AuthPromptCard } from '@/components/ui/AuthPromptCard';
-
-interface CommunityGroup {
-  id: string;
-  name: string;
-  nameBn: string;
-  description: string;
-  descriptionBn: string;
-  category: string;
-  categoryBn: string;
-  memberCount: number;
-  postCount: number;
-  isPrivate: boolean;
-  joined: boolean;
-}
-
-const INITIAL_GROUPS: CommunityGroup[] = [
-  {
-    id: 'grp-sunnah',
-    name: 'Daily Sunnah & Masnoon Duas',
-    nameBn: 'দৈনন্দিন সুন্নাহ ও মাসনুন দোয়া',
-    description: 'A community sharing and encouraging daily authentic sunnah habits and adhkar.',
-    descriptionBn: 'প্রতিদিনের মাসনুন আমল, সকাল-সন্ধ্যার যিকির ও সুন্নাহ চর্চার সক্রিয় কমিউনিটি।',
-    category: 'Daily Practice',
-    categoryBn: 'দৈনন্দিন আমল',
-    memberCount: 1420,
-    postCount: 380,
-    isPrivate: false,
-    joined: true,
-  },
-  {
-    id: 'grp-quran',
-    name: 'Quran Memorization & Tajweed',
-    nameBn: 'হিফযুল কুরআন ও তাজবীদ চর্চা',
-    description: 'Learn correct pronunciation, daily recitation tracking, and reflection.',
-    descriptionBn: 'সহীহ তিলাওয়াত, তাজবীদের নিয়ম এবং দৈনিক হিফয ও তিলাওয়াত পর্যবেক্ষণের গ্রুপ।',
-    category: 'Quran Study',
-    categoryBn: 'কুরআন চর্চা',
-    memberCount: 980,
-    postCount: 210,
-    isPrivate: false,
-    joined: false,
-  },
-  {
-    id: 'grp-hadith',
-    name: 'Authentic Hadith & Fiqh Study',
-    nameBn: 'সহীহ হাদিস ও ফিক্বহ শিক্ষা',
-    description: 'Studying Sahih Bukhari, Muslim, and fundamental Islamic jurisprudence.',
-    descriptionBn: 'সহীহ হাদিসের ব্যাখ্যা, প্রয়োজনীয় আহকাম ও প্রামাণিক ফিক্বহ চর্চার প্ল্যাটফর্ম।',
-    category: 'Knowledge',
-    categoryBn: 'ইলম ও শিক্ষা',
-    memberCount: 850,
-    postCount: 175,
-    isPrivate: false,
-    joined: false,
-  },
-  {
-    id: 'grp-youth',
-    name: 'Youth & Character Purification',
-    nameBn: 'যুব সমাজ ও আত্মশুদ্ধি',
-    description: 'Guiding Muslim youth against digital fitnah, building Islamic morality and purpose.',
-    descriptionBn: 'চোখের যিনা, আসক্তি ও পাপাচার থেকে বেঁচে চরিত্রবান মুসলিম তরুণ প্রজন্ম গড়ার উদ্যোগ।',
-    category: 'Self Improvement',
-    categoryBn: 'আত্মশুদ্ধি',
-    memberCount: 1240,
-    postCount: 430,
-    isPrivate: false,
-    joined: true,
-  },
-  {
-    id: 'grp-blood',
-    name: 'Emergency Blood & Relief Network',
-    nameBn: 'রক্তদান ও জরুরি সেবা ফোরাম',
-    description: 'Connecting voluntary blood donors with patients across districts.',
-    descriptionBn: 'জরুরি প্রয়োজনে দ্রুত রক্তদাতা খুঁজে দেওয়া এবং মুমূর্ষু রোগীর পাশে দাঁড়ানোর স্বেচ্ছাসেবী ফোরাম।',
-    category: 'Community Service',
-    categoryBn: 'সামাজিক সেবা',
-    memberCount: 2100,
-    postCount: 520,
-    isPrivate: false,
-    joined: false,
-  },
-  {
-    id: 'grp-family',
-    name: 'Islamic Parenting & Family Life',
-    nameBn: 'ইসলামিক প্যারেন্টিং ও পরিবার',
-    description: 'Islamic guidance on raising righteous children and nurturing peaceful homes.',
-    descriptionBn: 'সন্তান প্রতিপালনে নবীজির দিকনির্দেশনা ও শান্তিপূর্ণ দাম্পত্য জীবনের বাস্তব পরামর্শ।',
-    category: 'Family',
-    categoryBn: 'পারিবারিক',
-    memberCount: 760,
-    postCount: 140,
-    isPrivate: true,
-    joined: false,
-  },
-];
+import { groupsApi } from '@/features/groups/api/groups.api';
+import { GroupItem } from '@/features/groups/types/groups.types';
+import { GroupsSkeleton } from '@/features/groups/components/GroupsSkeleton';
+import { queryCache } from '@/lib/cache/queryCache';
 
 export default function GroupsScreen() {
   const { locale, theme } = useUi();
-  const { isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [groups, setGroups] = useState<CommunityGroup[]>(INITIAL_GROUPS);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
-  const toggleJoin = (groupId: string) => {
-    setGroups((prev) =>
-      prev.map((g) => {
-        if (g.id === groupId) {
-          const nextJoined = !g.joined;
-          return {
-            ...g,
-            joined: nextJoined,
-            memberCount: nextJoined ? g.memberCount + 1 : Math.max(0, g.memberCount - 1),
-          };
+  // If logged in: default to 'my' (My Groups), otherwise default to 'all' (All Groups)
+  const [activeTab, setActiveTab] = useState<'all' | 'my'>(
+    isAuthenticated ? 'my' : 'all'
+  );
+
+  const hasSetInitialTab = useRef(false);
+  useEffect(() => {
+    if (!isAuthLoading && !hasSetInitialTab.current) {
+      hasSetInitialTab.current = true;
+      setActiveTab(isAuthenticated ? 'my' : 'all');
+    }
+  }, [isAuthLoading, isAuthenticated]);
+
+  // Cache-first state initialization to prevent flash/blinking on tab changes
+  const [allGroups, setAllGroups] = useState<GroupItem[]>(
+    () => queryCache.get<GroupItem[]>('groups:all') || []
+  );
+  const [myGroups, setMyGroups] = useState<GroupItem[]>(
+    () => queryCache.get<GroupItem[]>('groups:my') || []
+  );
+
+  const loadedTabsRef = useRef<Record<string, boolean>>({
+    all: queryCache.has('groups:all'),
+    my: queryCache.has('groups:my'),
+  });
+
+  const allGroupsRef = useRef(allGroups);
+  allGroupsRef.current = allGroups;
+  const myGroupsRef = useRef(myGroups);
+  myGroupsRef.current = myGroups;
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  const fetchTabContent = useCallback(
+    async (tab: 'all' | 'my', forceLoading = false) => {
+      // If not authenticated, we only fetch for 'all'
+      if (!isAuthenticated && tab === 'my') {
+        return;
+      }
+
+      const hasExistingData =
+        (tab === 'all' && allGroupsRef.current.length > 0) ||
+        (tab === 'my' && myGroupsRef.current.length > 0) ||
+        Boolean(loadedTabsRef.current[tab]);
+
+      // Only show skeleton if we have NO data yet for this tab, or explicitly forced
+      if (forceLoading || !hasExistingData) {
+        setIsLoading(true);
+      }
+
+      try {
+        if (tab === 'all') {
+          const res = await groupsApi.discoverGroups();
+          const items = res.items || [];
+          setAllGroups(items);
+          queryCache.set('groups:all', items);
+          loadedTabsRef.current['all'] = true;
+        } else if (tab === 'my') {
+          const res = await groupsApi.getMyGroups();
+          const items = res.items || [];
+          setMyGroups(items);
+          queryCache.set('groups:my', items);
+          loadedTabsRef.current['my'] = true;
         }
-        return g;
-      })
-    );
-  };
+      } catch (err) {
+        // Fallback gracefully on error
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isAuthenticated]
+  );
+
+  // 1. Fetch on tab change immediately (silent if already loaded once - zero flicker)
+  useEffect(() => {
+    const hasData =
+      (activeTab === 'all' && allGroupsRef.current.length > 0) ||
+      (activeTab === 'my' && myGroupsRef.current.length > 0) ||
+      Boolean(loadedTabsRef.current[activeTab]);
+
+    fetchTabContent(activeTab, !hasData);
+  }, [activeTab, fetchTabContent]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 400);
+    await fetchTabContent(activeTab, false);
+    setIsRefreshing(false);
   };
 
-  const filteredGroups = useMemo(() => {
-    let list = groups;
-    if (activeTab === 'my') {
-      list = list.filter((g) => g.joined);
+  const handleToggleJoin = async (group: GroupItem) => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
     }
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter(
-      (g) =>
-        g.name.toLowerCase().includes(q) ||
-        g.nameBn.toLowerCase().includes(q) ||
-        g.description.toLowerCase().includes(q) ||
-        g.descriptionBn.toLowerCase().includes(q) ||
-        g.category.toLowerCase().includes(q) ||
-        g.categoryBn.toLowerCase().includes(q)
-    );
-  }, [groups, activeTab, searchQuery]);
+
+    const isMember =
+      group.membership?.status === 'MEMBER' ||
+      group.membership?.status === 'OWNER' ||
+      group.membership?.status === 'ADMIN';
+
+    setActionLoadingId(group.id);
+
+    try {
+      if (isMember) {
+        await groupsApi.leaveGroup(group.id);
+        const updateItem = (item: GroupItem): GroupItem =>
+          item.id === group.id
+            ? {
+                ...item,
+                memberCount: Math.max(0, item.memberCount - 1),
+                membership: { status: 'NONE', role: null, requestId: null },
+              }
+            : item;
+
+        setAllGroups((prev) => prev.map(updateItem));
+        setMyGroups((prev) => prev.filter((g) => g.id !== group.id));
+      } else {
+        await groupsApi.joinGroup(group.id);
+        const nextStatus = group.visibility === 'PRIVATE' ? 'PENDING' : 'MEMBER';
+        const updateItem = (item: GroupItem): GroupItem =>
+          item.id === group.id
+            ? {
+                ...item,
+                memberCount:
+                  nextStatus === 'MEMBER' ? item.memberCount + 1 : item.memberCount,
+                membership: { status: nextStatus, role: null, requestId: null },
+              }
+            : item;
+
+        setAllGroups((prev) => prev.map(updateItem));
+        if (nextStatus === 'MEMBER') {
+          setMyGroups((prev) => {
+            const exists = prev.some((g) => g.id === group.id);
+            if (exists) return prev;
+            return [
+              ...prev,
+              {
+                ...group,
+                memberCount: group.memberCount + 1,
+                membership: { status: 'MEMBER', role: null, requestId: null },
+              },
+            ];
+          });
+        }
+      }
+    } catch (err) {
+      // Graceful error handling
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const displayedGroups = activeTab === 'all' ? allGroups : myGroups;
 
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}
+      className="flex-1 bg-white dark:bg-[#18191a]"
+      stickyHeaderIndices={[0]}
+      contentContainerStyle={{ paddingBottom: 24 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
-          tintColor={theme === 'dark' ? '#ffffff' : '#1877f2'}
+          tintColor={theme === 'dark' ? '#ffffff' : '#059669'}
         />
       }>
-      <View className="w-full max-w-[768px] mx-auto space-y-3">
-        {/* Header Hero Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">
-          <View className="flex-row items-center gap-3 mb-2.5">
-            <View className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 items-center justify-center shrink-0">
-              <AppIcon android="groups" size={20} color="#059669" />
-            </View>
-            <View className="flex-1 min-w-0">
-              <Text numberOfLines={1} className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
-                {locale === 'bn' ? 'কমিউনিটি গ্রুপসমূহ' : 'Community Groups'}
-              </Text>
-              <Text numberOfLines={1} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn'
-                  ? 'আমল ও জ্ঞান চর্চায় যুক্ত হোন'
-                  : 'Connect with knowledge & practice circles'}
-              </Text>
-            </View>
-          </View>
-
-          {/* Search bar */}
-          <View className="w-full flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1.5">
-            <AppIcon android="search" size={15} color="#65676b" />
-            <TextInput
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder={locale === 'bn' ? 'গ্রুপ খুঁজুন...' : 'Search groups...'}
-              placeholderTextColor="#8a8d91"
-              className="flex-1 ml-2 text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] py-0"
-            />
-            {searchQuery.length > 0 && (
-              <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
-                <AppIcon android="close" size={15} color="#65676b" />
+      {/* Index 0: Sticky Tab Switcher (No Header) */}
+      <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#f0f2f5] dark:border-[#242526] px-3 py-2">
+        <View className="w-full max-w-[768px] mx-auto flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
+          {[
+            { key: 'my', bn: 'আমার গ্রুপসমূহ', en: 'My Groups' },
+            { key: 'all', bn: 'সকল গ্রুপ', en: 'All Groups' },
+          ].map((t) => {
+            const isSelected = activeTab === t.key;
+            return (
+              <Pressable
+                key={t.key}
+                onPress={() => setActiveTab(t.key as any)}
+                className={`flex-1 py-2 items-center rounded-lg ${
+                  isSelected
+                    ? 'bg-emerald-600 shadow-xs'
+                    : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
+                }`}>
+                <Text
+                  className={`text-xs font-bold ${
+                    isSelected ? 'text-white' : 'text-[#65676b] dark:text-[#b0b3b8]'
+                  }`}>
+                  {locale === 'bn' ? t.bn : t.en}
+                </Text>
               </Pressable>
-            )}
-          </View>
+            );
+          })}
         </View>
+      </View>
 
-        {/* Tab Selector */}
-        <View className="flex-row rounded-xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-1">
-          <Pressable
-            onPress={() => setActiveTab('all')}
-            className={`flex-1 py-2 items-center rounded-lg ${
-              activeTab === 'all'
-                ? 'bg-primary-500 text-white shadow-xs'
-                : 'active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]'
-            }`}>
-            <Text
-              className={`text-xs font-bold ${
-                activeTab === 'all' ? 'text-white' : 'text-[#65676b] dark:text-[#b0b3b8]'
-              }`}>
-              {locale === 'bn' ? 'সকল গ্রুপ' : 'All Groups'}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setActiveTab('my')}
-            className={`flex-1 py-2 items-center rounded-lg ${
-              activeTab === 'my'
-                ? 'bg-primary-500 text-white shadow-xs'
-                : 'active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]'
-            }`}>
-            <Text
-              className={`text-xs font-bold ${
-                activeTab === 'my' ? 'text-white' : 'text-[#65676b] dark:text-[#b0b3b8]'
-              }`}>
-              {locale === 'bn' ? 'আমার গ্রুপসমূহ' : 'My Groups'}
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* Groups List */}
-        <View className="space-y-3">
-          {activeTab === 'my' && !isAuthenticated ? (
+      {/* Index 1: Content Section (Flat) */}
+      <View className="w-full max-w-[768px] mx-auto px-3">
+        {activeTab === 'my' && !isAuthenticated ? (
+          <View className="py-4">
             <AuthPromptCard
               icon="groups"
-              iconBgColor="bg-emerald-50 dark:bg-emerald-950/60"
-              iconColor="#059669"
+              iconBgColor="bg-primary-50 dark:bg-primary-950/60"
+              iconColor="#1877f2"
               titleBn="আপনার গ্রুপসমূহ দেখতে লগইন করুন"
               titleEn="Sign in to view your Groups"
               descriptionBn="আপনার যুক্ত থাকা গ্রুপসমূহ দেখতে এবং নতুন গ্রুপে যোগ দিতে অ্যাকাউন্টে প্রবেশ করুন।"
               descriptionEn="Log in to your account to view your joined communities and manage group activities."
             />
-          ) : filteredGroups.length === 0 ? (
-            <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center bg-white dark:bg-[#242526]">
-              <AppIcon android="info" size={24} color="#65676b" />
-              <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
-                {activeTab === 'my'
-                  ? locale === 'bn'
-                    ? 'আপনি এখনো কোনো গ্রুপে যুক্ত হননি।'
-                    : 'You haven’t joined any groups yet.'
-                  : locale === 'bn'
-                    ? 'কোনো গ্রুপ পাওয়া যায়নি।'
-                    : 'No groups matched your search.'}
-              </Text>
-            </View>
-          ) : (
-            filteredGroups.map((group) => {
-              const name = locale === 'bn' ? group.nameBn : group.name;
-              const desc = locale === 'bn' ? group.descriptionBn : group.description;
-              const cat = locale === 'bn' ? group.categoryBn : group.category;
+          </View>
+        ) : isLoading && !isRefreshing ? (
+          <GroupsSkeleton count={6} />
+        ) : (
+          <View className="w-full">
+            {displayedGroups.length === 0 ? (
+              <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center my-4">
+                <AppIcon android="groups" size={24} color="#65676b" />
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+                  {activeTab === 'my'
+                    ? locale === 'bn'
+                      ? 'আপনি এখনো কোনো গ্রুপে যুক্ত হননি।'
+                      : 'You have not joined any groups yet.'
+                    : locale === 'bn'
+                      ? 'কোনো গ্রুপ পাওয়া যায়নি।'
+                      : 'No community groups found.'}
+                </Text>
+              </View>
+            ) : (
+              displayedGroups.map((group, index) => {
+                const isWorking = actionLoadingId === group.id;
+                const isLast = index === displayedGroups.length - 1;
 
-              return (
-                <View
-                  key={group.id}
-                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 shadow-xs">
-                  <View className="flex-row items-start justify-between gap-3 mb-2.5">
-                    <View className="flex-row items-center gap-3 flex-1">
+                const isMember =
+                  group.membership?.status === 'MEMBER' ||
+                  group.membership?.status === 'OWNER' ||
+                  group.membership?.status === 'ADMIN';
+
+                const isPending = group.membership?.status === 'PENDING';
+
+                return (
+                  <View
+                    key={group.id}
+                    className={`py-3 flex-row items-center justify-between ${
+                      !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
+                    }`}>
+                    {/* Left Icon & Text Info */}
+                    <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <View className="h-11 w-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 items-center justify-center shrink-0">
                         <AppIcon android="groups" size={22} color="#059669" />
                       </View>
                       <View className="flex-1 min-w-0">
-                        <View className="flex-row items-center gap-2">
-                          <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
-                            {name}
-                          </Text>
-                          {group.isPrivate && (
-                            <AppIcon android="lock" size={13} color="#8a8d91" />
-                          )}
-                        </View>
-                        <Text className="text-[11px] font-medium text-[#65676b] dark:text-[#b0b3b8]">
-                          {cat} • {group.memberCount} {locale === 'bn' ? 'সদস্য' : 'members'}
+                        <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
+                          {group.name}
+                        </Text>
+                        <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
+                          {group.memberCount} {locale === 'bn' ? 'জন সদস্য' : 'members'} •{' '}
+                          {group.visibility === 'PUBLIC'
+                            ? locale === 'bn'
+                              ? 'পাবলিক'
+                              : 'Public'
+                            : locale === 'bn'
+                              ? 'প্রাইভেট'
+                              : 'Private'}
                         </Text>
                       </View>
                     </View>
 
+                    {/* Join / Member Action Button */}
                     <Pressable
-                      onPress={() => toggleJoin(group.id)}
-                      className={`px-3 py-1.5 rounded-xl border ${
-                        group.joined
+                      onPress={() => handleToggleJoin(group)}
+                      disabled={isWorking}
+                      className={`px-3.5 py-1.5 rounded-xl border ${
+                        isMember
                           ? 'border-[#ced0d4] dark:border-[#3e4042] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
-                          : 'border-emerald-600 bg-emerald-600'
+                          : isPending
+                            ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/40'
+                            : 'border-emerald-600 bg-emerald-600 active:bg-emerald-700'
                       }`}>
-                      <Text
-                        className={`text-xs font-bold ${
-                          group.joined
-                            ? 'text-[#050505] dark:text-[#e4e6eb]'
-                            : 'text-white'
-                        }`}>
-                        {group.joined
-                          ? locale === 'bn'
-                            ? 'যুক্ত আছেন'
-                            : 'Joined'
-                          : locale === 'bn'
-                            ? 'যোগ দিন'
-                            : 'Join'}
-                      </Text>
+                      {isWorking ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={isMember ? '#65676b' : '#ffffff'}
+                        />
+                      ) : (
+                        <Text
+                          className={`text-xs font-bold ${
+                            isMember
+                              ? 'text-[#65676b] dark:text-[#b0b3b8]'
+                              : isPending
+                                ? 'text-amber-700 dark:text-amber-300'
+                                : 'text-white'
+                          }`}>
+                          {isMember
+                            ? locale === 'bn'
+                              ? 'যুক্ত আছেন'
+                              : 'Joined'
+                            : isPending
+                              ? locale === 'bn'
+                                ? 'অনুরোধ পাঠানো হয়েছে'
+                                : 'Requested'
+                              : locale === 'bn'
+                                ? 'যুক্ত হোন'
+                                : 'Join'}
+                        </Text>
+                      )}
                     </Pressable>
                   </View>
-
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] leading-relaxed mb-3">
-                    {desc}
-                  </Text>
-
-                  <View className="pt-2.5 border-t border-[#f0f2f5] dark:border-[#393a3b] flex-row items-center justify-between">
-                    <Text className="text-[11px] text-[#8a8d91] font-medium">
-                      {group.postCount} {locale === 'bn' ? 'পোস্ট ও আলোচনা' : 'posts & discussions'}
-                    </Text>
-                    <Pressable className="flex-row items-center gap-1">
-                      <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
-                        {locale === 'bn' ? 'গ্রুপ দেখুন' : 'View Group'}
-                      </Text>
-                      <AppIcon android="chevron_right" size={14} color="#1877f2" />
-                    </Pressable>
-                  </View>
-                </View>
-              );
-            })
-          )}
-        </View>
+                );
+              })
+            )}
+          </View>
+        )}
       </View>
     </ScrollView>
   );
