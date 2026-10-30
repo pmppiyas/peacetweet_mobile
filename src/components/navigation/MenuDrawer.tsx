@@ -115,7 +115,7 @@ export function MenuDrawer() {
     theme,
     toggleTheme,
   } = useUi();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   if (!isMenuDrawerOpen) return null;
 
@@ -161,10 +161,10 @@ export function MenuDrawer() {
           </View>
 
           {/* Scrollable Content */}
-          <ScrollView className="flex-1 p-3.5" contentContainerClassName="pb-8">
+          <ScrollView className="flex-1 p-3.5" contentContainerClassName="pb-4">
             {/* User Account / Auth Section matching peacetweet_frontend MenuDrawer.tsx */}
             {isAuthenticated && user ? (
-              <View className="mb-3 gap-2">
+              <View className="mb-3">
                 <Pressable
                   onPress={() => closeAndNavigate('/profile')}
                   className="flex-row items-center gap-3 p-3 rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c]">
@@ -190,18 +190,6 @@ export function MenuDrawer() {
                     size={18}
                     color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
                   />
-                </Pressable>
-
-                <Pressable
-                  onPress={async () => {
-                    setMenuDrawerOpen(false);
-                    await logout();
-                  }}
-                  className="flex-row items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 dark:border-rose-900/60 dark:bg-rose-950/40">
-                  <AppIcon android="logout" size={15} color="#e11d48" />
-                  <Text className="text-xs font-bold text-rose-600 dark:text-rose-400">
-                    {locale === 'bn' ? 'লগআউট করুন' : 'Log Out'}
-                  </Text>
                 </Pressable>
               </View>
             ) : (

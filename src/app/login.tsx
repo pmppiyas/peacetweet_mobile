@@ -54,7 +54,7 @@ export default function LoginScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerClassName="flex-grow items-center justify-center px-3 py-6">
+      contentContainerClassName="flex-grow items-center justify-center px-2 py-4">
       {/* Compact Header matching peacetweet_frontend LoginView.tsx */}
       <View className="items-center mb-4">
         <Pressable onPress={() => router.push('/')}>

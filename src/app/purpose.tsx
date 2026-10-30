@@ -60,31 +60,25 @@ export default function PurposeScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 20 }}>
-      <View className="w-full max-w-[768px] mx-auto space-y-4">
+      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}>
+      <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Hero Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-5 shadow-xs items-center text-center">
-          <View className="h-14 w-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 items-center justify-center mb-3">
-            <AppIcon android="auto_awesome" size={28} color="#059669" />
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">
+          <View className="flex-row items-center gap-3">
+            <View className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 items-center justify-center shrink-0">
+              <AppIcon android="auto_awesome" size={20} color="#059669" />
+            </View>
+            <View className="flex-1 min-w-0">
+              <Text numberOfLines={1} className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'আমাদের উদ্দেশ্য ও নীতিমালা' : 'Our Purpose & Mission'}
+              </Text>
+              <Text numberOfLines={2} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] leading-tight">
+                {locale === 'bn'
+                  ? 'চোখের যিনামুক্ত, পরিচ্ছন্ন ও প্রামাণিক দ্বীনি জ্ঞানের ডিজিটাল সোশ্যাল স্পেস।'
+                  : 'A gaze-protected, ad-free space dedicated to authentic Islamic knowledge.'}
+              </Text>
+            </View>
           </View>
-
-          <View className="rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 border border-emerald-200 dark:border-emerald-800/80 mb-2.5">
-            <Text className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-              {locale === 'bn'
-                ? 'আমাদের লক্ষ্য, প্রেরণা ও স্বচ্ছতার অঙ্গীকার'
-                : 'Our Mission, Values & Commitment'}
-            </Text>
-          </View>
-
-          <Text className="text-xl font-extrabold text-[#050505] dark:text-[#e4e6eb] text-center mb-2">
-            {locale === 'bn' ? 'PeaceTweet কেন তৈরি করেছি?' : 'Why We Built PeaceTweet'}
-          </Text>
-
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-lg leading-relaxed">
-            {locale === 'bn'
-              ? 'একটি পরিচ্ছন্ন, নিরাপদ, চোখের যিনামুক্ত ও বিরক্তিকর বিজ্ঞাপনবিহীন ডিজিটাল স্থান—যেখানে স্ক্রল করলেই চোখ ও মন শান্ত থাকে এবং জীবন পরিবর্তনের মতো খাঁটি জ্ঞান মেলে।'
-              : 'A clean, safe, and advertisement-free sanctuary where scrolling purifies your heart and enriches your soul with authentic Islamic knowledge.'}
-          </Text>
         </View>
 
         {/* Pillars */}
@@ -96,7 +90,7 @@ export default function PurposeScreen() {
             return (
               <View
                 key={item.id}
-                className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs flex-row items-start gap-3.5">
+                className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 shadow-xs flex-row items-start gap-3.5">
                 <View
                   style={{ backgroundColor: `${item.color}15` }}
                   className="h-11 w-11 rounded-2xl items-center justify-center shrink-0 mt-0.5">
@@ -116,7 +110,7 @@ export default function PurposeScreen() {
         </View>
 
         {/* Official Contact Footer */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-5 shadow-xs items-center text-center">
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs items-center text-center">
           <AppIcon android="mail" size={24} color="#1877f2" />
           <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] mt-2 mb-1">
             {locale === 'bn' ? 'অফিসিয়াল যোগাযোগ' : 'Official Contact'}

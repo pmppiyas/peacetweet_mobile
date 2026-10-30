@@ -3,8 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CreatePostScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-fb-bg dark:bg-fb-darkBg px-4 pt-6">
-      <View className="bg-white dark:bg-fb-darkCard rounded-2xl p-5 border border-fb-border dark:border-fb-darkBorder">
+    <SafeAreaView className="flex-1 bg-fb-bg dark:bg-fb-darkBg px-1.5 pt-3">
+      <View className="bg-white dark:bg-fb-darkCard rounded-2xl p-3.5 border border-fb-border dark:border-fb-darkBorder">
         <Text className="text-xl font-bold text-fb-text dark:text-fb-darkText mb-2">
           নতুন দোয়া বা রিমাইন্ডার শেয়ার করুন
         </Text>

@@ -107,7 +107,7 @@ export default function FriendsScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 20 }}
+      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -115,24 +115,28 @@ export default function FriendsScreen() {
           tintColor={theme === 'dark' ? '#ffffff' : '#4f46e5'}
         />
       }>
-      <View className="w-full max-w-[768px] mx-auto space-y-4">
+      <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Hero Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-5 shadow-xs items-center text-center">
-          <View className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 items-center justify-center mb-3">
-            <AppIcon android="group" size={28} color="#4f46e5" />
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">
+          <View className="flex-row items-center gap-3 mb-2.5">
+            <View className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 items-center justify-center shrink-0">
+              <AppIcon android="group" size={20} color="#4f46e5" />
+            </View>
+            <View className="flex-1 min-w-0">
+              <Text numberOfLines={1} className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'ফ্রেন্ডস ও পরিচিতজন' : 'Friends & Connections'}
+              </Text>
+              <Text numberOfLines={1} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn'
+                  ? 'পরিচিত দ্বীনি ভাই-বোনদের খুঁজুন ও যুক্ত হোন'
+                  : 'Find and connect with companions'}
+              </Text>
+            </View>
           </View>
-          <Text className="text-xl font-extrabold text-[#050505] dark:text-[#e4e6eb] text-center mb-1">
-            {locale === 'bn' ? 'ফ্রেন্ডস ও পরিচিতজন' : 'Friends & Connections'}
-          </Text>
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-lg leading-relaxed mb-4">
-            {locale === 'bn'
-              ? 'দ্বীনি ভাই ও বোনদের সাথে যুক্ত হোন এবং পারস্পরিক আন্তরিক সম্পর্ক গড়ে তুলুন।'
-              : 'Connect with righteous companions and follow updates from your friends.'}
-          </Text>
 
           {/* Search bar */}
-          <View className="w-full flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2">
-            <AppIcon android="search" size={17} color="#65676b" />
+          <View className="w-full flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1.5">
+            <AppIcon android="search" size={15} color="#65676b" />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -142,7 +146,7 @@ export default function FriendsScreen() {
             />
             {searchQuery.length > 0 && (
               <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
-                <AppIcon android="close" size={16} color="#65676b" />
+                <AppIcon android="close" size={15} color="#65676b" />
               </Pressable>
             )}
           </View>
@@ -189,7 +193,7 @@ export default function FriendsScreen() {
             filteredUsers.map((u) => (
               <View
                 key={u.id}
-                className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs flex-row items-center justify-between">
+                className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 shadow-xs flex-row items-center justify-between">
                 <View className="flex-row items-center gap-3 flex-1 pr-3">
                   <View className="h-11 w-11 rounded-full bg-indigo-500 items-center justify-center shrink-0">
                     <Text className="text-white text-base font-bold">

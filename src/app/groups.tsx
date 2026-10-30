@@ -158,7 +158,7 @@ export default function GroupsScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 20 }}
+      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -166,24 +166,28 @@ export default function GroupsScreen() {
           tintColor={theme === 'dark' ? '#ffffff' : '#1877f2'}
         />
       }>
-      <View className="w-full max-w-[768px] mx-auto space-y-4">
-        {/* Hero Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-5 shadow-xs items-center text-center">
-          <View className="h-14 w-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 items-center justify-center mb-3">
-            <AppIcon android="groups" size={28} color="#059669" />
+      <View className="w-full max-w-[768px] mx-auto space-y-3">
+        {/* Header Hero Card */}
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">
+          <View className="flex-row items-center gap-3 mb-2.5">
+            <View className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 items-center justify-center shrink-0">
+              <AppIcon android="groups" size={20} color="#059669" />
+            </View>
+            <View className="flex-1 min-w-0">
+              <Text numberOfLines={1} className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'কমিউনিটি গ্রুপসমূহ' : 'Community Groups'}
+              </Text>
+              <Text numberOfLines={1} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn'
+                  ? 'আমল ও জ্ঞান চর্চায় যুক্ত হোন'
+                  : 'Connect with knowledge & practice circles'}
+              </Text>
+            </View>
           </View>
-          <Text className="text-xl font-extrabold text-[#050505] dark:text-[#e4e6eb] text-center mb-1">
-            {locale === 'bn' ? 'কমিউনিটি গ্রুপসমূহ' : 'Community Groups'}
-          </Text>
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-lg leading-relaxed mb-4">
-            {locale === 'bn'
-              ? 'আমল, জ্ঞান চর্চা ও পারস্পরিক সহযোগিতার জন্য ইসলামিক ভ্রাতৃত্বপূর্ণ গ্রুপসমূহে যুক্ত হোন।'
-              : 'Join interest-based groups to learn, share authentic knowledge, and support one another.'}
-          </Text>
 
           {/* Search bar */}
-          <View className="w-full flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2">
-            <AppIcon android="search" size={17} color="#65676b" />
+          <View className="w-full flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1.5">
+            <AppIcon android="search" size={15} color="#65676b" />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -193,7 +197,7 @@ export default function GroupsScreen() {
             />
             {searchQuery.length > 0 && (
               <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
-                <AppIcon android="close" size={16} color="#65676b" />
+                <AppIcon android="close" size={15} color="#65676b" />
               </Pressable>
             )}
           </View>
@@ -255,7 +259,7 @@ export default function GroupsScreen() {
               return (
                 <View
                   key={group.id}
-                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs">
+                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 shadow-xs">
                   <View className="flex-row items-start justify-between gap-3 mb-2.5">
                     <View className="flex-row items-center gap-3 flex-1">
                       <View className="h-11 w-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 items-center justify-center shrink-0">

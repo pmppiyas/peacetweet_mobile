@@ -32,7 +32,7 @@ export default function HomeScreen() {
       }>
       <View className="w-full max-w-[720px] mx-auto">
         {/* 1. Post Composer Card matching peacetweet_frontend PostComposer.tsx */}
-        <View className="mx-2 mt-2 bg-white dark:bg-[#242526] rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] pt-2.5 pb-1 px-3">
+        <View className="mx-1 mt-1.5 bg-white dark:bg-[#242526] rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] pt-2 pb-1 px-2.5">
           {!isAuthenticated ? (
             <View className="flex-row items-center justify-between gap-3 pb-1.5">
               <View className="flex-row items-center gap-2.5 flex-1">

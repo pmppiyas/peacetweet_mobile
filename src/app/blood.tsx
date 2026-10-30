@@ -157,7 +157,7 @@ export default function BloodScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 20 }}
+      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -165,33 +165,37 @@ export default function BloodScreen() {
           tintColor={theme === 'dark' ? '#ffffff' : '#e11d48'}
         />
       }>
-      <View className="w-full max-w-[768px] mx-auto space-y-4">
+      <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Hero Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-5 shadow-xs items-center text-center">
-          <View className="h-14 w-14 rounded-2xl bg-rose-50 dark:bg-rose-950/60 items-center justify-center mb-3">
-            <AppIcon android="water_drop" size={28} color="#e11d48" />
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">
+          <View className="flex-row items-center gap-3 mb-2.5">
+            <View className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 items-center justify-center shrink-0">
+              <AppIcon android="water_drop" size={20} color="#e11d48" />
+            </View>
+            <View className="flex-1 min-w-0">
+              <Text numberOfLines={1} className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'জরুরি রক্তদান নেটওয়ার্ক' : 'Emergency Blood Network'}
+              </Text>
+              <Text numberOfLines={1} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn'
+                  ? 'মুমূর্ষু রোগীর প্রয়োজনে রক্তদাতা ও আবেদনসমূহ'
+                  : 'Connect donors with patients in need'}
+              </Text>
+            </View>
           </View>
-          <Text className="text-xl font-extrabold text-[#050505] dark:text-[#e4e6eb] text-center mb-1">
-            {locale === 'bn' ? 'জরুরি রক্তদান নেটওয়ার্ক' : 'Emergency Blood Network'}
-          </Text>
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-lg leading-relaxed mb-4">
-            {locale === 'bn'
-              ? 'মুমূর্ষু রোগীর প্রয়োজনে দ্রুত রক্তদাতা ও রক্তের জরুরি রিকোয়েস্ট সরাসরি যোগাযোগ করুন।'
-              : 'Directly connect blood donors with critical patients in need across Bangladesh.'}
-          </Text>
 
           {/* Blood Group Chips Carousel */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, paddingHorizontal: 4 }}>
+            contentContainerStyle={{ gap: 6, paddingVertical: 2 }}>
             {BLOOD_GROUPS.map((grp) => {
               const isSelected = selectedGroup === grp;
               return (
                 <Pressable
                   key={grp}
                   onPress={() => setSelectedGroup(grp)}
-                  className={`px-3 py-1.5 rounded-full border ${
+                  className={`px-2.5 py-1 rounded-full border ${
                     isSelected
                       ? 'bg-rose-600 border-rose-600'
                       : 'bg-[#f0f2f5] dark:bg-[#3a3b3c] border-[#ced0d4] dark:border-[#4a4b4d]'
@@ -256,7 +260,7 @@ export default function BloodScreen() {
               filteredRequests.map((req) => (
                 <View
                   key={req.id}
-                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs">
+                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 shadow-xs">
                   <View className="flex-row items-start justify-between gap-3 mb-2">
                     <View className="flex-row items-center gap-3 flex-1">
                       <View className="h-12 w-12 rounded-2xl bg-rose-600 items-center justify-center shrink-0 shadow-xs">
@@ -334,7 +338,7 @@ export default function BloodScreen() {
               filteredDonors.map((don) => (
                 <View
                   key={don.id}
-                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs flex-row items-center justify-between">
+                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 shadow-xs flex-row items-center justify-between">
                   <View className="flex-row items-center gap-3 flex-1 pr-3">
                     <View className="h-11 w-11 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 items-center justify-center shrink-0">
                       <Text className="text-rose-600 dark:text-rose-400 text-sm font-black">

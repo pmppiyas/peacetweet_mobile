@@ -200,7 +200,7 @@ export default function CategoriesScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 20 }}
+      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -208,24 +208,28 @@ export default function CategoriesScreen() {
           tintColor={theme === 'dark' ? '#ffffff' : '#1877f2'}
         />
       }>
-      <View className="w-full max-w-[768px] mx-auto space-y-4">
+      <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Header Hero Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-5 shadow-xs items-center text-center">
-          <View className="h-14 w-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 items-center justify-center mb-3">
-            <AppIcon android="layers" size={28} color="#2563eb" />
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">
+          <View className="flex-row items-center gap-3 mb-2.5">
+            <View className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 items-center justify-center shrink-0">
+              <AppIcon android="layers" size={20} color="#2563eb" />
+            </View>
+            <View className="flex-1 min-w-0">
+              <Text numberOfLines={1} className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'বিষয়ভিত্তিক ক্যাটাগরি' : 'Categories'}
+              </Text>
+              <Text numberOfLines={1} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn'
+                  ? 'মাসনুন দোয়া ও প্রামাণিক যিকিরসমূহ'
+                  : 'Authentic Duas by theme & topic'}
+              </Text>
+            </View>
           </View>
-          <Text className="text-xl font-extrabold text-[#050505] dark:text-[#e4e6eb] text-center mb-1">
-            {locale === 'bn' ? 'বিষয়ভিত্তিক দোয়া ও যিকির ক্যাটাগরি' : 'Islamic Dua Categories'}
-          </Text>
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-lg leading-relaxed mb-4">
-            {locale === 'bn'
-              ? 'দৈনন্দিন জীবন, সালাত, সুরক্ষা, ক্ষমা ও আত্মিক শান্তির জন্য সহীহ হাদিস ও কুরআনের আলোয় সংকলিত মাসনুন দোয়াসমূহ।'
-              : 'Explore authentic Quranic and Prophetic supplications categorized by everyday situations and spiritual needs.'}
-          </Text>
 
           {/* In-page Category Search Input */}
-          <View className="w-full flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2">
-            <AppIcon android="search" size={17} color="#65676b" />
+          <View className="w-full flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1.5">
+            <AppIcon android="search" size={15} color="#65676b" />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -239,7 +243,7 @@ export default function CategoriesScreen() {
             />
             {searchQuery.length > 0 && (
               <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
-                <AppIcon android="close" size={16} color="#65676b" />
+                <AppIcon android="close" size={15} color="#65676b" />
               </Pressable>
             )}
           </View>
@@ -270,7 +274,7 @@ export default function CategoriesScreen() {
                 <Pressable
                   key={cat.id}
                   onPress={() => handleSelectCategory(cat)}
-                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 flex-row items-center justify-between active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]/60">
+                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 flex-row items-center justify-between active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]/60">
                   <View className="flex-row items-center gap-3.5 flex-1 pr-3">
                     <View
                       style={{ backgroundColor: `${cat.color || '#3b82f6'}18` }}

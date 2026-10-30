@@ -53,27 +53,29 @@ export default function FeedbackScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 20 }}>
-      <View className="w-full max-w-[768px] mx-auto space-y-4">
+      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}>
+      <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Hero Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-5 shadow-xs items-center text-center">
-          <View className="h-14 w-14 rounded-2xl bg-teal-50 dark:bg-teal-950/60 items-center justify-center mb-3">
-            <AppIcon android="feedback" size={28} color="#0d9488" />
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">
+          <View className="flex-row items-center gap-3">
+            <View className="h-10 w-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 items-center justify-center shrink-0">
+              <AppIcon android="feedback" size={20} color="#0d9488" />
+            </View>
+            <View className="flex-1 min-w-0">
+              <Text numberOfLines={1} className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'পরামর্শ ও অভিযোগ' : 'Feedback & Report'}
+              </Text>
+              <Text numberOfLines={1} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn'
+                  ? 'আপনার মতামত, পরামর্শ বা বাগ রিপোর্ট জানান'
+                  : 'Share suggestions, bugs, or content concerns'}
+              </Text>
+            </View>
           </View>
-
-          <Text className="text-xl font-extrabold text-[#050505] dark:text-[#e4e6eb] text-center mb-1">
-            {locale === 'bn' ? 'পরামর্শ ও অভিযোগ' : 'Feedback & Report'}
-          </Text>
-
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-lg leading-relaxed">
-            {locale === 'bn'
-              ? 'PeaceTweet-কে আরও সমৃদ্ধ ও ত্রুটিমুক্ত করতে আপনার মূল্যবান মতামত, বাগ রিপোর্ট বা পরামর্শ আমাদের জানান।'
-              : 'Share your suggestions, bug reports, or content concerns directly with the PeaceTweet team.'}
-          </Text>
         </View>
 
         {/* Form Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-5 shadow-xs space-y-4">
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs space-y-4">
           <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
             {locale === 'bn' ? 'মতামত বা রিপোর্ট পাঠান' : 'Send Feedback'}
           </Text>
@@ -191,7 +193,7 @@ export default function FeedbackScreen() {
           {faqs.map((faq, i) => (
             <View
               key={i}
-              className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs">
+              className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 shadow-xs">
               <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] mb-1">
                 {locale === 'bn' ? faq.qBn : faq.qEn}
               </Text>
@@ -203,7 +205,7 @@ export default function FeedbackScreen() {
         </View>
 
         {/* Direct Email Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 items-center text-center">
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 items-center text-center">
           <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mb-2">
             {locale === 'bn' ? 'সরাসরি অফিসিয়াল ইমেইল:' : 'Direct official contact:'}
           </Text>

@@ -16,26 +16,30 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 20 }}>
-      <View className="w-full max-w-[768px] mx-auto space-y-4">
+      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}>
+      <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Hero Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-5 shadow-xs items-center text-center">
-          <View className="h-14 w-14 rounded-2xl bg-gray-100 dark:bg-gray-800 items-center justify-center mb-3">
-            <AppIcon android="settings" size={28} color="#4b5563" />
+        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">
+          <View className="flex-row items-center gap-3">
+            <View className="h-10 w-10 rounded-xl bg-gray-100 dark:bg-gray-800 items-center justify-center shrink-0">
+              <AppIcon android="settings" size={20} color="#4b5563" />
+            </View>
+            <View className="flex-1 min-w-0">
+              <Text numberOfLines={1} className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'সেটিংস ও পছন্দসমূহ' : 'Settings & Preferences'}
+              </Text>
+              <Text numberOfLines={1} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn'
+                  ? 'থিম, ভাষা, নোটিফিকেশন অ্যালার্ট ও অ্যাকাউন্ট'
+                  : 'Customize theme, language, and alerts'}
+              </Text>
+            </View>
           </View>
-          <Text className="text-xl font-extrabold text-[#050505] dark:text-[#e4e6eb] text-center mb-1">
-            {locale === 'bn' ? 'সেটিংস ও পছন্দসমূহ' : 'Settings & Preferences'}
-          </Text>
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center max-w-lg leading-relaxed">
-            {locale === 'bn'
-              ? 'থিম, ভাষা, নোটিফিকেশন অ্যালার্ট ও অ্যাকাউন্ট সম্পর্কিত সেটিংস নিয়ন্ত্রণ করুন।'
-              : 'Customize your theme, language, notifications, and account settings.'}
-          </Text>
         </View>
 
         {/* Account Summary Card */}
         {isAuthenticated && user ? (
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs">
+          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs">
             <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider mb-3">
               {locale === 'bn' ? 'অ্যাকাউন্ট প্রোফাইল' : 'Account Profile'}
             </Text>
@@ -66,7 +70,7 @@ export default function SettingsScreen() {
             </View>
           </View>
         ) : (
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs flex-row items-center justify-between">
+          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs flex-row items-center justify-between">
             <View className="flex-1 pr-3">
               <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'লগইন করা নেই' : 'Not signed in'}
@@ -88,7 +92,7 @@ export default function SettingsScreen() {
         )}
 
         {/* Display & Language Settings */}
-        <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs space-y-3">
+        <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs space-y-3">
           <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
             {locale === 'bn' ? 'ডিসপ্লে ও ভাষা' : 'Display & Language'}
           </Text>
@@ -172,7 +176,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Notifications Settings */}
-        <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs space-y-3">
+        <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs space-y-3">
           <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
             {locale === 'bn' ? 'নোটিফিকেশন ও অ্যালার্ট' : 'Notifications'}
           </Text>
