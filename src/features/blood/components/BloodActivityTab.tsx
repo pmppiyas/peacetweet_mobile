@@ -3,6 +3,7 @@ import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AuthPromptCard } from '@/components/ui/AuthPromptCard';
 import { BloodRequestItem } from '../types/blood.types';
 import { BloodSkeleton } from './BloodSkeleton';
@@ -222,52 +223,88 @@ export function BloodActivityTab({
                     </View>
 
                     {/* Donors who accepted this request */}
-                    {req.donations && req.donations.length > 0 && (
-                      <View className="mt-2.5 p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b]">
-                        <Text className="text-[11px] font-bold text-[#050505] dark:text-[#e4e6eb] mb-1.5">
-                          {locale === 'bn'
-                            ? '🩸 রক্ত দিতে সম্মত রক্তদাতা:'
-                            : '🩸 Pledged Donors:'}
-                        </Text>
-                        <View className="gap-2">
-                          {req.donations.map((d) => (
-                            <View
-                              key={d.id}
-                              className="flex-row items-center justify-between">
-                              <View className="flex-row items-center gap-2 flex-1 min-w-0 pr-2">
-                                <View className="w-6 h-6 rounded-full bg-rose-100 dark:bg-rose-950/60 items-center justify-center shrink-0">
-                                  <AppIcon android="person" size={12} color="#e11d48" />
-                                </View>
-                                <Text
-                                  numberOfLines={1}
-                                  className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] truncate">
-                                  {d.donor?.name || 'Donor'}
-                                </Text>
-                                {d.donor?.bloodGroup && (
-                                  <Text className="text-[10px] font-bold text-rose-600 dark:text-rose-400">
-                                    ({formatBloodGroup(d.donor.bloodGroup)})
-                                  </Text>
-                                )}
-                              </View>
-                              {d.donor && (
-                                <Pressable
-                                  onPress={() => onDonorMessage(d.donor as any)}
-                                  className="px-2.5 py-1 rounded-lg bg-rose-600 active:bg-rose-700 flex-row items-center gap-1 shadow-xs">
-                                  <AppIcon
-                                    android="chat_bubble"
-                                    size={11}
-                                    color="#ffffff"
-                                  />
-                                  <Text className="text-[10px] font-bold text-white">
-                                    {locale === 'bn' ? 'মেসেজ' : 'Chat'}
-                                  </Text>
-                                </Pressable>
-                              )}
+                    {(() => {
+                      const activeDonations = (req.donations || []).filter(
+                        (d) => d.status === 'ACCEPTED' || d.status === 'COMPLETED'
+                      );
+                      if (activeDonations.length === 0) return null;
+
+                      return (
+                        <View className="mt-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80">
+                          <View className="flex-row items-center justify-between mb-2 pb-1.5 border-b border-emerald-200/60 dark:border-emerald-800/60">
+                            <View className="flex-row items-center gap-1.5">
+                              <AppIcon android="check_circle" size={14} color="#059669" />
+                              <Text className="text-xs font-bold text-emerald-900 dark:text-emerald-300">
+                                {locale === 'bn' ? 'রক্তদানে সম্মত রক্তদাতা:' : 'Pledged Donors:'}
+                              </Text>
                             </View>
-                          ))}
+                            <View className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60">
+                              <Text className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                                {activeDonations.length} {locale === 'bn' ? 'জন রক্তদাতা' : 'Donor(s)'}
+                              </Text>
+                            </View>
+                          </View>
+
+                          <View className="gap-2.5">
+                            {activeDonations.map((d) => {
+                              const donorName = d.donor?.name || 'Blood Donor';
+                              const donorGroup = d.donor?.bloodGroup ? formatBloodGroup(d.donor.bloodGroup) : null;
+                              const isCompleted = d.status === 'COMPLETED';
+
+                              return (
+                                <View
+                                  key={d.id}
+                                  className="flex-row items-center justify-between bg-white dark:bg-[#242526] p-2.5 rounded-xl border border-emerald-100 dark:border-[#393a3b] shadow-xs">
+                                  <View className="flex-row items-center gap-2.5 flex-1 min-w-0 pr-2">
+                                    <UserAvatar
+                                      name={donorName}
+                                      avatarUrl={d.donor?.avatarUrl}
+                                      size="sm"
+                                    />
+                                    <View className="flex-1 min-w-0">
+                                      <View className="flex-row items-center gap-1.5 flex-wrap">
+                                        <Text
+                                          numberOfLines={1}
+                                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
+                                          {donorName}
+                                        </Text>
+                                        {donorGroup && (
+                                          <View className="px-1.5 py-0.2 rounded bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60">
+                                            <Text className="text-[10px] font-extrabold text-rose-600 dark:text-rose-400">
+                                              {donorGroup}
+                                            </Text>
+                                          </View>
+                                        )}
+                                      </View>
+                                      <Text className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
+                                        {isCompleted
+                                          ? (locale === 'bn' ? '✓ রক্তদান সম্পন্ন' : '✓ Donation Completed')
+                                          : (locale === 'bn' ? '✓ রক্ত দিতে সম্মত হয়েছেন' : '✓ Agreed to donate')}
+                                      </Text>
+                                    </View>
+                                  </View>
+
+                                  {d.donor && (
+                                    <Pressable
+                                      onPress={() => onDonorMessage(d.donor as any)}
+                                      className="px-3 py-1.5 rounded-lg bg-rose-600 active:bg-rose-700 flex-row items-center gap-1 shadow-xs">
+                                      <AppIcon
+                                        android="chat_bubble"
+                                        size={12}
+                                        color="#ffffff"
+                                      />
+                                      <Text className="text-xs font-bold text-white">
+                                        {locale === 'bn' ? 'মেসেজ' : 'Chat'}
+                                      </Text>
+                                    </Pressable>
+                                  )}
+                                </View>
+                              );
+                            })}
+                          </View>
                         </View>
-                      </View>
-                    )}
+                      );
+                    })()}
 
                     {/* Actions: Mark Completed or Cancel */}
                     {req.status !== 'COMPLETED' && req.status !== 'CANCELLED' && req.status !== 'POSTING' && (
@@ -306,17 +343,24 @@ export function BloodActivityTab({
               })
             )}
 
-            {/* End of list indicator */}
+            {/* End of list indicator with right-side Go To Top icon */}
             {!isLoading && myRequests.length > 0 && (
-              <View className="pt-2 pb-1 items-center justify-center">
-                <View className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b]">
+              <View className="pt-3 pb-2 items-center justify-center">
+                <Pressable
+                  onPress={onScrollToTop}
+                  className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
                   <View className="h-1.5 w-1.5 rounded-full bg-rose-500" />
                   <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn'
                       ? 'আর কোনো আবেদন নেই'
                       : 'No more requests'}
                   </Text>
-                </View>
+                  {onScrollToTop && (
+                    <View className="ml-1 pl-1.5 border-l border-[#d0d2d6] dark:border-[#3a3b3c]">
+                      <AppIcon android="keyboard_arrow_up" size={13} color="#e11d48" weight="bold" />
+                    </View>
+                  )}
+                </Pressable>
               </View>
             )}
           </View>
@@ -445,17 +489,24 @@ export function BloodActivityTab({
               })
             )}
 
-            {/* End of list indicator */}
+            {/* End of list indicator with right-side Go To Top icon */}
             {!isLoading && myAccepted.length > 0 && (
-              <View className="pt-2 pb-1 items-center justify-center">
-                <View className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b]">
+              <View className="pt-3 pb-2 items-center justify-center">
+                <Pressable
+                  onPress={onScrollToTop}
+                  className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
                   <View className="h-1.5 w-1.5 rounded-full bg-rose-500" />
                   <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn'
                       ? 'আর কোনো গৃহীত রক্তদান নেই'
                       : 'No more accepted pledges'}
                   </Text>
-                </View>
+                  {onScrollToTop && (
+                    <View className="ml-1 pl-1.5 border-l border-[#d0d2d6] dark:border-[#3a3b3c]">
+                      <AppIcon android="keyboard_arrow_up" size={13} color="#e11d48" weight="bold" />
+                    </View>
+                  )}
+                </Pressable>
               </View>
             )}
           </View>

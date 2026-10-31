@@ -57,9 +57,9 @@ export default function BloodScreen() {
   );
 
   const loadedTabsRef = useRef<Record<string, boolean>>({
-    'requests:ALL': queryCache.has('blood:requests:ALL'),
-    'donors:ALL': queryCache.has('blood:donors:ALL'),
-    activity: queryCache.has('blood:activity:requests'),
+    'blood:requests:ALL': queryCache.has('blood:requests:ALL'),
+    'blood:donors:ALL': queryCache.has('blood:donors:ALL'),
+    'blood:activity': queryCache.has('blood:activity:requests'),
   });
 
   const requestsRef = useRef(requests);
@@ -128,7 +128,7 @@ export default function BloodScreen() {
         (tab === 'requests' && requestsRef.current.length > 0 && Boolean(loadedTabsRef.current[cacheKey])) ||
         (tab === 'donors' && donorsRef.current.length > 0 && Boolean(loadedTabsRef.current[cacheKey]));
 
-      if (forceLoading || !hasExistingData) {
+      if (!hasExistingData) {
         setIsLoading(true);
       }
 
@@ -268,14 +268,14 @@ export default function BloodScreen() {
     async (forceLoading = false) => {
       if (!isAuthenticated || !user?.id) return;
       const hasData =
-        loadedTabsRef.current['activity'] || myRequestsRef.current.length > 0;
+        loadedTabsRef.current['blood:activity'] || myRequestsRef.current.length > 0;
       if (forceLoading || !hasData) {
         setIsLoadingActivity(true);
       }
       try {
         const [reqRes, accRes] = await Promise.all([
-          bloodApi.getBloodRequests({ requesterId: user.id }),
-          bloodApi.getBloodRequests({ donorId: user.id }),
+          bloodApi.getBloodRequests({ requesterId: user.id, limit: 50 }),
+          bloodApi.getBloodRequests({ donorId: user.id, limit: 50 }),
         ]);
         const reqItems = reqRes.items || [];
         const accItems = accRes.items || [];
@@ -283,7 +283,7 @@ export default function BloodScreen() {
         setMyAccepted(accItems);
         queryCache.set('blood:activity:requests', reqItems);
         queryCache.set('blood:activity:accepted', accItems);
-        loadedTabsRef.current['activity'] = true;
+        loadedTabsRef.current['blood:activity'] = true;
       } catch (err) {
         // Fallback gracefully
       } finally {
@@ -304,7 +304,7 @@ export default function BloodScreen() {
   // Fetch activity only once when activity tab becomes active and not yet loaded
   useEffect(() => {
     if (activeTab === 'activity') {
-      if (!loadedTabsRef.current['activity']) {
+      if (!loadedTabsRef.current['blood:activity']) {
         fetchActivity();
       }
     }
@@ -314,14 +314,14 @@ export default function BloodScreen() {
   useEffect(() => {
     const timer = setTimeout(async () => {
       // 1. Pre-fetch Donors (if not already loaded)
-      if (!loadedTabsRef.current['donors:ALL']) {
+      if (!loadedTabsRef.current['blood:donors:ALL']) {
         try {
           const res = await bloodApi.getAvailableDonors({ page: 1, limit: 20 });
           const items = res.items || [];
-          setDonors((prev) => (prev.length === 0 ? items : prev));
+          setDonors(items);
           donorsRef.current = items;
           queryCache.set('blood:donors:ALL', items);
-          loadedTabsRef.current['donors:ALL'] = true;
+          loadedTabsRef.current['blood:donors:ALL'] = true;
           const more = items.length >= 20;
           setHasMoreDonors(more);
           hasMoreDonorsRef.current = more;
@@ -329,7 +329,7 @@ export default function BloodScreen() {
       }
 
       // 2. Pre-fetch Activity (if authenticated and not already loaded)
-      if (isAuthenticated && user?.id && !loadedTabsRef.current['activity']) {
+      if (isAuthenticated && user?.id && !loadedTabsRef.current['blood:activity']) {
         try {
           const [reqRes, accRes] = await Promise.all([
             bloodApi.getBloodRequests({ requesterId: user.id }),
@@ -337,15 +337,15 @@ export default function BloodScreen() {
           ]);
           const rItems = reqRes.items || [];
           const aItems = accRes.items || [];
-          setMyRequests((prev) => (prev.length === 0 ? rItems : prev));
-          setMyAccepted((prev) => (prev.length === 0 ? aItems : prev));
+          setMyRequests(rItems);
+          setMyAccepted(aItems);
           myRequestsRef.current = rItems;
           queryCache.set('blood:activity:requests', rItems);
           queryCache.set('blood:activity:accepted', aItems);
-          loadedTabsRef.current['activity'] = true;
+          loadedTabsRef.current['blood:activity'] = true;
         } catch (e) {}
       }
-    }, 350);
+    }, 100);
 
     return () => clearTimeout(timer);
   }, [isAuthenticated, user?.id]);
@@ -667,7 +667,7 @@ export default function BloodScreen() {
       });
 
       // Mark activity as loaded so tab switch does not trigger background fetch that clobbers the optimistic post
-      loadedTabsRef.current['activity'] = true;
+      loadedTabsRef.current['blood:activity'] = true;
 
       // 2. Immediately switch tab to Activity and scroll to top
       setActiveTab('activity');
@@ -714,15 +714,26 @@ export default function BloodScreen() {
 
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  // Reset scroll-to-top visibility and scroll back to top when switching tab or blood group filter
+  useEffect(() => {
+    setShowScrollTop(false);
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+  }, [activeTab, selectedGroup]);
+
   const handleScrollToTop = useCallback(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    setShowScrollTop(false);
   }, []);
 
   const handleScroll = (event: any) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     
-    // Toggle floating scroll-to-top button
-    if (contentOffset.y > 320) {
+    // Only toggle floating scroll-to-top button if the list has substantial scrollable content
+    // and user has scrolled down significantly (> 650px)
+    const isScrollable = contentSize.height > layoutMeasurement.height + 350;
+    const isScrolledFar = contentOffset.y > 650;
+
+    if (isScrollable && isScrolledFar) {
       setShowScrollTop(true);
     } else {
       setShowScrollTop(false);
@@ -749,7 +760,7 @@ export default function BloodScreen() {
         stickyHeaderIndices={[0]}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingBottom: activeTab === 'create' ? 6 : 8 }}
+        contentContainerStyle={{ paddingBottom: activeTab === 'create' ? 12 : 72 }}
         refreshControl={
           activeTab !== 'create' ? (
             <RefreshControl
@@ -920,25 +931,7 @@ export default function BloodScreen() {
       </View>
     </ScrollView>
 
-    {/* Floating Go To Top FAB */}
-    {showScrollTop && activeTab !== 'create' && (
-      <Pressable
-        onPress={handleScrollToTop}
-        style={{
-          position: 'absolute',
-          bottom: 16,
-          right: 16,
-          zIndex: 50,
-          elevation: 6,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.28,
-          shadowRadius: 4,
-        }}
-        className="h-10 w-10 rounded-full bg-rose-600 active:bg-rose-700 items-center justify-center border-2 border-white dark:border-[#242526]">
-        <AppIcon android="keyboard_arrow_up" size={20} color="#ffffff" weight="bold" />
-      </Pressable>
-    )}
+
 
     {/* Universal Confirm Dialog (Works on Web & Mobile) */}
     <ConfirmDialog

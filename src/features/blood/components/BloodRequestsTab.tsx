@@ -36,7 +36,7 @@ export function BloodRequestsTab({
 
   return (
     <View className="w-full">
-      {isLoading && !isRefreshing ? (
+      {requests.length === 0 && isLoading && !isRefreshing ? (
         <BloodSkeleton count={6} />
       ) : requests.length === 0 ? (
         <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center my-4">
@@ -131,6 +131,24 @@ export function BloodRequestsTab({
                         • {req.problem}
                       </Text>
                     )}
+
+                    {/* Pledged Donors Banner */}
+                    {activePledges > 0 && req.donations && (
+                      <View className="mt-1.5 flex-row items-center gap-1.5 flex-wrap">
+                        <View className="flex-row items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+                          <AppIcon android="check" size={10} color="#059669" />
+                          <Text numberOfLines={1} className="text-[10px] text-emerald-800 dark:text-emerald-300">
+                            <Text className="font-semibold">{locale === 'bn' ? 'রক্তদাতা: ' : 'Donor: '}</Text>
+                            <Text className="font-bold">
+                              {req.donations
+                                .filter((d) => d.status === 'ACCEPTED' || d.status === 'COMPLETED')
+                                .map((d) => d.donor?.name || 'Donor')
+                                .join(', ')}
+                            </Text>
+                          </Text>
+                        </View>
+                      </View>
+                    )}
                   </View>
                 </View>
               </View>
@@ -185,17 +203,24 @@ export function BloodRequestsTab({
         </View>
       )}
 
-      {/* End of List Indicator */}
+      {/* End of List Indicator with right-side Go To Top icon */}
       {!hasMore && !isLoading && !isLoadingMore && requests.length > 0 && (
-        <View className="pt-2 pb-1 items-center justify-center">
-          <View className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b]">
+        <View className="pt-3 pb-2 items-center justify-center">
+          <Pressable
+            onPress={onScrollToTop}
+            className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
             <View className="h-1.5 w-1.5 rounded-full bg-rose-500" />
             <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
               {locale === 'bn'
                 ? 'আর কোনো রক্তের আবেদন নেই'
                 : 'No more blood requests'}
             </Text>
-          </View>
+            {onScrollToTop && (
+              <View className="ml-1 pl-1.5 border-l border-[#d0d2d6] dark:border-[#3a3b3c]">
+                <AppIcon android="keyboard_arrow_up" size={13} color="#e11d48" weight="bold" />
+              </View>
+            )}
+          </Pressable>
         </View>
       )}
     </View>
