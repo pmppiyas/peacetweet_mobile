@@ -24,6 +24,7 @@ import { BloodRequestsTab } from '@/features/blood/components/BloodRequestsTab';
 import { BloodDonorsTab } from '@/features/blood/components/BloodDonorsTab';
 import { BloodCreateTab } from '@/features/blood/components/BloodCreateTab';
 import { BloodActivityTab } from '@/features/blood/components/BloodActivityTab';
+import { BloodDonateConfirmModal } from '@/features/blood/components/BloodDonateConfirmModal';
 import { BLOOD_GROUPS, toBackendBloodGroup } from '@/features/blood/utils/blood.utils';
 
 export default function BloodScreen() {
@@ -102,6 +103,26 @@ export default function BloodScreen() {
   const [isLoadingActivity, setIsLoadingActivity] = useState(false);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  // Dedicated Blood Donation Modal & In-App Toast States
+  const [selectedRequestToDonate, setSelectedRequestToDonate] = useState<BloodRequestItem | null>(null);
+  const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
+  const [isDonating, setIsDonating] = useState(false);
+  const [toastNotification, setToastNotification] = useState<{
+    visible: boolean;
+    title: string;
+    subtitle: string;
+    type?: 'success' | 'warning' | 'error';
+  } | null>(null);
+
+  useEffect(() => {
+    if (toastNotification?.visible) {
+      const timer = setTimeout(() => {
+        setToastNotification(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastNotification]);
 
   // Universal In-App Confirmation Dialog (Works on Web & Mobile)
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -397,7 +418,7 @@ export default function BloodScreen() {
     } as any);
   };
 
-  const handleAcceptRequest = async (req: BloodRequestItem) => {
+  const handleAcceptRequest = (req: BloodRequestItem) => {
     if (!isAuthenticated) {
       setConfirmDialog({
         isOpen: true,
@@ -415,99 +436,97 @@ export default function BloodScreen() {
     }
 
     if (user?.id && req.requesterId === user.id) {
-      const msg =
-        locale === 'bn'
-          ? 'আপনি নিজের তৈরিকৃত রক্তের আবেদনে নিজেই রক্তদাতা হতে পারবেন না।'
-          : 'You cannot donate blood to your own request.';
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert(msg);
-      } else {
-        Alert.alert(locale === 'bn' ? 'বিজ্ঞপ্তি' : 'Notice', msg);
-      }
+      setToastNotification({
+        visible: true,
+        title: locale === 'bn' ? 'বিজ্ঞপ্তি' : 'Notice',
+        subtitle:
+          locale === 'bn'
+            ? 'আপনি নিজের তৈরিকৃত রক্তের আবেদনে নিজেই রক্তদাতা হতে পারবেন না।'
+            : 'You cannot donate blood to your own request.',
+        type: 'warning',
+      });
       return;
     }
 
-    setConfirmDialog({
-      isOpen: true,
-      title: locale === 'bn' ? 'রক্তদানের অঙ্গীকার' : 'Pledge to Donate Blood',
-      subtitle:
-        locale === 'bn'
-          ? `${req.patientName}-এর জন্য রক্ত দিতে আপনি কি সম্মত?`
-          : `Do you want to pledge blood donation for ${req.patientName}?`,
-      description:
-        locale === 'bn'
-          ? 'অঙ্গীকার করার পর এটি আপনার "কার্যক্রম" ট্যাবে যুক্ত হবে এবং রোগীর পরিবার আপনার সাথে যোগাযোগ করতে পারবে।'
-          : 'After pledging, this will appear in your Activity tab and the patient can contact you.',
-      confirmText: locale === 'bn' ? 'হ্যাঁ, রক্ত দেব' : 'Yes, Pledge',
-      cancelText: locale === 'bn' ? 'বাতিল' : 'Cancel',
-      variant: 'success',
-      onConfirm: async () => {
-        try {
-          setAcceptingId(req.id);
-          const res = await bloodApi.acceptBloodRequest(req.id);
+    setSelectedRequestToDonate(req);
+    setIsDonateModalOpen(true);
+  };
 
-          // Optimistically update request in Requests list: mark current user as donor
-          setRequests((prev) =>
-            prev.map((r) => {
-              if (r.id === req.id) {
-                const newDonation = {
-                  id: res?.donation?.id || `temp-${Date.now()}`,
-                  donorId: user?.id || '',
-                  status: 'ACCEPTED',
-                  donor: {
-                    id: user?.id || '',
-                    name: user?.name || '',
-                    username: user?.username || '',
-                    avatarUrl: user?.avatarUrl,
-                    bloodGroup: user?.bloodGroup,
-                  },
-                };
-                const donations = [...(r.donations || []), newDonation];
-                const newStatus =
-                  donations.length >= r.units ? 'FULLY_ACCEPTED' : 'PARTIALLY_ACCEPTED';
-                return {
-                  ...r,
-                  donations,
-                  status: newStatus as any,
-                };
-              }
-              return r;
-            })
-          );
+  const handleConfirmDonate = async () => {
+    if (!selectedRequestToDonate) return;
+    const req = selectedRequestToDonate;
 
-          if (res?.request) {
-            setMyAccepted((prev) => [res.request, ...prev.filter((item) => item.id !== req.id)]);
+    try {
+      setIsDonating(true);
+      setAcceptingId(req.id);
+      const res = await bloodApi.acceptBloodRequest(req.id);
+
+      // Optimistically update request in Requests list: mark current user as donor
+      setRequests((prev) =>
+        prev.map((r) => {
+          if (r.id === req.id) {
+            const newDonation = {
+              id: res?.donation?.id || `temp-${Date.now()}`,
+              donorId: user?.id || '',
+              status: 'ACCEPTED',
+              donor: {
+                id: user?.id || '',
+                name: user?.name || '',
+                username: user?.username || '',
+                avatarUrl: user?.avatarUrl,
+                bloodGroup: user?.bloodGroup,
+              },
+            };
+            const donations = [...(r.donations || []), newDonation];
+            const newStatus =
+              donations.length >= r.units ? 'FULLY_ACCEPTED' : 'PARTIALLY_ACCEPTED';
+            return {
+              ...r,
+              donations,
+              status: newStatus as any,
+            };
           }
+          return r;
+        })
+      );
 
-          queryCache.invalidate('blood:requests');
-          fetchActivity(true);
+      if (res?.request) {
+        setMyAccepted((prev) => [res.request, ...prev.filter((item) => item.id !== req.id)]);
+      }
 
-          const successMsg =
-            locale === 'bn'
-              ? 'ধন্যবাদ! আপনার রক্তদানের অঙ্গীকার সফলভাবে যুক্ত হয়েছে। "আমার কার্যক্রম" ট্যাবে এটি দেখতে পাবেন।'
-              : 'Thank you! You have successfully pledged to donate blood.';
-          if (Platform.OS === 'web' && typeof window !== 'undefined') {
-            window.alert(successMsg);
-          } else {
-            Alert.alert(locale === 'bn' ? 'ধন্যবাদ!' : 'Thank you!', successMsg);
-          }
-        } catch (err: any) {
-          const msg =
-            err?.response?.data?.message ||
-            err?.message ||
-            (locale === 'bn'
-              ? 'আবেদন গ্রহণ করতে সমস্যা হয়েছে।'
-              : 'Failed to accept blood request.');
-          if (Platform.OS === 'web' && typeof window !== 'undefined') {
-            window.alert(msg);
-          } else {
-            Alert.alert(locale === 'bn' ? 'বিজ্ঞপ্তি' : 'Notice', msg);
-          }
-        } finally {
-          setAcceptingId(null);
-        }
-      },
-    });
+      queryCache.invalidate('blood:requests');
+      fetchActivity(true);
+
+      // Close the confirmation dialog
+      setIsDonateModalOpen(false);
+
+      // Trigger real-time in-app toast banner (Requester also receives Socket.io notification)
+      setToastNotification({
+        visible: true,
+        title: locale === 'bn' ? 'অঙ্গীকার সফল হয়েছে! 🩸' : 'Pledge Successful! 🩸',
+        subtitle:
+          locale === 'bn'
+            ? `ধন্যবাদ! ${req.patientName}-এর জন্য আপনার রক্তদান অঙ্গীকার গৃহীত হয়েছে এবং আবেদনকারীকে তাৎক্ষণিক রিয়েল-টাইম নোটিফিকেশন পাঠানো হয়েছে।`
+            : `Thank you! Your pledge for ${req.patientName} was accepted and a real-time notification was sent to the requester.`,
+        type: 'success',
+      });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        (locale === 'bn'
+          ? 'আবেদন গ্রহণ করতে সমস্যা হয়েছে।'
+          : 'Failed to accept blood request.');
+      setToastNotification({
+        visible: true,
+        title: locale === 'bn' ? 'ব্যর্থ হয়েছে' : 'Error',
+        subtitle: msg,
+        type: 'error',
+      });
+    } finally {
+      setIsDonating(false);
+      setAcceptingId(null);
+    }
   };
 
   const handleCompleteMyRequest = (req: BloodRequestItem) => {
@@ -932,6 +951,78 @@ export default function BloodScreen() {
     </ScrollView>
 
 
+
+    {/* Real-time Toast Notification Banner */}
+    {toastNotification?.visible && (
+      <Pressable
+        onPress={() => setToastNotification(null)}
+        style={{
+          position: 'absolute',
+          top: 14,
+          left: 16,
+          right: 16,
+          zIndex: 100,
+          elevation: 10,
+        }}
+        className={`p-3.5 rounded-2xl bg-white dark:bg-[#242526] border shadow-2xl flex-row items-center gap-3 ${
+          toastNotification.type === 'error'
+            ? 'border-rose-400 dark:border-rose-700'
+            : toastNotification.type === 'warning'
+            ? 'border-amber-400 dark:border-amber-700'
+            : 'border-emerald-400 dark:border-emerald-700'
+        }`}>
+        <View
+          className={`h-10 w-10 rounded-full items-center justify-center shrink-0 ${
+            toastNotification.type === 'error'
+              ? 'bg-rose-100 dark:bg-rose-950/60'
+              : toastNotification.type === 'warning'
+              ? 'bg-amber-100 dark:bg-amber-950/60'
+              : 'bg-emerald-100 dark:bg-emerald-950/60'
+          }`}>
+          <AppIcon
+            android={
+              toastNotification.type === 'error'
+                ? 'error'
+                : toastNotification.type === 'warning'
+                ? 'warning'
+                : 'check_circle'
+            }
+            size={22}
+            color={
+              toastNotification.type === 'error'
+                ? '#e11d48'
+                : toastNotification.type === 'warning'
+                ? '#d97706'
+                : '#059669'
+            }
+          />
+        </View>
+        <View className="flex-1 min-w-0 pr-1">
+          <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+            {toastNotification.title}
+          </Text>
+          <Text numberOfLines={2} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5 leading-4">
+            {toastNotification.subtitle}
+          </Text>
+        </View>
+        <Pressable onPress={() => setToastNotification(null)} className="p-1">
+          <AppIcon android="close" size={16} color="#8a8d91" />
+        </Pressable>
+      </Pressable>
+    )}
+
+    {/* Dedicated Blood Donation Confirmation Modal */}
+    <BloodDonateConfirmModal
+      isOpen={isDonateModalOpen}
+      request={selectedRequestToDonate}
+      isLoading={isDonating}
+      onClose={() => {
+        if (!isDonating) {
+          setIsDonateModalOpen(false);
+        }
+      }}
+      onConfirm={handleConfirmDonate}
+    />
 
     {/* Universal Confirm Dialog (Works on Web & Mobile) */}
     <ConfirmDialog

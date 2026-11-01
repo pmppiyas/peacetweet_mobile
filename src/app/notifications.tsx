@@ -152,7 +152,7 @@ export default function NotificationsScreen() {
         router.push('/');
         break;
       case 'BLOOD_REQUEST':
-        router.push('/');
+        router.push('/blood?tab=activity' as any);
         break;
       default:
         if (item.actor?.username) {
