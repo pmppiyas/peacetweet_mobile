@@ -47,7 +47,7 @@ export function ChatViewHeader({
 
         {/* User Info Link */}
         <Pressable
-          onPress={() => router.push('/profile')}
+          onPress={() => router.push(user?.username ? (`/${user.username}` as any) : '/profile')}
           className="flex-row items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
           <ChatAvatar
             name={displayName}

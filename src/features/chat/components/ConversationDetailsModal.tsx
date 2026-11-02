@@ -91,7 +91,7 @@ export function ConversationDetailsModal({
             <Pressable
               onPress={() => {
                 onClose();
-                router.push('/profile');
+                router.push(user?.username ? (`/${user.username}` as any) : '/profile');
               }}
               className="flex-1 flex-row items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb]">
               <AppIcon

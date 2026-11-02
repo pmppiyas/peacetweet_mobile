@@ -452,7 +452,8 @@ export default function SavedScreen() {
     <View className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-6"
+        stickyHeaderIndices={[0]}
+        contentContainerStyle={{ paddingBottom: 28 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -460,25 +461,28 @@ export default function SavedScreen() {
             tintColor="#1877f2"
           />
         }>
-        <View className="w-full max-w-[720px] mx-auto">
-          {/* 1. 6-Column Routine Filter Bar matching SavedLayout.tsx */}
-          <View className="w-full bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] p-1.5">
-            <View className="flex-row gap-1">
+        {/* Index 0: Sticky Routine Tab Switcher (Matching friends, groups, blood pages) */}
+        <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#f0f2f5] dark:border-[#242526] px-3 py-2">
+          <View className="w-full max-w-[768px] mx-auto">
+            <View className="w-full flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
               {mobileTabs.map((tab) => {
                 const isActive = selectedSlot === tab.id;
                 return (
                   <Pressable
                     key={tab.id}
                     onPress={() => setSelectedSlot(tab.id)}
-                    className={`flex-1 items-center justify-center py-1.5 px-0.5 rounded-lg ${
-                      isActive ? 'bg-primary-500' : ''
+                    style={{ flex: 1, minWidth: 0 }}
+                    className={`py-2 px-1 items-center justify-center flex-row gap-1 rounded-lg ${
+                      isActive
+                        ? 'bg-primary-600 shadow-xs'
+                        : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
                     }`}>
-                    <Text className="text-xs leading-none">{tab.icon}</Text>
+                    <Text className="text-xs shrink-0">{tab.icon}</Text>
                     <Text
                       numberOfLines={1}
-                      className={`text-[10px] leading-tight font-semibold mt-0.5 ${
+                      className={`text-[11px] sm:text-xs font-bold truncate ${
                         isActive
-                          ? 'text-white font-bold'
+                          ? 'text-white'
                           : 'text-[#65676b] dark:text-[#b0b3b8]'
                       }`}>
                       {tab.label}
@@ -488,8 +492,10 @@ export default function SavedScreen() {
               })}
             </View>
           </View>
+        </View>
 
-          {/* 2. Content Area */}
+        {/* 2. Content Area */}
+        <View className="w-full max-w-[768px] mx-auto">
           {!isAuthenticated ? (
             <AuthPromptCard
               icon="bookmark"
@@ -499,7 +505,7 @@ export default function SavedScreen() {
               titleEn="Sign in to view Saved Duas & Posts"
               descriptionBn="আপনার পছন্দের দোয়া ও পোস্টগুলো সকাল-সন্ধ্যার রুটিন অনুযায়ী সেভ করে রাখতে লগইন করুন।"
               descriptionEn="Log in to save your favorite Duas and posts organized by daily prayer routines."
-              className="mt-3"
+              className="mt-3 mx-3"
             />
           ) : (
             <View className="mt-2.5 gap-2.5">

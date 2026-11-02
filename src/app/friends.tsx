@@ -306,7 +306,9 @@ export default function FriendsScreen() {
                     className={`py-3 flex-row items-center justify-between ${
                       !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
                     }`}>
-                    <View className="flex-row items-center gap-3 flex-1 pr-2">
+                    <Pressable
+                      onPress={() => router.push(`/${u.username}` as any)}
+                      className="flex-row items-center gap-3 flex-1 pr-2 active:opacity-80">
                       <View className="h-11 w-11 rounded-full bg-indigo-500 items-center justify-center shrink-0">
                         <Text className="text-white text-base font-bold">
                           {u.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -320,7 +322,7 @@ export default function FriendsScreen() {
                           @{u.username} {u.location ? `• ${u.location}` : ''}
                         </Text>
                       </View>
-                    </View>
+                    </Pressable>
 
                     <View className="flex-row items-center gap-1.5">
                       <Pressable
@@ -441,7 +443,9 @@ export default function FriendsScreen() {
                     className={`py-3 flex-row items-center justify-between ${
                       !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
                     }`}>
-                    <View className="flex-row items-center gap-3 flex-1 pr-2">
+                    <Pressable
+                      onPress={() => router.push(`/${u.username}` as any)}
+                      className="flex-row items-center gap-3 flex-1 pr-2 active:opacity-80">
                       <View className="h-11 w-11 rounded-full bg-indigo-500 items-center justify-center shrink-0">
                         <Text className="text-white text-base font-bold">
                           {u.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -455,7 +459,7 @@ export default function FriendsScreen() {
                           @{u.username} {u.location ? `• ${u.location}` : ''}
                         </Text>
                       </View>
-                    </View>
+                    </Pressable>
 
                     <Pressable
                       onPress={() => (!isSent ? handleSendFriendRequest(u) : null)}

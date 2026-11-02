@@ -490,21 +490,37 @@ export function FeedPostCard({
       <View className="px-3 pt-2.5 pb-1.5">
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-row items-center gap-2.5 flex-1">
-            <UserAvatar
-              avatarUrl={
-                post.author?.avatar || (post.author as any)?.avatarUrl
-              }
-              name={authorName}
-              size="md"
-            />
+            <Pressable
+              onPress={() => {
+                if (authorUsername) {
+                  router.push(`/${authorUsername}` as any);
+                }
+              }}
+              className="active:opacity-80">
+              <UserAvatar
+                avatarUrl={
+                  post.author?.avatar || (post.author as any)?.avatarUrl
+                }
+                name={authorName}
+                size="md"
+              />
+            </Pressable>
 
             <View className="flex-1 select-none">
               <View className="flex-row items-center gap-1.5 flex-wrap select-none">
-                <Text
-                  selectable={false}
-                  className="font-bold text-[15px] text-[#050505] dark:text-[#e4e6eb] select-none">
-                  {authorName}
-                </Text>
+                <Pressable
+                  onPress={() => {
+                    if (authorUsername) {
+                      router.push(`/${authorUsername}` as any);
+                    }
+                  }}
+                  className="active:opacity-80">
+                  <Text
+                    selectable={false}
+                    className="font-bold text-[15px] text-[#050505] dark:text-[#e4e6eb] select-none">
+                    {authorName}
+                  </Text>
+                </Pressable>
                 <AppIcon
                   android="verified"
                   ios="checkmark.seal.fill"

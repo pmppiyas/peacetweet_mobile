@@ -1,0 +1,1421 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  Pressable,
+  TextInput,
+  ActivityIndicator,
+  RefreshControl,
+  Share,
+} from 'react-native';
+import { router } from 'expo-router';
+import { useUi } from '@/providers/UiProvider';
+import { useAuth } from '@/providers/AuthProvider';
+import { AppIcon } from '@/components/ui/Icon';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { FeedPostCard } from '@/features/feed/components/FeedPostCard';
+import { FeedItem } from '@/features/feed/types/feed.types';
+import { FriendItem } from '@/features/friends/types/friends.types';
+import { GroupItem } from '@/features/groups/types/groups.types';
+import { SavedFeedItem } from '@/types/saved.types';
+import { profileApi } from '../api/profile.api';
+import { friendsApi } from '@/features/friends/api/friends.api';
+import { bookmarkApi } from '@/features/bookmark/api/bookmark.api';
+import { UserProfileResponse, ProfileTab, FriendshipStatus } from '../types/profile.types';
+import { User, BloodGroup } from '@/types/user.types';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { PostCardSkeleton } from './ProfileSkeleton';
+
+export function formatProfileDate(dateStr?: string | null, locale: 'bn' | 'en' = 'en'): string {
+  if (!dateStr) return locale === 'bn' ? 'আজ' : 'Today';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthsBn = [
+      'জানুয়ারি',
+      'ফেব্রুয়ারি',
+      'মার্চ',
+      'এপ্রিল',
+      'মে',
+      'জুন',
+      'জুলাই',
+      'আগস্ট',
+      'সেপ্টেম্বর',
+      'অক্টোবর',
+      'নভেম্বর',
+      'ডিসেম্বর',
+    ];
+    const m = locale === 'bn' ? monthsBn[d.getMonth()] : monthsEn[d.getMonth()];
+    const day = d.getDate();
+    const year = d.getFullYear();
+    return `${m} ${day}, ${year}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+const formatBloodGroup = (bg?: BloodGroup | string | null): string | null => {
+  if (!bg) return null;
+  const map: Record<string, string> = {
+    A_POSITIVE: 'A+',
+    A_NEGATIVE: 'A-',
+    B_POSITIVE: 'B+',
+    B_NEGATIVE: 'B-',
+    AB_POSITIVE: 'AB+',
+    AB_NEGATIVE: 'AB-',
+    O_POSITIVE: 'O+',
+    O_NEGATIVE: 'O-',
+  };
+  return map[bg] || bg;
+};
+
+export interface ProfileViewProps {
+  targetUser?: UserProfileResponse | User | null;
+  initialTab?: ProfileTab;
+  onRefreshProfile?: () => Promise<void>;
+  showBackButton?: boolean;
+}
+
+export function ProfileView({
+  targetUser,
+  initialTab = 'overview',
+  onRefreshProfile,
+  showBackButton = false,
+}: ProfileViewProps) {
+  const { locale, theme } = useUi();
+  const { user: authUser, isAuthenticated, setUser } = useAuth();
+
+  const isOwner = Boolean(
+    !targetUser ||
+      (authUser &&
+        targetUser &&
+        (authUser.id === targetUser.id ||
+          authUser.username?.toLowerCase() === targetUser.username?.toLowerCase()))
+  );
+
+  const displayUser = targetUser || authUser;
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
+
+  // Bio state
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [bioInput, setBioInput] = useState(displayUser?.bio || '');
+  const [isSavingBio, setIsSavingBio] = useState(false);
+
+  // Friendship action state
+  const initialFriendship = (displayUser as UserProfileResponse)?.friendship;
+  const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>(
+    initialFriendship?.status || 'NONE'
+  );
+  const [requestId, setRequestId] = useState<string | null>(
+    initialFriendship?.requestId || null
+  );
+  const [isFriendActionLoading, setIsFriendActionLoading] = useState(false);
+  const [unfriendConfirmVisible, setUnfriendConfirmVisible] = useState(false);
+
+  // Data states
+  const [posts, setPosts] = useState<FeedItem[]>([]);
+  const [isPostsLoading, setIsPostsLoading] = useState(false);
+
+  const [friends, setFriends] = useState<FriendItem[]>([]);
+  const [totalFriends, setTotalFriends] = useState(0);
+  const [isFriendsLoading, setIsFriendsLoading] = useState(false);
+
+  const [groups, setGroups] = useState<GroupItem[]>([]);
+  const [isGroupsLoading, setIsGroupsLoading] = useState(false);
+
+  const [savedItems, setSavedItems] = useState<SavedFeedItem[]>([]);
+  const [isSavedLoading, setIsSavedLoading] = useState(false);
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Sync bio input if user changes
+  useEffect(() => {
+    setBioInput(displayUser?.bio || '');
+  }, [displayUser?.bio]);
+
+  // Sync friendship status if targetUser changes
+  useEffect(() => {
+    const fs = (displayUser as UserProfileResponse)?.friendship;
+    if (fs) {
+      setFriendshipStatus(fs.status || 'NONE');
+      setRequestId(fs.requestId || null);
+    }
+  }, [displayUser]);
+
+  // Fetch posts for user
+  const fetchPosts = useCallback(async () => {
+    if (!displayUser?.id) return;
+    setIsPostsLoading(true);
+    try {
+      const items = await profileApi.getUserPosts(displayUser.id);
+      setPosts(items);
+    } catch {
+      // ignore
+    } finally {
+      setIsPostsLoading(false);
+    }
+  }, [displayUser?.id]);
+
+  // Fetch friends for user
+  const fetchFriends = useCallback(async () => {
+    if (!displayUser?.id) return;
+    setIsFriendsLoading(true);
+    try {
+      const { items, total } = await profileApi.getUserFriends(
+        isOwner ? undefined : displayUser.id
+      );
+      setFriends(items);
+      setTotalFriends(total || items.length);
+    } catch {
+      // ignore
+    } finally {
+      setIsFriendsLoading(false);
+    }
+  }, [displayUser?.id, isOwner]);
+
+  // Fetch groups
+  const fetchGroups = useCallback(async () => {
+    setIsGroupsLoading(true);
+    try {
+      const items = await profileApi.getUserGroups();
+      setGroups(items);
+    } catch {
+      // ignore
+    } finally {
+      setIsGroupsLoading(false);
+    }
+  }, []);
+
+  // Fetch saved items (only for owner)
+  const fetchSaved = useCallback(async () => {
+    if (!isOwner || !isAuthenticated) return;
+    setIsSavedLoading(true);
+    try {
+      const res = await bookmarkApi.getSavedItems();
+      const items = (res as any)?.data || (Array.isArray(res) ? res : []);
+      setSavedItems(items);
+    } catch {
+      // ignore
+    } finally {
+      setIsSavedLoading(false);
+    }
+  }, [isOwner, isAuthenticated]);
+
+  // Initial load
+  useEffect(() => {
+    fetchPosts();
+    fetchFriends();
+    fetchGroups();
+    if (isOwner && isAuthenticated) {
+      fetchSaved();
+    }
+  }, [fetchPosts, fetchFriends, fetchGroups, fetchSaved, isOwner, isAuthenticated]);
+
+  // Pull to refresh
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      if (onRefreshProfile) {
+        await onRefreshProfile();
+      }
+      await Promise.all([
+        fetchPosts(),
+        fetchFriends(),
+        fetchGroups(),
+        isOwner ? fetchSaved() : Promise.resolve(),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Bio save
+  const handleSaveBio = async () => {
+    if (isSavingBio) return;
+    setIsSavingBio(true);
+    try {
+      const updatedUser = await profileApi.updateProfile({
+        bio: bioInput.trim() || null,
+      });
+      if (updatedUser) {
+        setUser(updatedUser);
+      }
+      setIsEditingBio(false);
+    } catch (err) {
+      // ignore
+    } finally {
+      setIsSavingBio(false);
+    }
+  };
+
+  const handleCancelBio = () => {
+    setBioInput(displayUser?.bio || '');
+    setIsEditingBio(false);
+  };
+
+  // Friend actions
+  const handleAddFriend = async () => {
+    if (!displayUser?.id || isFriendActionLoading) return;
+    setIsFriendActionLoading(true);
+    try {
+      const res = await friendsApi.sendFriendRequest(displayUser.id);
+      setFriendshipStatus('PENDING_SENT');
+      if (res?.data?.id) {
+        setRequestId(res.data.id);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsFriendActionLoading(false);
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (!requestId || isFriendActionLoading) return;
+    setIsFriendActionLoading(true);
+    try {
+      await friendsApi.cancelFriendRequest(requestId);
+      setFriendshipStatus('NONE');
+      setRequestId(null);
+    } catch {
+      // ignore
+    } finally {
+      setIsFriendActionLoading(false);
+    }
+  };
+
+  const handleAcceptRequest = async () => {
+    if (!requestId || isFriendActionLoading) return;
+    setIsFriendActionLoading(true);
+    try {
+      await friendsApi.acceptFriendRequest(requestId);
+      setFriendshipStatus('FRIENDS');
+    } catch {
+      // ignore
+    } finally {
+      setIsFriendActionLoading(false);
+    }
+  };
+
+  const handleRejectRequest = async () => {
+    if (!requestId || isFriendActionLoading) return;
+    setIsFriendActionLoading(true);
+    try {
+      await friendsApi.rejectFriendRequest(requestId);
+      setFriendshipStatus('NONE');
+      setRequestId(null);
+    } catch {
+      // ignore
+    } finally {
+      setIsFriendActionLoading(false);
+    }
+  };
+
+  const handleConfirmUnfriend = async () => {
+    if (!displayUser?.id || isFriendActionLoading) return;
+    setIsFriendActionLoading(true);
+    setUnfriendConfirmVisible(false);
+    try {
+      await friendsApi.unfriend(displayUser.id);
+      setFriendshipStatus('NONE');
+      setRequestId(null);
+    } catch {
+      // ignore
+    } finally {
+      setIsFriendActionLoading(false);
+    }
+  };
+
+  // Direct Message click -> opens messenger chat
+  const handleMessagePress = () => {
+    if (!displayUser?.id) return;
+    router.push({
+      pathname: '/messages',
+      params: { userId: displayUser.id },
+    });
+  };
+
+  // Share profile
+  const handleShareProfile = async () => {
+    if (!displayUser?.username) return;
+    const url = `https://peacetweet.com/${displayUser.username}`;
+    try {
+      if (typeof navigator !== 'undefined' && (navigator as any).clipboard?.writeText) {
+        await (navigator as any).clipboard.writeText(url);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      } else {
+        await Share.share({
+          message: `${displayUser.name} (@${displayUser.username}) on PeaceTweet: ${url}`,
+          url,
+        });
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  if (!displayUser) {
+    return (
+      <View className="flex-1 items-center justify-center p-8 bg-[#f0f2f5] dark:bg-[#18191a]">
+        <AppIcon android="person" size={40} color="#65676b" />
+        <Text className="text-sm font-bold text-[#65676b] dark:text-[#b0b3b8] mt-3">
+          {locale === 'bn' ? 'ব্যবহারকারী পাওয়া যায়নি' : 'User not found'}
+        </Text>
+      </View>
+    );
+  }
+
+  const bloodGroupLabel = formatBloodGroup(displayUser.bloodGroup);
+
+  return (
+    <ScrollView
+      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      stickyHeaderIndices={[2]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          tintColor="#1877f2"
+          colors={['#1877f2']}
+        />
+      }>
+      {/* 1. Cover Photo Banner */}
+      <View className="relative w-full h-44 sm:h-52 bg-gradient-to-r from-emerald-800 via-teal-700 to-primary-800 overflow-hidden">
+        {displayUser.coverUrl ? (
+          <Image
+            source={{ uri: displayUser.coverUrl }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="absolute inset-0 bg-black/10" />
+        )}
+
+        {/* Back Button (if requested or viewing someone else) */}
+        {showBackButton && (
+          <Pressable
+            onPress={() => router.back()}
+            className="absolute top-3 left-3 z-30 h-9 w-9 rounded-full bg-black/50 items-center justify-center active:scale-95">
+            <AppIcon android="arrow_back" size={20} color="#ffffff" />
+          </Pressable>
+        )}
+
+        {/* Share Button top right */}
+        <Pressable
+          onPress={handleShareProfile}
+          className="absolute top-3 right-3 z-30 h-9 px-3 rounded-full bg-black/50 flex-row items-center gap-1.5 active:scale-95">
+          <AppIcon
+            android={copiedLink ? 'check' : 'share'}
+            size={16}
+            color={copiedLink ? '#22c55e' : '#ffffff'}
+          />
+          <Text className="text-white text-xs font-bold">
+            {copiedLink
+              ? locale === 'bn'
+                ? 'কপি হয়েছে'
+                : 'Copied'
+              : locale === 'bn'
+                ? 'শেয়ার'
+                : 'Share'}
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* 2. Profile Details & Bio & Action Buttons (Hero Card) */}
+      <View className="w-full max-w-[768px] mx-auto bg-white dark:bg-[#242526] px-4 pb-4 border-b border-[#e4e6eb] dark:border-[#393a3b] items-center">
+        {/* Centered Avatar overlapping Cover Banner */}
+        <View className="-mt-14 relative z-10">
+          <View className="h-28 w-28 rounded-full border-4 border-white dark:border-[#242526] bg-primary-600 shadow-md items-center justify-center overflow-hidden">
+            {displayUser.avatarUrl ? (
+              <Image
+                source={{ uri: displayUser.avatarUrl }}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <Text className="text-white text-4xl font-black">
+                {displayUser.name?.charAt(0)?.toUpperCase() || 'P'}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* Name & Verified Badge */}
+        <View className="flex-row items-center justify-center gap-1.5 mt-2.5">
+          <Text className="text-xl sm:text-2xl font-black text-[#050505] dark:text-[#e4e6eb] tracking-tight text-center">
+            {displayUser.name}
+          </Text>
+          {displayUser.userStatus === 'VERIFIED' && (
+            <AppIcon android="verified" size={20} color="#1877f2" />
+          )}
+        </View>
+
+        {/* @username */}
+        <Text className="text-xs sm:text-sm font-semibold text-primary-600 dark:text-primary-400 mt-0.5">
+          @{displayUser.username || 'user'}
+        </Text>
+
+        {/* Badges Row */}
+        <View className="flex-row flex-wrap items-center justify-center gap-1.5 mt-2.5">
+          {/* Verification Badge */}
+          {displayUser.userStatus === 'VERIFIED' ? (
+            <View className="flex-row items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 border border-blue-200 dark:border-blue-900">
+              <AppIcon android="verified" size={13} color="#1877f2" />
+              <Text className="text-[11px] font-bold text-blue-600 dark:text-blue-300">
+                {locale === 'bn' ? 'ভেরিফাইড' : 'Verified'}
+              </Text>
+            </View>
+          ) : displayUser.userStatus === 'PREMIUM' ? (
+            <View className="flex-row items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 border border-amber-200 dark:border-amber-800">
+              <AppIcon android="auto_awesome" size={13} color="#d97706" />
+              <Text className="text-[11px] font-bold text-amber-600 dark:text-amber-300">
+                {locale === 'bn' ? 'প্রিমিয়াম' : 'Premium'}
+              </Text>
+            </View>
+          ) : (
+            <View className="flex-row items-center gap-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-2.5 py-0.5 border border-[#e4e6eb] dark:border-[#4e4f50]">
+              <AppIcon android="verified_user" size={13} color="#65676b" />
+              <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn' ? 'নন-ভেরিফাইড' : 'Non-verified'}
+              </Text>
+            </View>
+          )}
+
+          {/* Member Tier */}
+          <View className="flex-row items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 border border-emerald-200 dark:border-emerald-800">
+            <AppIcon android="how_to_reg" size={13} color="#059669" />
+            <Text className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+              {displayUser.badge || 'Standard Member'}
+            </Text>
+          </View>
+
+          {/* Blood Group */}
+          {bloodGroupLabel && (
+            <View className="flex-row items-center gap-1 rounded-full bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 border border-rose-200 dark:border-rose-900">
+              <AppIcon android="water_drop" size={13} color="#e11d48" />
+              <Text className="text-[11px] font-bold text-rose-600 dark:text-rose-300">
+                Blood: {bloodGroupLabel}
+              </Text>
+            </View>
+          )}
+
+          {/* Connected friends count pill */}
+          {totalFriends > 0 && (
+            <Pressable
+              onPress={() => setActiveTab('friends')}
+              className="flex-row items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 border border-indigo-200 dark:border-indigo-800">
+              <AppIcon android="group" size={13} color="#4f46e5" />
+              <Text className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
+                {totalFriends} {locale === 'bn' ? 'বন্ধু' : totalFriends === 1 ? 'friend' : 'friends'}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+
+        {/* Bio Section */}
+        <View className="w-full max-w-md mt-3 items-center">
+          {isEditingBio && isOwner ? (
+            <View className="w-full rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 p-3 border border-[#e4e6eb] dark:border-[#393a3b]">
+              <TextInput
+                value={bioInput}
+                onChangeText={setBioInput}
+                maxLength={160}
+                placeholder={
+                  locale === 'bn'
+                    ? 'নিজের সম্পর্কে কিছু লিখুন...'
+                    : 'Describe yourself in a few words...'
+                }
+                placeholderTextColor="#65676b"
+                multiline
+                numberOfLines={3}
+                className="w-full rounded-xl border border-primary-300 dark:border-primary-700 bg-white dark:bg-[#242526] p-2.5 text-xs text-[#050505] dark:text-[#e4e6eb] text-center"
+              />
+              <View className="flex-row items-center justify-between mt-2 px-1">
+                <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                  {bioInput.length}/160
+                </Text>
+                <View className="flex-row items-center gap-2">
+                  <Pressable
+                    onPress={handleCancelBio}
+                    disabled={isSavingBio}
+                    className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] px-3 py-1.5 bg-white dark:bg-[#242526]">
+                    <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8]">
+                      {locale === 'bn' ? 'বাতিল' : 'Cancel'}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleSaveBio}
+                    disabled={isSavingBio}
+                    className="rounded-xl px-3.5 py-1.5 bg-primary-600 flex-row items-center gap-1 shadow-sm">
+                    {isSavingBio ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <>
+                        <AppIcon android="check" size={14} color="#ffffff" />
+                        <Text className="text-xs font-bold text-white">
+                          {locale === 'bn' ? 'সংরক্ষণ' : 'Save'}
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          ) : displayUser.bio ? (
+            <View className="items-center px-4">
+              <Text className="text-xs sm:text-sm text-[#050505] dark:text-[#e4e6eb] text-center leading-relaxed font-normal">
+                {displayUser.bio}
+              </Text>
+              {isOwner && (
+                <Pressable
+                  onPress={() => {
+                    setBioInput(displayUser.bio || '');
+                    setIsEditingBio(true);
+                  }}
+                  className="mt-1.5 flex-row items-center gap-1 rounded-full bg-primary-50 dark:bg-primary-950/60 px-3 py-1 border border-primary-200 dark:border-primary-800">
+                  <AppIcon android="edit" size={12} color="#1877f2" />
+                  <Text className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
+                    {locale === 'bn' ? 'বায়ো সম্পাদনা' : 'Edit Bio'}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          ) : isOwner ? (
+            <Pressable
+              onPress={() => {
+                setBioInput('');
+                setIsEditingBio(true);
+              }}
+              className="flex-row items-center gap-1.5 rounded-full border border-dashed border-primary-400 dark:border-primary-600 bg-primary-50/60 dark:bg-primary-950/40 px-4 py-1.5">
+              <AppIcon android="add" size={14} color="#1877f2" />
+              <Text className="text-xs font-bold text-primary-600 dark:text-primary-300">
+                {locale === 'bn' ? 'বায়ো যুক্ত করুন' : 'Add Bio'}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        {/* Action Buttons */}
+        <View className="flex-row items-center justify-center gap-2 mt-4 flex-wrap">
+          {isOwner ? (
+            <>
+              {/* Edit Profile / Settings */}
+              <Pressable
+                onPress={() => router.push('/settings')}
+                className="flex-row items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 shadow-sm active:scale-95">
+                <AppIcon android="edit" size={15} color="#ffffff" />
+                <Text className="text-xs font-bold text-white">
+                  {locale === 'bn' ? 'প্রোফাইল সম্পাদনা' : 'Edit Profile'}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => router.push('/settings')}
+                className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95">
+                <AppIcon android="settings" size={15} color="#65676b" />
+                <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                  {locale === 'bn' ? 'সেটিংস' : 'Settings'}
+                </Text>
+              </Pressable>
+            </>
+          ) : (
+            /* Visitor Profile: Friendship & Message Buttons */
+            <>
+              {friendshipStatus === 'NONE' && (
+                <Pressable
+                  onPress={handleAddFriend}
+                  disabled={isFriendActionLoading}
+                  className="flex-row items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 shadow-sm active:scale-95">
+                  {isFriendActionLoading ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <>
+                      <AppIcon android="person_add" size={16} color="#ffffff" />
+                      <Text className="text-xs font-bold text-white">
+                        {locale === 'bn' ? 'বন্ধু যুক্ত করুন' : 'Add Friend'}
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              )}
+
+              {friendshipStatus === 'PENDING_SENT' && (
+                <Pressable
+                  onPress={handleCancelRequest}
+                  disabled={isFriendActionLoading}
+                  className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 py-2 active:scale-95">
+                  {isFriendActionLoading ? (
+                    <ActivityIndicator size="small" color="#65676b" />
+                  ) : (
+                    <>
+                      <AppIcon android="cancel" size={15} color="#65676b" />
+                      <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {locale === 'bn' ? 'অনুরোধ বাতিল' : 'Cancel Request'}
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              )}
+
+              {friendshipStatus === 'PENDING_RECEIVED' && (
+                <>
+                  <Pressable
+                    onPress={handleAcceptRequest}
+                    disabled={isFriendActionLoading}
+                    className="flex-row items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 shadow-sm active:scale-95">
+                    {isFriendActionLoading ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <>
+                        <AppIcon android="check" size={15} color="#ffffff" />
+                        <Text className="text-xs font-bold text-white">
+                          {locale === 'bn' ? 'গ্রহণ করুন' : 'Accept'}
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+
+                  <Pressable
+                    onPress={handleRejectRequest}
+                    disabled={isFriendActionLoading}
+                    className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95">
+                    <AppIcon android="close" size={15} color="#65676b" />
+                    <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8]">
+                      {locale === 'bn' ? 'মুছুন' : 'Delete'}
+                    </Text>
+                  </Pressable>
+                </>
+              )}
+
+              {friendshipStatus === 'FRIENDS' && (
+                <Pressable
+                  onPress={() => setUnfriendConfirmVisible(true)}
+                  disabled={isFriendActionLoading}
+                  className="flex-row items-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 px-4 py-2 active:scale-95">
+                  <AppIcon android="how_to_reg" size={16} color="#059669" />
+                  <Text className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    {locale === 'bn' ? 'বন্ধু ✓' : 'Friends ✓'}
+                  </Text>
+                </Pressable>
+              )}
+
+              {/* Message button */}
+              {isAuthenticated && (
+                <Pressable
+                  onPress={handleMessagePress}
+                  className="flex-row items-center gap-1.5 rounded-xl bg-[#e4e6eb] dark:bg-[#3a3b3c] px-4 py-2 shadow-xs active:scale-95">
+                  <AppIcon android="chat_bubble" size={15} color="#050505" />
+                  <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'মেসেজ' : 'Message'}
+                  </Text>
+                </Pressable>
+              )}
+            </>
+          )}
+        </View>
+      </View>
+
+      {/* 3. Sticky Segmented Capsule Tab Switcher */}
+      <View className="bg-[#f0f2f5] dark:bg-[#18191a] pt-2 pb-1.5 px-3">
+        <View className="w-full max-w-[768px] mx-auto rounded-xl bg-[#e4e6eb] dark:bg-[#242526] p-1 flex-row items-center justify-between">
+          {/* Overview Tab */}
+          <Pressable
+            onPress={() => setActiveTab('overview')}
+            className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+              activeTab === 'overview'
+                ? 'bg-primary-600 shadow-sm'
+                : 'bg-transparent'
+            }`}>
+            <AppIcon
+              android="person"
+              size={15}
+              color={activeTab === 'overview' ? '#ffffff' : '#65676b'}
+            />
+            <Text
+              className={`text-xs font-bold ${
+                activeTab === 'overview'
+                  ? 'text-white'
+                  : 'text-[#65676b] dark:text-[#b0b3b8]'
+              }`}>
+              {locale === 'bn' ? 'পরিচিতি' : 'Overview'}
+            </Text>
+          </Pressable>
+
+          {/* Posts Tab */}
+          <Pressable
+            onPress={() => setActiveTab('posts')}
+            className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+              activeTab === 'posts'
+                ? 'bg-primary-600 shadow-sm'
+                : 'bg-transparent'
+            }`}>
+            <AppIcon
+              android="article"
+              size={15}
+              color={activeTab === 'posts' ? '#ffffff' : '#65676b'}
+            />
+            <Text
+              className={`text-xs font-bold ${
+                activeTab === 'posts'
+                  ? 'text-white'
+                  : 'text-[#65676b] dark:text-[#b0b3b8]'
+              }`}>
+              {locale === 'bn' ? 'পোস্ট' : 'Posts'}
+            </Text>
+          </Pressable>
+
+          {/* Friends Tab */}
+          <Pressable
+            onPress={() => setActiveTab('friends')}
+            className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+              activeTab === 'friends'
+                ? 'bg-primary-600 shadow-sm'
+                : 'bg-transparent'
+            }`}>
+            <AppIcon
+              android="group"
+              size={15}
+              color={activeTab === 'friends' ? '#ffffff' : '#65676b'}
+            />
+            <Text
+              className={`text-xs font-bold ${
+                activeTab === 'friends'
+                  ? 'text-white'
+                  : 'text-[#65676b] dark:text-[#b0b3b8]'
+              }`}>
+              {locale === 'bn' ? 'বন্ধু' : 'Friends'}
+            </Text>
+            {totalFriends > 0 && (
+              <Text
+                className={`text-[10px] font-bold ${
+                  activeTab === 'friends'
+                    ? 'text-white/80'
+                    : 'text-[#65676b] dark:text-[#b0b3b8]'
+                }`}>
+                ({totalFriends})
+              </Text>
+            )}
+          </Pressable>
+
+          {/* Groups Tab */}
+          <Pressable
+            onPress={() => setActiveTab('groups')}
+            className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+              activeTab === 'groups'
+                ? 'bg-primary-600 shadow-sm'
+                : 'bg-transparent'
+            }`}>
+            <AppIcon
+              android="groups"
+              size={15}
+              color={activeTab === 'groups' ? '#ffffff' : '#65676b'}
+            />
+            <Text
+              className={`text-xs font-bold ${
+                activeTab === 'groups'
+                  ? 'text-white'
+                  : 'text-[#65676b] dark:text-[#b0b3b8]'
+              }`}>
+              {locale === 'bn' ? 'গ্রুপ' : 'Groups'}
+            </Text>
+          </Pressable>
+
+          {/* Saved Tab (Only visible to Owner) */}
+          {isOwner && (
+            <Pressable
+              onPress={() => setActiveTab('saved')}
+              className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+                activeTab === 'saved'
+                  ? 'bg-primary-600 shadow-sm'
+                : 'bg-transparent'
+              }`}>
+              <AppIcon
+                android="bookmark"
+                size={15}
+                color={activeTab === 'saved' ? '#ffffff' : '#65676b'}
+              />
+              <Text
+                className={`text-xs font-bold ${
+                  activeTab === 'saved'
+                    ? 'text-white'
+                    : 'text-[#65676b] dark:text-[#b0b3b8]'
+                }`}>
+                {locale === 'bn' ? 'সংরক্ষিত' : 'Saved'}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+
+      {/* 4. Tab Contents */}
+      <View className="w-full max-w-[768px] mx-auto px-3 pb-3 mt-2">
+        {/* OVERVIEW TAB */}
+        {activeTab === 'overview' && (
+          <View className="space-y-3 gap-3">
+            {/* Intro Details Card */}
+            <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+              <Text className="text-base font-bold text-[#050505] dark:text-white mb-3">
+                {locale === 'bn' ? 'পরিচিতি বিবরণ' : 'Intro Details'}
+              </Text>
+
+              <View className="space-y-2.5 gap-2.5">
+                {/* Tier */}
+                <View className="flex-row items-center gap-2.5">
+                  <AppIcon android="how_to_reg" size={18} color="#059669" />
+                  <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'মেম্বার ব্যাজ: ' : 'Member Tier: '}
+                    <Text className="font-bold">{displayUser.badge || 'Standard Member'}</Text>
+                  </Text>
+                </View>
+
+                {/* Status */}
+                <View className="flex-row items-center gap-2.5">
+                  <AppIcon android="verified_user" size={18} color="#1877f2" />
+                  <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'স্ট্যাটাস: ' : 'Status: '}
+                    <Text className="font-bold">
+                      {displayUser.userStatus === 'VERIFIED'
+                        ? locale === 'bn'
+                          ? 'ভেরিফাইড মেম্বার'
+                          : 'Verified Member'
+                        : displayUser.userStatus === 'PREMIUM'
+                          ? locale === 'bn'
+                            ? 'প্রিমিয়াম মেম্বার'
+                            : 'Premium Member'
+                          : locale === 'bn'
+                            ? 'নন-ভেরিফাইড অ্যাকাউন্ট'
+                            : 'Non-verified Account'}
+                    </Text>
+                  </Text>
+                </View>
+
+                {/* Location */}
+                {displayUser.location && (
+                  <View className="flex-row items-center gap-2.5">
+                    <AppIcon android="location_on" size={18} color="#e11d48" />
+                    <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+                      {locale === 'bn' ? 'বাসস্থান: ' : 'Lives in: '}
+                      <Text className="font-bold">{displayUser.location}</Text>
+                    </Text>
+                  </View>
+                )}
+
+                {/* Email (only if present or owner) */}
+                {displayUser.email && (
+                  <View className="flex-row items-center gap-2.5">
+                    <AppIcon android="mail" size={18} color="#65676b" />
+                    <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+                      {locale === 'bn' ? 'ইমেইল: ' : 'Email: '}
+                      <Text className="font-bold">{displayUser.email}</Text>
+                    </Text>
+                  </View>
+                )}
+
+                {/* Blood Group */}
+                {bloodGroupLabel && (
+                  <View className="flex-row items-center gap-2.5">
+                    <AppIcon android="water_drop" size={18} color="#e11d48" />
+                    <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+                      {locale === 'bn' ? 'রক্তের গ্রুপ: ' : 'Blood Group: '}
+                      <Text className="font-bold text-rose-600 dark:text-rose-400">
+                        {bloodGroupLabel}
+                      </Text>
+                    </Text>
+                  </View>
+                )}
+
+                {/* Joined Date */}
+                <View className="flex-row items-center gap-2.5">
+                  <AppIcon android="schedule" size={18} color="#65676b" />
+                  <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'যুক্ত হয়েছেন: ' : 'Joined: '}
+                    <Text className="font-bold">
+                      {formatProfileDate(displayUser.createdAt, locale)}
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+
+              {isOwner && (
+                <Pressable
+                  onPress={() => router.push('/settings')}
+                  className="mt-3.5 pt-3 border-t border-[#f0f2f5] dark:border-[#393a3b] items-center justify-center">
+                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                    {locale === 'bn' ? 'তথ্য পরিবর্তন করতে সেটিংসে যান' : 'Edit details in Settings'}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+
+            {/* Friends Preview (Grid of 6) */}
+            <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+              <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+                <View>
+                  <Text className="text-base font-bold text-[#050505] dark:text-white">
+                    {locale === 'bn' ? 'বন্ধুরা' : 'Friends'}
+                  </Text>
+                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                    {totalFriends}{' '}
+                    {locale === 'bn' ? 'জন বন্ধু' : totalFriends === 1 ? 'friend' : 'friends'}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => setActiveTab('friends')}
+                  className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60">
+                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                    {locale === 'bn' ? 'সব দেখুন' : 'See all'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {isFriendsLoading ? (
+                <View className="flex-row flex-wrap justify-between gap-2 pt-1">
+                  <Skeleton className="w-[30%] aspect-square rounded-xl" />
+                  <Skeleton className="w-[30%] aspect-square rounded-xl" />
+                  <Skeleton className="w-[30%] aspect-square rounded-xl" />
+                </View>
+              ) : friends.length === 0 ? (
+                <View className="py-6 items-center justify-center">
+                  <AppIcon android="group" size={28} color="#65676b" />
+                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
+                    {locale === 'bn' ? 'এখনো কোনো বন্ধু যুক্ত নেই' : 'No friends yet'}
+                  </Text>
+                </View>
+              ) : (
+                <View className="flex-row flex-wrap justify-between gap-2 pt-1">
+                  {friends.slice(0, 6).map((f) => (
+                    <Pressable
+                      key={f.id}
+                      onPress={() => router.push(`/${f.user.username}` as any)}
+                      className="w-[30%] items-center mb-2 active:opacity-80">
+                      <View className="w-full aspect-square rounded-xl bg-primary-500 overflow-hidden items-center justify-center shadow-xs border border-[#e4e6eb] dark:border-[#393a3b]">
+                        {f.user.avatar ? (
+                          <Image
+                            source={{ uri: f.user.avatar }}
+                            className="w-full h-full"
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Text className="text-white font-bold text-base">
+                            {f.user.name?.charAt(0) || 'U'}
+                          </Text>
+                        )}
+                      </View>
+                      <Text
+                        numberOfLines={1}
+                        className="text-[11px] font-bold text-[#050505] dark:text-[#e4e6eb] mt-1 text-center w-full">
+                        {f.user.name}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* Groups Preview */}
+            <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+              <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+                <View>
+                  <Text className="text-base font-bold text-[#050505] dark:text-white">
+                    {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'}
+                  </Text>
+                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                    {groups.length}{' '}
+                    {locale === 'bn' ? 'টি গ্রুপ' : groups.length === 1 ? 'group' : 'groups'}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => setActiveTab('groups')}
+                  className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60">
+                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                    {locale === 'bn' ? 'সব দেখুন' : 'See all'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {isGroupsLoading ? (
+                <View className="space-y-2 gap-2 pt-1">
+                  <View className="flex-row items-center gap-3 p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50">
+                    <Skeleton className="h-10 w-10 rounded-xl" />
+                    <View className="flex-1 space-y-1.5 gap-1.5">
+                      <Skeleton className="h-3.5 w-32 rounded-md" />
+                      <Skeleton className="h-2.5 w-20 rounded-md" />
+                    </View>
+                  </View>
+                  <View className="flex-row items-center gap-3 p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50">
+                    <Skeleton className="h-10 w-10 rounded-xl" />
+                    <View className="flex-1 space-y-1.5 gap-1.5">
+                      <Skeleton className="h-3.5 w-28 rounded-md" />
+                      <Skeleton className="h-2.5 w-16 rounded-md" />
+                    </View>
+                  </View>
+                </View>
+              ) : groups.length === 0 ? (
+                <View className="py-6 items-center justify-center">
+                  <AppIcon android="groups" size={28} color="#65676b" />
+                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
+                    {locale === 'bn' ? 'কোনো গ্রুপে যুক্ত হননি' : 'No groups joined yet'}
+                  </Text>
+                </View>
+              ) : (
+                <View className="space-y-2 gap-2 pt-1">
+                  {groups.slice(0, 3).map((group) => (
+                    <Pressable
+                      key={group.id}
+                      onPress={() => router.push('/groups')}
+                      className="flex-row items-center gap-3 p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80">
+                      <View className="h-10 w-10 rounded-xl bg-teal-500 items-center justify-center overflow-hidden">
+                        {group.avatarUrl ? (
+                          <Image
+                            source={{ uri: group.avatarUrl }}
+                            className="w-full h-full"
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Text className="text-white font-bold text-sm">
+                            {group.name?.charAt(0) || 'G'}
+                          </Text>
+                        )}
+                      </View>
+                      <View className="flex-1 min-w-0">
+                        <Text
+                          numberOfLines={1}
+                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                          {group.name}
+                        </Text>
+                        <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                          {group.memberCount} {locale === 'bn' ? 'জন সদস্য' : 'members'}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* Recent Posts Section inside Overview */}
+            <View className="mt-1">
+              <Text className="text-base font-bold text-[#050505] dark:text-white mb-2 px-1">
+                {locale === 'bn' ? 'সাম্প্রতিক পোস্ট' : 'Recent Posts'}
+              </Text>
+
+              {isPostsLoading ? (
+                <View className="space-y-3 gap-3">
+                  <PostCardSkeleton />
+                  <PostCardSkeleton />
+                </View>
+              ) : posts.length === 0 ? (
+                <View className="rounded-2xl bg-white dark:bg-[#242526] p-6 border border-dashed border-[#e4e6eb] dark:border-[#393a3b] items-center justify-center">
+                  <AppIcon android="article" size={28} color="#65676b" />
+                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
+                    {locale === 'bn' ? 'এখনো কোনো পোস্ট নেই' : 'No posts published yet'}
+                  </Text>
+                </View>
+              ) : (
+                <View className="space-y-3 gap-3">
+                  {posts.slice(0, 5).map((post) => (
+                    <View
+                      key={post.id}
+                      className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden">
+                      <FeedPostCard post={post} />
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* POSTS TAB */}
+        {activeTab === 'posts' && (
+          <View className="space-y-3 gap-3">
+            {isPostsLoading ? (
+              <>
+                <PostCardSkeleton />
+                <PostCardSkeleton />
+                <PostCardSkeleton />
+              </>
+            ) : posts.length === 0 ? (
+              <View className="rounded-2xl bg-white dark:bg-[#242526] p-8 border border-dashed border-[#e4e6eb] dark:border-[#393a3b] items-center justify-center my-4">
+                <AppIcon android="article" size={32} color="#65676b" />
+                <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] mt-3">
+                  {locale === 'bn' ? 'কোনো পোস্ট নেই' : 'No Posts Found'}
+                </Text>
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center mt-1">
+                  {locale === 'bn'
+                    ? 'এই ব্যবহারকারী এখনো কোনো পোস্ট শেয়ার করেননি।'
+                    : 'This user has not published any posts yet.'}
+                </Text>
+              </View>
+            ) : (
+              posts.map((post) => (
+                <View
+                  key={post.id}
+                  className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden">
+                  <FeedPostCard post={post} />
+                </View>
+              ))
+            )}
+          </View>
+        )}
+
+        {/* FRIENDS TAB */}
+        {activeTab === 'friends' && (
+          <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+              <Text className="text-base font-bold text-[#050505] dark:text-white">
+                {locale === 'bn' ? 'সকল বন্ধু' : 'All Friends'} ({totalFriends})
+              </Text>
+            </View>
+
+            {isFriendsLoading ? (
+              <View className="space-y-2 gap-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <View
+                    key={i}
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50">
+                    <View className="flex-row items-center gap-3 flex-1 pr-2">
+                      <Skeleton className="h-11 w-11 rounded-full" />
+                      <View className="flex-1 space-y-1.5 gap-1.5">
+                        <Skeleton className="h-3.5 w-32 rounded-md" />
+                        <Skeleton className="h-2.5 w-24 rounded-md" />
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : friends.length === 0 ? (
+              <View className="py-8 items-center justify-center">
+                <AppIcon android="group" size={32} color="#65676b" />
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+                  {locale === 'bn'
+                    ? 'কোনো বন্ধু পাওয়া যায়নি।'
+                    : 'No connected friends found.'}
+                </Text>
+              </View>
+            ) : (
+              <View className="space-y-2 gap-2">
+                {friends.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => router.push(`/${item.user.username}` as any)}
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80">
+                    <View className="flex-row items-center gap-3 flex-1 pr-2">
+                      <View className="h-11 w-11 rounded-full bg-primary-600 items-center justify-center overflow-hidden">
+                        {item.user.avatar ? (
+                          <Image
+                            source={{ uri: item.user.avatar }}
+                            className="w-full h-full"
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Text className="text-white font-bold text-sm">
+                            {item.user.name?.charAt(0) || 'U'}
+                          </Text>
+                        )}
+                      </View>
+                      <View className="flex-1 min-w-0">
+                        <Text
+                          numberOfLines={1}
+                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                          {item.user.name}
+                        </Text>
+                        <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] truncate">
+                          @{item.user.username}
+                          {item.user.location ? ` • ${item.user.location}` : ''}
+                        </Text>
+                      </View>
+                    </View>
+                    <AppIcon android="chevron_right" size={16} color="#65676b" />
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* GROUPS TAB */}
+        {activeTab === 'groups' && (
+          <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+              <Text className="text-base font-bold text-[#050505] dark:text-white">
+                {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} ({groups.length})
+              </Text>
+            </View>
+
+            {isGroupsLoading ? (
+              <View className="space-y-2 gap-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <View
+                    key={i}
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50">
+                    <View className="flex-row items-center gap-3 flex-1 pr-2">
+                      <Skeleton className="h-11 w-11 rounded-xl" />
+                      <View className="flex-1 space-y-1.5 gap-1.5">
+                        <Skeleton className="h-3.5 w-36 rounded-md" />
+                        <Skeleton className="h-2.5 w-24 rounded-md" />
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : groups.length === 0 ? (
+              <View className="py-8 items-center justify-center">
+                <AppIcon android="groups" size={32} color="#65676b" />
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+                  {locale === 'bn'
+                    ? 'কোনো গ্রুপ পাওয়া যায়নি।'
+                    : 'No groups joined yet.'}
+                </Text>
+              </View>
+            ) : (
+              <View className="space-y-2 gap-2">
+                {groups.map((g) => (
+                  <Pressable
+                    key={g.id}
+                    onPress={() => router.push('/groups')}
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80">
+                    <View className="flex-row items-center gap-3 flex-1 pr-2">
+                      <View className="h-11 w-11 rounded-xl bg-teal-500 items-center justify-center overflow-hidden">
+                        {g.avatarUrl ? (
+                          <Image
+                            source={{ uri: g.avatarUrl }}
+                            className="w-full h-full"
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Text className="text-white font-bold text-sm">
+                            {g.name?.charAt(0) || 'G'}
+                          </Text>
+                        )}
+                      </View>
+                      <View className="flex-1 min-w-0">
+                        <Text
+                          numberOfLines={1}
+                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                          {g.name}
+                        </Text>
+                        <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] truncate">
+                          {g.memberCount} {locale === 'bn' ? 'জন সদস্য' : 'members'} •{' '}
+                          {g.visibility === 'PUBLIC'
+                            ? locale === 'bn'
+                              ? 'পাবলিক'
+                              : 'Public'
+                            : locale === 'bn'
+                              ? 'প্রাইভেট'
+                              : 'Private'}
+                        </Text>
+                      </View>
+                    </View>
+                    <AppIcon android="chevron_right" size={16} color="#65676b" />
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* SAVED TAB (Owner only) */}
+        {activeTab === 'saved' && isOwner && (
+          <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+              <Text className="text-base font-bold text-[#050505] dark:text-white">
+                {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} ({savedItems.length})
+              </Text>
+              <Pressable
+                onPress={() => router.push('/saved')}
+                className="px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60">
+                <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                  {locale === 'bn' ? 'সম্পূর্ণ পাতা' : 'Full Page'}
+                </Text>
+              </Pressable>
+            </View>
+
+            {isSavedLoading ? (
+              <View className="space-y-2.5 gap-2.5">
+                {[1, 2, 3].map((i) => (
+                  <View
+                    key={i}
+                    className="p-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b] space-y-2 gap-2">
+                    <View className="flex-row items-center justify-between">
+                      <Skeleton className="h-3.5 w-16 rounded-md" />
+                      <Skeleton className="h-3.5 w-12 rounded-full" />
+                    </View>
+                    <Skeleton className="h-3.5 w-4/5 rounded-md" />
+                  </View>
+                ))}
+              </View>
+            ) : savedItems.length === 0 ? (
+              <View className="py-8 items-center justify-center">
+                <AppIcon android="bookmark" size={32} color="#65676b" />
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+                  {locale === 'bn'
+                    ? 'কোনো সংরক্ষিত আইটেম নেই।'
+                    : 'No saved items found.'}
+                </Text>
+              </View>
+            ) : (
+              <View className="space-y-2.5 gap-2.5">
+                {savedItems.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => router.push('/saved')}
+                    className="p-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b]">
+                    <View className="flex-row items-center justify-between mb-1">
+                      <View className="flex-row items-center gap-1.5">
+                        <AppIcon
+                          android={item.type === 'DUA' ? 'menu_book' : 'article'}
+                          size={14}
+                          color="#1877f2"
+                        />
+                        <Text className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
+                          {item.type}
+                        </Text>
+                      </View>
+                      {item.timeSlot && (
+                        <View className="rounded-full bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5">
+                          <Text className="text-[10px] font-bold text-purple-700 dark:text-purple-300">
+                            {item.timeSlot}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text
+                      numberOfLines={2}
+                      className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mt-0.5">
+                      {item.dua?.title || item.content || item.dua?.meaning || 'Saved item'}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+
+      {/* Unfriend Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={unfriendConfirmVisible}
+        onClose={() => setUnfriendConfirmVisible(false)}
+        onConfirm={handleConfirmUnfriend}
+        title={locale === 'bn' ? 'বন্ধু তালিকা থেকে বাদ দিন' : 'Remove Friend'}
+        description={
+          locale === 'bn'
+            ? `আপনি কি নিশ্চিত যে আপনি ${displayUser.name}-কে আপনার বন্ধু তালিকা থেকে বাদ দিতে চান?`
+            : `Are you sure you want to remove ${displayUser.name} from your friends?`
+        }
+        confirmText={locale === 'bn' ? 'বাদ দিন' : 'Unfriend'}
+        cancelText={locale === 'bn' ? 'বাতিল' : 'Cancel'}
+        variant="danger"
+        isLoading={isFriendActionLoading}
+      />
+    </ScrollView>
+  );
+}
