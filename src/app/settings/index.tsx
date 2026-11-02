@@ -11,7 +11,6 @@ export default function SettingsScreen() {
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [bloodAlertsEnabled, setBloodAlertsEnabled] = useState(true);
-  const [soundEnabled, setSoundEnabled] = useState(true);
 
   return (
     <ScrollView
@@ -30,31 +29,34 @@ export default function SettingsScreen() {
               </Text>
               <Text numberOfLines={1} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
                 {locale === 'bn'
-                  ? 'থিম, ভাষা, নোটিফিকেশন অ্যালার্ট ও অ্যাকাউন্ট'
-                  : 'Customize theme, language, and alerts'}
+                  ? 'প্রোফাইল এডিট, থিম, ভাষা, নোটিফিকেশন ও অ্যাকাউন্ট'
+                  : 'Edit profile, theme, language, and alerts'}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Account Summary Card */}
+        {/* Account Summary & Edit Profile Card */}
         {isAuthenticated && user ? (
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs">
-            <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider mb-3">
-              {locale === 'bn' ? 'অ্যাকাউন্ট প্রোফাইল' : 'Account Profile'}
-            </Text>
+          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs space-y-3">
+            <View className="flex-row items-center justify-between pb-1">
+              <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
+                {locale === 'bn' ? 'অ্যাকাউন্ট প্রোফাইল' : 'Account Profile'}
+              </Text>
+            </View>
+
             <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center gap-3">
-                <View className="h-12 w-12 rounded-full bg-primary-500 items-center justify-center">
+              <View className="flex-row items-center gap-3 flex-1 pr-2">
+                <View className="h-12 w-12 rounded-full bg-primary-500 items-center justify-center overflow-hidden">
                   <Text className="text-white text-lg font-black">
                     {user.name?.charAt(0)?.toUpperCase() || 'P'}
                   </Text>
                 </View>
-                <View>
-                  <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                <View className="flex-1 min-w-0">
+                  <Text numberOfLines={1} className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {user.name}
                   </Text>
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text numberOfLines={1} className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
                     @{user.username || 'user'} • {user.email}
                   </Text>
                 </View>
@@ -62,12 +64,34 @@ export default function SettingsScreen() {
 
               <Pressable
                 onPress={() => router.push('/profile')}
-                className="px-3 py-1.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4a4b4d]">
+                className="px-3 py-1.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4a4b4d] active:scale-95">
                 <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
                   {locale === 'bn' ? 'প্রোফাইল' : 'Profile'}
                 </Text>
               </Pressable>
             </View>
+
+            {/* Direct Edit Profile Navigation Row (Facebook style) */}
+            <Pressable
+              onPress={() => router.push('/settings/profile')}
+              className="flex-row items-center justify-between p-3 rounded-xl bg-primary-50/80 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-900/60 active:scale-98">
+              <View className="flex-row items-center gap-2.5">
+                <View className="h-8 w-8 rounded-lg bg-primary-600 items-center justify-center">
+                  <AppIcon android="badge" size={16} color="#ffffff" />
+                </View>
+                <View>
+                  <Text className="text-xs font-bold text-primary-700 dark:text-primary-300">
+                    {locale === 'bn' ? 'প্রোফাইল সম্পাদনা করুন' : 'Edit Profile'}
+                  </Text>
+                  <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn'
+                      ? 'ছবি, কভার, বায়ো, অবস্থান ও রক্তদান তথ্য পরিবর্তন'
+                      : 'Update photo, cover, bio, location & blood info'}
+                  </Text>
+                </View>
+              </View>
+              <AppIcon android="chevron_right" size={18} color="#1877f2" />
+            </Pressable>
           </View>
         ) : (
           <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs flex-row items-center justify-between">
@@ -126,7 +150,7 @@ export default function SettingsScreen() {
               value={theme === 'dark'}
               onValueChange={toggleTheme}
               trackColor={{ false: '#d1d5db', true: '#3b82f6' }}
-              thumbColor={theme === 'dark' ? '#ffffff' : '#ffffff'}
+              thumbColor="#ffffff"
             />
           </View>
 
@@ -222,7 +246,7 @@ export default function SettingsScreen() {
         {isAuthenticated && (
           <Pressable
             onPress={logout}
-            className="rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 p-3.5 flex-row items-center justify-center gap-2">
+            className="rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 p-3.5 flex-row items-center justify-center gap-2 active:scale-98">
             <AppIcon android="logout" size={18} color="#e11d48" />
             <Text className="text-xs font-bold text-rose-600 dark:text-rose-400">
               {locale === 'bn' ? 'লগআউট করুন' : 'Log Out'}

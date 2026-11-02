@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { TimeSlotPicker } from '@/features/bookmark/components/TimeSlotPicker';
 import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
 
 const FEELING_MAP: Record<string, { label: string; emoji: string }> = {
   grateful: { label: 'grateful', emoji: '🤲' },
@@ -78,9 +79,9 @@ function PostMedia({
   layout?: 'COLLAGE' | 'SWIPE';
 }) {
   const [width, setWidth] = useState(0);
-  const list = (urls || []).filter(
-    (u) => typeof u === 'string' && u.trim().length > 0
-  );
+  const list = (urls || [])
+    .filter((u) => typeof u === 'string' && u.trim().length > 0)
+    .map((u) => normalizeMediaUrl(u));
   if (list.length === 0) return null;
 
   const onLayout = (e: LayoutChangeEvent) =>
@@ -387,11 +388,14 @@ export interface FeedPostCardProps {
   post: FeedItem;
   /** Expand the Arabic text by default (used by search so every part is visible) */
   defaultShowArabic?: boolean;
+  /** Expand the comments section by default (used when viewing a photo post in a modal) */
+  defaultShowComments?: boolean;
 }
 
 export function FeedPostCard({
   post,
   defaultShowArabic = false,
+  defaultShowComments = false,
 }: FeedPostCardProps) {
   const { locale, theme } = useUi();
   const { user, isAuthenticated } = useAuth();
@@ -403,7 +407,7 @@ export function FeedPostCard({
     updateCommentCount,
   } = useFeed();
 
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(defaultShowComments);
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [showDeletePostConfirm, setShowDeletePostConfirm] = useState(false);
   const [showUnsaveConfirm, setShowUnsaveConfirm] = useState(false);
@@ -412,13 +416,66 @@ export function FeedPostCard({
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
-  const hasReacted = Boolean(post.viewer?.hasReacted);
-  const hasSaved = Boolean(post.viewer?.hasSaved);
+  const [hasReacted, setHasReacted] = useState(
+    Boolean(post.viewer?.hasReacted)
+  );
+  const [hasSaved, setHasSaved] = useState(Boolean(post.viewer?.hasSaved));
   const currentTimeSlot = post.viewer?.timeSlot || null;
-  const reactionCount = post.stats?.reactionCount || 0;
-  const commentCount = post.stats?.commentCount || 0;
-  const saveCount = post.stats?.saveCount || 0;
+  const [reactionCount, setReactionCount] = useState(
+    post.stats?.reactionCount || 0
+  );
+  const [commentCount, setCommentCount] = useState(
+    post.stats?.commentCount || 0
+  );
+  const [saveCount, setSaveCount] = useState(post.stats?.saveCount || 0);
   const shareCount = post.stats?.shareCount || 0;
+
+  useEffect(() => {
+    setHasReacted(Boolean(post.viewer?.hasReacted));
+    setHasSaved(Boolean(post.viewer?.hasSaved));
+    setReactionCount(post.stats?.reactionCount || 0);
+    setCommentCount(post.stats?.commentCount || 0);
+    setSaveCount(post.stats?.saveCount || 0);
+  }, [
+    post.id,
+    post.viewer?.hasReacted,
+    post.viewer?.hasSaved,
+    post.stats?.reactionCount,
+    post.stats?.commentCount,
+    post.stats?.saveCount,
+  ]);
+
+  useEffect(() => {
+    if (defaultShowComments && post.id && !post.id.startsWith('temp-')) {
+      setShowComments(true);
+      setIsLoadingComments(true);
+      feedApi
+        .getComments(post.id, 30)
+        .then((res) => {
+          const list = ((res as any)?.data ?? res) as PostComment[];
+          if (Array.isArray(list)) {
+            setComments(list);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsLoadingComments(false));
+    }
+  }, [defaultShowComments, post.id]);
+
+  const handleToggleReaction = () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    const nextReacted = !hasReacted;
+    setHasReacted(nextReacted);
+    setReactionCount((prev) =>
+      nextReacted ? prev + 1 : Math.max(0, prev - 1)
+    );
+    if (!post.id.startsWith('temp-')) {
+      toggleReaction(post.id, hasReacted);
+    }
+  };
 
   const handleToggleSave = () => {
     if (!isAuthenticated) {
@@ -426,7 +483,11 @@ export function FeedPostCard({
       return;
     }
     if (!hasSaved) {
-      toggleSave(post.id, false);
+      setHasSaved(true);
+      setSaveCount((prev) => prev + 1);
+      if (!post.id.startsWith('temp-')) {
+        toggleSave(post.id, false);
+      }
     }
     setIsTimePickerOpen(true);
   };
@@ -475,9 +536,12 @@ export function FeedPostCard({
         setComments((prev) => [...prev, payload.comment]);
       }
       if (typeof payload?.commentCount === 'number') {
+        setCommentCount(payload.commentCount);
         updateCommentCount(post.id, payload.commentCount);
       } else {
-        updateCommentCount(post.id, commentCount + 1);
+        const nextCount = commentCount + 1;
+        setCommentCount(nextCount);
+        updateCommentCount(post.id, nextCount);
       }
       setCommentText('');
     } catch {}
@@ -633,7 +697,7 @@ export function FeedPostCard({
       <View className="flex-row px-2 py-1 mt-2 border-t border-[#e4e6eb]/70 dark:border-[#393a3b]/70 select-none">
         {/* Reaction (Ameen / Like) */}
         <Pressable
-          onPress={() => toggleReaction(post.id, hasReacted)}
+          onPress={handleToggleReaction}
           className={`flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg select-none ${
             hasReacted ? 'bg-rose-50/50 dark:bg-rose-950/20' : ''
           }`}>

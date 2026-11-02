@@ -24,7 +24,13 @@ export type AndroidSymbol =
   | 'cancel'
   | 'check_box'
   | 'check_box_outline_blank'
-  | 'error_outline';
+  | 'error_outline'
+  | 'open_with'
+  | 'crop'
+  | 'zoom_in'
+  | 'zoom_out'
+  | 'restart_alt'
+  | 'fullscreen';
 
 export interface AppIconProps {
   android: AndroidSymbol;
@@ -555,6 +561,63 @@ export function AppIcon({
           <>
             <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
             <Path d="m9 12 2 2 4-4" />
+          </>
+        );
+
+      case 'open_with':
+        return (
+          <>
+            <Polyline points="5 9 2 12 5 15" />
+            <Polyline points="9 5 12 2 15 5" />
+            <Polyline points="15 19 12 22 9 19" />
+            <Polyline points="19 9 22 12 19 15" />
+            <Line x1="2" y1="12" x2="22" y2="12" />
+            <Line x1="12" y1="2" x2="12" y2="22" />
+          </>
+        );
+
+      case 'crop':
+        return (
+          <>
+            <Path d="M6 2v14a2 2 0 0 0 2 2h14" />
+            <Path d="M18 22V8a2 2 0 0 0-2-2H2" />
+          </>
+        );
+
+      case 'zoom_in':
+        return (
+          <>
+            <Circle cx="11" cy="11" r="8" />
+            <Line x1="21" y1="21" x2="16.65" y2="16.65" />
+            <Line x1="11" y1="8" x2="11" y2="14" />
+            <Line x1="8" y1="11" x2="14" y2="11" />
+          </>
+        );
+
+      case 'zoom_out':
+        return (
+          <>
+            <Circle cx="11" cy="11" r="8" />
+            <Line x1="21" y1="21" x2="16.65" y2="16.65" />
+            <Line x1="8" y1="11" x2="14" y2="11" />
+          </>
+        );
+
+      case 'restart_alt':
+        return (
+          <>
+            <Path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <Path d="M3 3v5h5" />
+          </>
+        );
+
+      case 'fullscreen':
+        return (
+          <>
+            <Path d="M8 3H5a2 2 0 0 0-2 2v3" />
+            <Path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+            <Path d="M3 16v3a2 2 0 0 0 2 2h3" />
+            <Path d="M16 21h3a2 2 0 0 0 2-2v-3" />
           </>
         );
 

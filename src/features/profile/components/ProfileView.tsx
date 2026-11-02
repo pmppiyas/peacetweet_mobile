@@ -9,10 +9,13 @@ import {
   ActivityIndicator,
   RefreshControl,
   Share,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
+import { useFeed } from '@/providers/FeedProvider';
+import { feedApi } from '@/features/feed/api/feed.api';
 import { AppIcon } from '@/components/ui/Icon';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { FeedPostCard } from '@/features/feed/components/FeedPostCard';
@@ -23,17 +26,42 @@ import { SavedFeedItem } from '@/types/saved.types';
 import { profileApi } from '../api/profile.api';
 import { friendsApi } from '@/features/friends/api/friends.api';
 import { bookmarkApi } from '@/features/bookmark/api/bookmark.api';
-import { UserProfileResponse, ProfileTab, FriendshipStatus } from '../types/profile.types';
+import {
+  UserProfileResponse,
+  ProfileTab,
+  FriendshipStatus,
+} from '../types/profile.types';
 import { User, BloodGroup } from '@/types/user.types';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { PostCardSkeleton } from './ProfileSkeleton';
+import { PhotoEditorModal, PhotoEditorMode } from './PhotoEditorModal';
+import {
+  uploadsApi,
+  normalizeMediaUrl,
+} from '@/features/uploads/api/uploads.api';
 
-export function formatProfileDate(dateStr?: string | null, locale: 'bn' | 'en' = 'en'): string {
+export function formatProfileDate(
+  dateStr?: string | null,
+  locale: 'bn' | 'en' = 'en'
+): string {
   if (!dateStr) return locale === 'bn' ? 'আজ' : 'Today';
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr;
-    const monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthsEn = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     const monthsBn = [
       'জানুয়ারি',
       'ফেব্রুয়ারি',
@@ -87,16 +115,18 @@ export function ProfileView({
 }: ProfileViewProps) {
   const { locale, theme } = useUi();
   const { user: authUser, isAuthenticated, setUser } = useAuth();
+  const { refreshFeed } = useFeed();
 
   const isOwner = Boolean(
     !targetUser ||
-      (authUser &&
-        targetUser &&
-        (authUser.id === targetUser.id ||
-          authUser.username?.toLowerCase() === targetUser.username?.toLowerCase()))
+    (authUser &&
+      targetUser &&
+      (authUser.id === targetUser.id ||
+        authUser.username?.toLowerCase() ===
+          targetUser.username?.toLowerCase()))
   );
 
-  const displayUser = targetUser || authUser;
+  const displayUser = isOwner ? authUser || targetUser : targetUser || authUser;
 
   // Tabs
   const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab);
@@ -133,6 +163,19 @@ export function ProfileView({
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // Direct Cover & Avatar Photo Editor states
+  const [photoEditorMode, setPhotoEditorMode] =
+    useState<PhotoEditorMode>('cover');
+  const [photoEditorSrc, setPhotoEditorSrc] = useState<string | null>(null);
+  const [isPhotoEditorOpen, setIsPhotoEditorOpen] = useState(false);
+  const [isSavingPhoto, setIsSavingPhoto] = useState(false);
+  const [photoMenuType, setPhotoMenuType] = useState<PhotoEditorMode | null>(
+    null
+  );
+  const [viewingPhotoPost, setViewingPhotoPost] = useState<FeedItem | null>(
+    null
+  );
 
   // Sync bio input if user changes
   useEffect(() => {
@@ -215,7 +258,14 @@ export function ProfileView({
     if (isOwner && isAuthenticated) {
       fetchSaved();
     }
-  }, [fetchPosts, fetchFriends, fetchGroups, fetchSaved, isOwner, isAuthenticated]);
+  }, [
+    fetchPosts,
+    fetchFriends,
+    fetchGroups,
+    fetchSaved,
+    isOwner,
+    isAuthenticated,
+  ]);
 
   // Pull to refresh
   const handleRefresh = async () => {
@@ -346,7 +396,10 @@ export function ProfileView({
     if (!displayUser?.username) return;
     const url = `https://peacetweet.com/${displayUser.username}`;
     try {
-      if (typeof navigator !== 'undefined' && (navigator as any).clipboard?.writeText) {
+      if (
+        typeof navigator !== 'undefined' &&
+        (navigator as any).clipboard?.writeText
+      ) {
         await (navigator as any).clipboard.writeText(url);
         setCopiedLink(true);
         setTimeout(() => setCopiedLink(false), 2000);
@@ -358,6 +411,175 @@ export function ProfileView({
       }
     } catch {
       // ignore
+    }
+  };
+
+  // Trigger file picker directly on the profile page -> opens PhotoEditorModal
+  const triggerPhotoPicker = (mode: PhotoEditorMode) => {
+    setPhotoMenuType(null);
+    if (typeof document === 'undefined') return;
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.style.display = 'none';
+
+    input.onchange = (e: any) => {
+      const file = e.target?.files?.[0];
+      if (!file) return;
+      const previewUrl = URL.createObjectURL(file);
+      setPhotoEditorMode(mode);
+      setPhotoEditorSrc(previewUrl);
+      setIsPhotoEditorOpen(true);
+    };
+
+    document.body.appendChild(input);
+    input.click();
+    setTimeout(() => {
+      if (input.parentNode) {
+        input.parentNode.removeChild(input);
+      }
+    }, 1000);
+  };
+
+  // Open existing photo in PhotoEditorModal for reposition & resize
+  const openRepositionEditor = (mode: PhotoEditorMode) => {
+    setPhotoMenuType(null);
+    const currentUrl =
+      mode === 'avatar' ? displayUser?.avatarUrl : displayUser?.coverUrl;
+    if (!currentUrl) {
+      triggerPhotoPicker(mode);
+      return;
+    }
+    setPhotoEditorMode(mode);
+    setPhotoEditorSrc(normalizeMediaUrl(currentUrl));
+    setIsPhotoEditorOpen(true);
+  };
+
+  // Handle click on Cover "Edit Cover" or Avatar camera button
+  const handlePhotoActionPress = (mode: PhotoEditorMode) => {
+    const currentUrl =
+      mode === 'avatar' ? displayUser?.avatarUrl : displayUser?.coverUrl;
+    if (currentUrl) {
+      setPhotoMenuType((prev) => (prev === mode ? null : mode));
+    } else {
+      triggerPhotoPicker(mode);
+    }
+  };
+
+  // Save cropped/repositioned photo to server, auto-create post, and update profile immediately
+  const handleSaveEditedPhoto = async (
+    croppedFile: File | Blob,
+    filename: string
+  ) => {
+    if (isSavingPhoto) return;
+    setIsSavingPhoto(true);
+    try {
+      const uploaded = await uploadsApi.uploadImage(croppedFile, filename);
+      if (uploaded?.url) {
+        const updatePayload =
+          photoEditorMode === 'avatar'
+            ? { avatarUrl: uploaded.url }
+            : { coverUrl: uploaded.url };
+        const updatedUser = await profileApi.updateProfile(updatePayload);
+        const mergedUser = {
+          ...(authUser || displayUser),
+          ...(updatedUser || {}),
+          ...updatePayload,
+        } as User;
+        setUser(mergedUser);
+        await Promise.all([
+          fetchPosts(),
+          refreshFeed(),
+          onRefreshProfile ? onRefreshProfile() : Promise.resolve(),
+        ]);
+      }
+      setIsPhotoEditorOpen(false);
+    } catch (err) {
+      console.warn('Failed to save edited photo:', err);
+    } finally {
+      setIsSavingPhoto(false);
+    }
+  };
+
+  // Facebook-style: clicking Profile Picture or Cover Photo opens its Post View directly
+  const handleOpenPhotoPost = async (mode: PhotoEditorMode) => {
+    setPhotoMenuType(null);
+    if (!displayUser) return;
+
+    const rawUrl =
+      mode === 'avatar' ? displayUser.avatarUrl : displayUser.coverUrl;
+    const normalizedTarget = normalizeMediaUrl(rawUrl);
+    if (!normalizedTarget || !rawUrl) return;
+
+    // 1. Check if a post with this photo already exists in user's posts
+    const existingPost = posts.find(
+      (p) =>
+        Array.isArray(p.mediaUrls) &&
+        p.mediaUrls.some((u) => normalizeMediaUrl(u) === normalizedTarget)
+    );
+
+    if (existingPost) {
+      setViewingPhotoPost(existingPost);
+      return;
+    }
+
+    // 2. Fallback post object if photo was uploaded before auto-post creation
+    const caption =
+      mode === 'avatar' ? 'Updated profile picture' : 'Updated cover photo';
+
+    const fallbackPost: FeedItem = {
+      id: `temp-${mode}-${displayUser.id}`,
+      type: 'TEXT',
+      content: caption,
+      mediaUrls: [rawUrl],
+      mediaLayout: 'COLLAGE',
+      createdAt:
+        displayUser.updatedAt ||
+        displayUser.createdAt ||
+        new Date().toISOString(),
+      visibility: 'PUBLIC',
+      status: 'PUBLISHED',
+      author: {
+        id: displayUser.id,
+        name: displayUser.name,
+        username: displayUser.username,
+        avatar: displayUser.avatarUrl || null,
+      },
+      dua: null,
+      stats: {
+        reactionCount: 0,
+        commentCount: 0,
+        saveCount: 0,
+        shareCount: 0,
+      },
+      viewer: {
+        hasReacted: false,
+        hasSaved: false,
+      },
+    };
+
+    setViewingPhotoPost(fallbackPost);
+
+    // If owner is logged in, persist this photo as a real post in the database automatically
+    if (isOwner && isAuthenticated) {
+      try {
+        const res = await feedApi.createPost({
+          type: 'TEXT',
+          content: caption,
+          mediaUrls: [rawUrl],
+          mediaLayout: 'COLLAGE',
+          visibility: 'PUBLIC',
+        });
+        const created = ((res as any)?.data ?? res) as FeedItem;
+        if (created && created.id) {
+          setPosts((prev) => [created, ...prev]);
+          setViewingPhotoPost(created);
+          refreshFeed();
+        }
+      } catch {
+        // keep fallbackPost visible
+      }
     }
   };
 
@@ -373,6 +595,8 @@ export function ProfileView({
   }
 
   const bloodGroupLabel = formatBloodGroup(displayUser.bloodGroup);
+  const resolvedCoverUrl = normalizeMediaUrl(displayUser.coverUrl);
+  const resolvedAvatarUrl = normalizeMediaUrl(displayUser.avatarUrl);
 
   return (
     <ScrollView
@@ -385,15 +609,21 @@ export function ProfileView({
           tintColor="#1877f2"
           colors={['#1877f2']}
         />
-      }>
+      }
+    >
       {/* 1. Cover Photo Banner */}
       <View className="relative w-full h-44 sm:h-52 bg-gradient-to-r from-emerald-800 via-teal-700 to-primary-800 overflow-hidden">
-        {displayUser.coverUrl ? (
-          <Image
-            source={{ uri: displayUser.coverUrl }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
+        {resolvedCoverUrl ? (
+          <Pressable
+            onPress={() => handleOpenPhotoPost('cover')}
+            className="w-full h-full active:opacity-95"
+          >
+            <Image
+              source={{ uri: resolvedCoverUrl }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </Pressable>
         ) : (
           <View className="absolute inset-0 bg-black/10" />
         )}
@@ -401,8 +631,15 @@ export function ProfileView({
         {/* Back Button (if requested or viewing someone else) */}
         {showBackButton && (
           <Pressable
-            onPress={() => router.back()}
-            className="absolute top-3 left-3 z-30 h-9 w-9 rounded-full bg-black/50 items-center justify-center active:scale-95">
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace('/');
+              }
+            }}
+            className="absolute top-3 left-3 z-30 h-9 w-9 rounded-full bg-black/50 items-center justify-center active:scale-95"
+          >
             <AppIcon android="arrow_back" size={20} color="#ffffff" />
           </Pressable>
         )}
@@ -410,7 +647,8 @@ export function ProfileView({
         {/* Share Button top right */}
         <Pressable
           onPress={handleShareProfile}
-          className="absolute top-3 right-3 z-30 h-9 px-3 rounded-full bg-black/50 flex-row items-center gap-1.5 active:scale-95">
+          className="absolute top-3 right-3 z-30 h-9 px-3 rounded-full bg-black/50 flex-row items-center gap-1.5 active:scale-95"
+        >
           <AppIcon
             android={copiedLink ? 'check' : 'share'}
             size={16}
@@ -426,25 +664,111 @@ export function ProfileView({
                 : 'Share'}
           </Text>
         </Pressable>
+
+        {/* Edit Cover Action Menu & Button for Owner */}
+        {isOwner && (
+          <>
+            {photoMenuType === 'cover' && resolvedCoverUrl && (
+              <View className="absolute bottom-12 right-3 z-40 rounded-xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl overflow-hidden min-w-[190px]">
+                <Pressable
+                  onPress={() => triggerPhotoPicker('cover')}
+                  className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#f0f2f5] dark:border-[#393a3b] active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                >
+                  <AppIcon android="photo_camera" size={16} color="#1877f2" />
+                  <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'নতুন ছবি আপলোড' : 'Upload Photo'}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => openRepositionEditor('cover')}
+                  className="flex-row items-center gap-2.5 px-3.5 py-2.5 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                >
+                  <AppIcon android="open_with" size={16} color="#059669" />
+                  <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'পজিশন ও রিসাইজ' : 'Reposition & Resize'}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+
+            <Pressable
+              onPress={() => handlePhotoActionPress('cover')}
+              className="absolute bottom-3 right-3 z-30 h-8 px-2.5 rounded-full bg-black/65 flex-row items-center gap-1 active:scale-95"
+            >
+              <AppIcon android="photo_camera" size={14} color="#ffffff" />
+            </Pressable>
+          </>
+        )}
       </View>
 
       {/* 2. Profile Details & Bio & Action Buttons (Hero Card) */}
-      <View className="w-full max-w-[768px] mx-auto bg-white dark:bg-[#242526] px-4 pb-4 border-b border-[#e4e6eb] dark:border-[#393a3b] items-center">
+      <View className="w-full max-w-[768px] mx-auto bg-white dark:bg-[#242526] px-4 pb-4 border-b border-[#e4e6eb] dark:border-[#393a3b] items-center relative z-20">
         {/* Centered Avatar overlapping Cover Banner */}
-        <View className="-mt-14 relative z-10">
-          <View className="h-28 w-28 rounded-full border-4 border-white dark:border-[#242526] bg-primary-600 shadow-md items-center justify-center overflow-hidden">
-            {displayUser.avatarUrl ? (
-              <Image
-                source={{ uri: displayUser.avatarUrl }}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            ) : (
-              <Text className="text-white text-4xl font-black">
-                {displayUser.name?.charAt(0)?.toUpperCase() || 'P'}
-              </Text>
+        <View className="-mt-14 relative z-40 items-center">
+          <View className="relative h-28 w-28">
+            {/* Clicking the photo itself opens its Facebook-style Post View */}
+            <Pressable
+              onPress={() => {
+                if (resolvedAvatarUrl) {
+                  handleOpenPhotoPost('avatar');
+                }
+              }}
+              className="h-28 w-28 rounded-full border-4 border-white dark:border-[#242526] bg-primary-600 shadow-md items-center justify-center overflow-hidden active:opacity-90"
+            >
+              {resolvedAvatarUrl ? (
+                <Image
+                  source={{ uri: resolvedAvatarUrl }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text className="text-white text-4xl font-black">
+                  {displayUser.name?.charAt(0)?.toUpperCase() || 'P'}
+                </Text>
+              )}
+            </Pressable>
+
+            {/* Clicking ONLY the camera icon opens the floating edit menu */}
+            {isOwner && (
+              <Pressable
+                onPress={() => handlePhotoActionPress('avatar')}
+                className="absolute bottom-0 right-0 z-20 h-8 w-8 rounded-full bg-primary-600 border-2 border-white dark:border-[#242526] items-center justify-center shadow-md active:scale-95"
+              >
+                <AppIcon android="photo_camera" size={15} color="#ffffff" />
+              </Pressable>
             )}
           </View>
+
+          {/* Floating Avatar Action Menu for Owner (absolute so it NEVER pushes content down) */}
+          {isOwner && photoMenuType === 'avatar' && resolvedAvatarUrl && (
+            <View
+              style={{
+                position: 'absolute',
+                top: 118,
+                zIndex: 100,
+              }}
+              className="rounded-xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl overflow-hidden min-w-[195px]"
+            >
+              <Pressable
+                onPress={() => triggerPhotoPicker('avatar')}
+                className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#f0f2f5] dark:border-[#393a3b] active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+              >
+                <AppIcon android="photo_camera" size={16} color="#1877f2" />
+                <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                  {locale === 'bn' ? 'নতুন ছবি আপলোড' : 'Upload Photo'}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => openRepositionEditor('avatar')}
+                className="flex-row items-center gap-2.5 px-3.5 py-2.5 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+              >
+                <AppIcon android="open_with" size={16} color="#059669" />
+                <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                  {locale === 'bn' ? 'পজিশন ও রিসাইজ' : 'Reposition & Resize'}
+                </Text>
+              </Pressable>
+            </View>
+          )}
         </View>
 
         {/* Name & Verified Badge */}
@@ -510,10 +834,16 @@ export function ProfileView({
           {totalFriends > 0 && (
             <Pressable
               onPress={() => setActiveTab('friends')}
-              className="flex-row items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 border border-indigo-200 dark:border-indigo-800">
+              className="flex-row items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 border border-indigo-200 dark:border-indigo-800"
+            >
               <AppIcon android="group" size={13} color="#4f46e5" />
               <Text className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
-                {totalFriends} {locale === 'bn' ? 'বন্ধু' : totalFriends === 1 ? 'friend' : 'friends'}
+                {totalFriends}{' '}
+                {locale === 'bn'
+                  ? 'বন্ধু'
+                  : totalFriends === 1
+                    ? 'friend'
+                    : 'friends'}
               </Text>
             </Pressable>
           )}
@@ -545,7 +875,8 @@ export function ProfileView({
                   <Pressable
                     onPress={handleCancelBio}
                     disabled={isSavingBio}
-                    className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] px-3 py-1.5 bg-white dark:bg-[#242526]">
+                    className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] px-3 py-1.5 bg-white dark:bg-[#242526]"
+                  >
                     <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8]">
                       {locale === 'bn' ? 'বাতিল' : 'Cancel'}
                     </Text>
@@ -553,7 +884,8 @@ export function ProfileView({
                   <Pressable
                     onPress={handleSaveBio}
                     disabled={isSavingBio}
-                    className="rounded-xl px-3.5 py-1.5 bg-primary-600 flex-row items-center gap-1 shadow-sm">
+                    className="rounded-xl px-3.5 py-1.5 bg-primary-600 flex-row items-center gap-1 shadow-sm"
+                  >
                     {isSavingBio ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
@@ -579,7 +911,8 @@ export function ProfileView({
                     setBioInput(displayUser.bio || '');
                     setIsEditingBio(true);
                   }}
-                  className="mt-1.5 flex-row items-center gap-1 rounded-full bg-primary-50 dark:bg-primary-950/60 px-3 py-1 border border-primary-200 dark:border-primary-800">
+                  className="mt-1.5 flex-row items-center gap-1 rounded-full bg-primary-50 dark:bg-primary-950/60 px-3 py-1 border border-primary-200 dark:border-primary-800"
+                >
                   <AppIcon android="edit" size={12} color="#1877f2" />
                   <Text className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
                     {locale === 'bn' ? 'বায়ো সম্পাদনা' : 'Edit Bio'}
@@ -593,7 +926,8 @@ export function ProfileView({
                 setBioInput('');
                 setIsEditingBio(true);
               }}
-              className="flex-row items-center gap-1.5 rounded-full border border-dashed border-primary-400 dark:border-primary-600 bg-primary-50/60 dark:bg-primary-950/40 px-4 py-1.5">
+              className="flex-row items-center gap-1.5 rounded-full border border-dashed border-primary-400 dark:border-primary-600 bg-primary-50/60 dark:bg-primary-950/40 px-4 py-1.5"
+            >
               <AppIcon android="add" size={14} color="#1877f2" />
               <Text className="text-xs font-bold text-primary-600 dark:text-primary-300">
                 {locale === 'bn' ? 'বায়ো যুক্ত করুন' : 'Add Bio'}
@@ -608,8 +942,9 @@ export function ProfileView({
             <>
               {/* Edit Profile / Settings */}
               <Pressable
-                onPress={() => router.push('/settings')}
-                className="flex-row items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 shadow-sm active:scale-95">
+                onPress={() => router.push('/settings/profile')}
+                className="flex-row items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 shadow-sm active:scale-95"
+              >
                 <AppIcon android="edit" size={15} color="#ffffff" />
                 <Text className="text-xs font-bold text-white">
                   {locale === 'bn' ? 'প্রোফাইল সম্পাদনা' : 'Edit Profile'}
@@ -618,7 +953,8 @@ export function ProfileView({
 
               <Pressable
                 onPress={() => router.push('/settings')}
-                className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95">
+                className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95"
+              >
                 <AppIcon android="settings" size={15} color="#65676b" />
                 <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
                   {locale === 'bn' ? 'সেটিংস' : 'Settings'}
@@ -632,7 +968,8 @@ export function ProfileView({
                 <Pressable
                   onPress={handleAddFriend}
                   disabled={isFriendActionLoading}
-                  className="flex-row items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 shadow-sm active:scale-95">
+                  className="flex-row items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 shadow-sm active:scale-95"
+                >
                   {isFriendActionLoading ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
@@ -650,7 +987,8 @@ export function ProfileView({
                 <Pressable
                   onPress={handleCancelRequest}
                   disabled={isFriendActionLoading}
-                  className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 py-2 active:scale-95">
+                  className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 py-2 active:scale-95"
+                >
                   {isFriendActionLoading ? (
                     <ActivityIndicator size="small" color="#65676b" />
                   ) : (
@@ -669,7 +1007,8 @@ export function ProfileView({
                   <Pressable
                     onPress={handleAcceptRequest}
                     disabled={isFriendActionLoading}
-                    className="flex-row items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 shadow-sm active:scale-95">
+                    className="flex-row items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 shadow-sm active:scale-95"
+                  >
                     {isFriendActionLoading ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
@@ -685,7 +1024,8 @@ export function ProfileView({
                   <Pressable
                     onPress={handleRejectRequest}
                     disabled={isFriendActionLoading}
-                    className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95">
+                    className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95"
+                  >
                     <AppIcon android="close" size={15} color="#65676b" />
                     <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8]">
                       {locale === 'bn' ? 'মুছুন' : 'Delete'}
@@ -698,7 +1038,8 @@ export function ProfileView({
                 <Pressable
                   onPress={() => setUnfriendConfirmVisible(true)}
                   disabled={isFriendActionLoading}
-                  className="flex-row items-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 px-4 py-2 active:scale-95">
+                  className="flex-row items-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 px-4 py-2 active:scale-95"
+                >
                   <AppIcon android="how_to_reg" size={16} color="#059669" />
                   <Text className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
                     {locale === 'bn' ? 'বন্ধু ✓' : 'Friends ✓'}
@@ -710,7 +1051,8 @@ export function ProfileView({
               {isAuthenticated && (
                 <Pressable
                   onPress={handleMessagePress}
-                  className="flex-row items-center gap-1.5 rounded-xl bg-[#e4e6eb] dark:bg-[#3a3b3c] px-4 py-2 shadow-xs active:scale-95">
+                  className="flex-row items-center gap-1.5 rounded-xl bg-[#e4e6eb] dark:bg-[#3a3b3c] px-4 py-2 shadow-xs active:scale-95"
+                >
                   <AppIcon android="chat_bubble" size={15} color="#050505" />
                   <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'মেসেজ' : 'Message'}
@@ -732,7 +1074,8 @@ export function ProfileView({
               activeTab === 'overview'
                 ? 'bg-primary-600 shadow-sm'
                 : 'bg-transparent'
-            }`}>
+            }`}
+          >
             <AppIcon
               android="person"
               size={15}
@@ -743,7 +1086,8 @@ export function ProfileView({
                 activeTab === 'overview'
                   ? 'text-white'
                   : 'text-[#65676b] dark:text-[#b0b3b8]'
-              }`}>
+              }`}
+            >
               {locale === 'bn' ? 'পরিচিতি' : 'Overview'}
             </Text>
           </Pressable>
@@ -755,7 +1099,8 @@ export function ProfileView({
               activeTab === 'posts'
                 ? 'bg-primary-600 shadow-sm'
                 : 'bg-transparent'
-            }`}>
+            }`}
+          >
             <AppIcon
               android="article"
               size={15}
@@ -766,7 +1111,8 @@ export function ProfileView({
                 activeTab === 'posts'
                   ? 'text-white'
                   : 'text-[#65676b] dark:text-[#b0b3b8]'
-              }`}>
+              }`}
+            >
               {locale === 'bn' ? 'পোস্ট' : 'Posts'}
             </Text>
           </Pressable>
@@ -778,7 +1124,8 @@ export function ProfileView({
               activeTab === 'friends'
                 ? 'bg-primary-600 shadow-sm'
                 : 'bg-transparent'
-            }`}>
+            }`}
+          >
             <AppIcon
               android="group"
               size={15}
@@ -789,7 +1136,8 @@ export function ProfileView({
                 activeTab === 'friends'
                   ? 'text-white'
                   : 'text-[#65676b] dark:text-[#b0b3b8]'
-              }`}>
+              }`}
+            >
               {locale === 'bn' ? 'বন্ধু' : 'Friends'}
             </Text>
             {totalFriends > 0 && (
@@ -798,7 +1146,8 @@ export function ProfileView({
                   activeTab === 'friends'
                     ? 'text-white/80'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
-                }`}>
+                }`}
+              >
                 ({totalFriends})
               </Text>
             )}
@@ -811,7 +1160,8 @@ export function ProfileView({
               activeTab === 'groups'
                 ? 'bg-primary-600 shadow-sm'
                 : 'bg-transparent'
-            }`}>
+            }`}
+          >
             <AppIcon
               android="groups"
               size={15}
@@ -822,7 +1172,8 @@ export function ProfileView({
                 activeTab === 'groups'
                   ? 'text-white'
                   : 'text-[#65676b] dark:text-[#b0b3b8]'
-              }`}>
+              }`}
+            >
               {locale === 'bn' ? 'গ্রুপ' : 'Groups'}
             </Text>
           </Pressable>
@@ -834,8 +1185,9 @@ export function ProfileView({
               className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
                 activeTab === 'saved'
                   ? 'bg-primary-600 shadow-sm'
-                : 'bg-transparent'
-              }`}>
+                  : 'bg-transparent'
+              }`}
+            >
               <AppIcon
                 android="bookmark"
                 size={15}
@@ -846,7 +1198,8 @@ export function ProfileView({
                   activeTab === 'saved'
                     ? 'text-white'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
-                }`}>
+                }`}
+              >
                 {locale === 'bn' ? 'সংরক্ষিত' : 'Saved'}
               </Text>
             </Pressable>
@@ -862,58 +1215,16 @@ export function ProfileView({
             {/* Intro Details Card */}
             <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
               <Text className="text-base font-bold text-[#050505] dark:text-white mb-3">
-                {locale === 'bn' ? 'পরিচিতি বিবরণ' : 'Intro Details'}
+                {locale === 'bn' ? 'পরিচিতি' : 'Introduce'}
               </Text>
 
               <View className="space-y-2.5 gap-2.5">
-                {/* Tier */}
-                <View className="flex-row items-center gap-2.5">
-                  <AppIcon android="how_to_reg" size={18} color="#059669" />
-                  <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
-                    {locale === 'bn' ? 'মেম্বার ব্যাজ: ' : 'Member Tier: '}
-                    <Text className="font-bold">{displayUser.badge || 'Standard Member'}</Text>
-                  </Text>
-                </View>
-
-                {/* Status */}
-                <View className="flex-row items-center gap-2.5">
-                  <AppIcon android="verified_user" size={18} color="#1877f2" />
-                  <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
-                    {locale === 'bn' ? 'স্ট্যাটাস: ' : 'Status: '}
-                    <Text className="font-bold">
-                      {displayUser.userStatus === 'VERIFIED'
-                        ? locale === 'bn'
-                          ? 'ভেরিফাইড মেম্বার'
-                          : 'Verified Member'
-                        : displayUser.userStatus === 'PREMIUM'
-                          ? locale === 'bn'
-                            ? 'প্রিমিয়াম মেম্বার'
-                            : 'Premium Member'
-                          : locale === 'bn'
-                            ? 'নন-ভেরিফাইড অ্যাকাউন্ট'
-                            : 'Non-verified Account'}
-                    </Text>
-                  </Text>
-                </View>
-
                 {/* Location */}
                 {displayUser.location && (
                   <View className="flex-row items-center gap-2.5">
                     <AppIcon android="location_on" size={18} color="#e11d48" />
                     <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
-                      {locale === 'bn' ? 'বাসস্থান: ' : 'Lives in: '}
                       <Text className="font-bold">{displayUser.location}</Text>
-                    </Text>
-                  </View>
-                )}
-
-                {/* Email (only if present or owner) */}
-                {displayUser.email && (
-                  <View className="flex-row items-center gap-2.5">
-                    <AppIcon android="mail" size={18} color="#65676b" />
-                    <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
-                      {locale === 'bn' ? 'ইমেইল: ' : 'Email: '}
-                      <Text className="font-bold">{displayUser.email}</Text>
                     </Text>
                   </View>
                 )}
@@ -945,10 +1256,13 @@ export function ProfileView({
 
               {isOwner && (
                 <Pressable
-                  onPress={() => router.push('/settings')}
-                  className="mt-3.5 pt-3 border-t border-[#f0f2f5] dark:border-[#393a3b] items-center justify-center">
+                  onPress={() => router.push('/settings/profile')}
+                  className="mt-3.5 pt-3 border-t border-[#f0f2f5] dark:border-[#393a3b] items-center justify-center active:scale-98"
+                >
                   <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
-                    {locale === 'bn' ? 'তথ্য পরিবর্তন করতে সেটিংসে যান' : 'Edit details in Settings'}
+                    {locale === 'bn'
+                      ? 'প্রোফাইল তথ্য সম্পাদনা করুন'
+                      : 'Edit profile details'}
                   </Text>
                 </Pressable>
               )}
@@ -963,12 +1277,17 @@ export function ProfileView({
                   </Text>
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
                     {totalFriends}{' '}
-                    {locale === 'bn' ? 'জন বন্ধু' : totalFriends === 1 ? 'friend' : 'friends'}
+                    {locale === 'bn'
+                      ? 'জন বন্ধু'
+                      : totalFriends === 1
+                        ? 'friend'
+                        : 'friends'}
                   </Text>
                 </View>
                 <Pressable
                   onPress={() => setActiveTab('friends')}
-                  className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60">
+                  className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+                >
                   <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
                     {locale === 'bn' ? 'সব দেখুন' : 'See all'}
                   </Text>
@@ -985,7 +1304,9 @@ export function ProfileView({
                 <View className="py-6 items-center justify-center">
                   <AppIcon android="group" size={28} color="#65676b" />
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
-                    {locale === 'bn' ? 'এখনো কোনো বন্ধু যুক্ত নেই' : 'No friends yet'}
+                    {locale === 'bn'
+                      ? 'এখনো কোনো বন্ধু যুক্ত নেই'
+                      : 'No friends yet'}
                   </Text>
                 </View>
               ) : (
@@ -994,7 +1315,8 @@ export function ProfileView({
                     <Pressable
                       key={f.id}
                       onPress={() => router.push(`/${f.user.username}` as any)}
-                      className="w-[30%] items-center mb-2 active:opacity-80">
+                      className="w-[30%] items-center mb-2 active:opacity-80"
+                    >
                       <View className="w-full aspect-square rounded-xl bg-primary-500 overflow-hidden items-center justify-center shadow-xs border border-[#e4e6eb] dark:border-[#393a3b]">
                         {f.user.avatar ? (
                           <Image
@@ -1010,7 +1332,8 @@ export function ProfileView({
                       </View>
                       <Text
                         numberOfLines={1}
-                        className="text-[11px] font-bold text-[#050505] dark:text-[#e4e6eb] mt-1 text-center w-full">
+                        className="text-[11px] font-bold text-[#050505] dark:text-[#e4e6eb] mt-1 text-center w-full"
+                      >
                         {f.user.name}
                       </Text>
                     </Pressable>
@@ -1028,12 +1351,17 @@ export function ProfileView({
                   </Text>
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
                     {groups.length}{' '}
-                    {locale === 'bn' ? 'টি গ্রুপ' : groups.length === 1 ? 'group' : 'groups'}
+                    {locale === 'bn'
+                      ? 'টি গ্রুপ'
+                      : groups.length === 1
+                        ? 'group'
+                        : 'groups'}
                   </Text>
                 </View>
                 <Pressable
                   onPress={() => setActiveTab('groups')}
-                  className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60">
+                  className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+                >
                   <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
                     {locale === 'bn' ? 'সব দেখুন' : 'See all'}
                   </Text>
@@ -1061,7 +1389,9 @@ export function ProfileView({
                 <View className="py-6 items-center justify-center">
                   <AppIcon android="groups" size={28} color="#65676b" />
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
-                    {locale === 'bn' ? 'কোনো গ্রুপে যুক্ত হননি' : 'No groups joined yet'}
+                    {locale === 'bn'
+                      ? 'কোনো গ্রুপে যুক্ত হননি'
+                      : 'No groups joined yet'}
                   </Text>
                 </View>
               ) : (
@@ -1070,7 +1400,8 @@ export function ProfileView({
                     <Pressable
                       key={group.id}
                       onPress={() => router.push('/groups')}
-                      className="flex-row items-center gap-3 p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80">
+                      className="flex-row items-center gap-3 p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80"
+                    >
                       <View className="h-10 w-10 rounded-xl bg-teal-500 items-center justify-center overflow-hidden">
                         {group.avatarUrl ? (
                           <Image
@@ -1087,11 +1418,13 @@ export function ProfileView({
                       <View className="flex-1 min-w-0">
                         <Text
                           numberOfLines={1}
-                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]"
+                        >
                           {group.name}
                         </Text>
                         <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-                          {group.memberCount} {locale === 'bn' ? 'জন সদস্য' : 'members'}
+                          {group.memberCount}{' '}
+                          {locale === 'bn' ? 'জন সদস্য' : 'members'}
                         </Text>
                       </View>
                     </Pressable>
@@ -1115,7 +1448,9 @@ export function ProfileView({
                 <View className="rounded-2xl bg-white dark:bg-[#242526] p-6 border border-dashed border-[#e4e6eb] dark:border-[#393a3b] items-center justify-center">
                   <AppIcon android="article" size={28} color="#65676b" />
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
-                    {locale === 'bn' ? 'এখনো কোনো পোস্ট নেই' : 'No posts published yet'}
+                    {locale === 'bn'
+                      ? 'এখনো কোনো পোস্ট নেই'
+                      : 'No posts published yet'}
                   </Text>
                 </View>
               ) : (
@@ -1123,7 +1458,8 @@ export function ProfileView({
                   {posts.slice(0, 5).map((post) => (
                     <View
                       key={post.id}
-                      className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden">
+                      className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden"
+                    >
                       <FeedPostCard post={post} />
                     </View>
                   ))}
@@ -1158,7 +1494,8 @@ export function ProfileView({
               posts.map((post) => (
                 <View
                   key={post.id}
-                  className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden">
+                  className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden"
+                >
                   <FeedPostCard post={post} />
                 </View>
               ))
@@ -1180,7 +1517,8 @@ export function ProfileView({
                 {[1, 2, 3, 4, 5].map((i) => (
                   <View
                     key={i}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50">
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50"
+                  >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <Skeleton className="h-11 w-11 rounded-full" />
                       <View className="flex-1 space-y-1.5 gap-1.5">
@@ -1206,7 +1544,8 @@ export function ProfileView({
                   <Pressable
                     key={item.id}
                     onPress={() => router.push(`/${item.user.username}` as any)}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80">
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80"
+                  >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <View className="h-11 w-11 rounded-full bg-primary-600 items-center justify-center overflow-hidden">
                         {item.user.avatar ? (
@@ -1224,7 +1563,8 @@ export function ProfileView({
                       <View className="flex-1 min-w-0">
                         <Text
                           numberOfLines={1}
-                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]"
+                        >
                           {item.user.name}
                         </Text>
                         <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] truncate">
@@ -1233,7 +1573,11 @@ export function ProfileView({
                         </Text>
                       </View>
                     </View>
-                    <AppIcon android="chevron_right" size={16} color="#65676b" />
+                    <AppIcon
+                      android="chevron_right"
+                      size={16}
+                      color="#65676b"
+                    />
                   </Pressable>
                 ))}
               </View>
@@ -1255,7 +1599,8 @@ export function ProfileView({
                 {[1, 2, 3, 4].map((i) => (
                   <View
                     key={i}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50">
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50"
+                  >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <Skeleton className="h-11 w-11 rounded-xl" />
                       <View className="flex-1 space-y-1.5 gap-1.5">
@@ -1281,7 +1626,8 @@ export function ProfileView({
                   <Pressable
                     key={g.id}
                     onPress={() => router.push('/groups')}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80">
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80"
+                  >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <View className="h-11 w-11 rounded-xl bg-teal-500 items-center justify-center overflow-hidden">
                         {g.avatarUrl ? (
@@ -1299,11 +1645,13 @@ export function ProfileView({
                       <View className="flex-1 min-w-0">
                         <Text
                           numberOfLines={1}
-                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]"
+                        >
                           {g.name}
                         </Text>
                         <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] truncate">
-                          {g.memberCount} {locale === 'bn' ? 'জন সদস্য' : 'members'} •{' '}
+                          {g.memberCount}{' '}
+                          {locale === 'bn' ? 'জন সদস্য' : 'members'} •{' '}
                           {g.visibility === 'PUBLIC'
                             ? locale === 'bn'
                               ? 'পাবলিক'
@@ -1314,7 +1662,11 @@ export function ProfileView({
                         </Text>
                       </View>
                     </View>
-                    <AppIcon android="chevron_right" size={16} color="#65676b" />
+                    <AppIcon
+                      android="chevron_right"
+                      size={16}
+                      color="#65676b"
+                    />
                   </Pressable>
                 ))}
               </View>
@@ -1327,11 +1679,13 @@ export function ProfileView({
           <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
             <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
               <Text className="text-base font-bold text-[#050505] dark:text-white">
-                {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} ({savedItems.length})
+                {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} (
+                {savedItems.length})
               </Text>
               <Pressable
                 onPress={() => router.push('/saved')}
-                className="px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60">
+                className="px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+              >
                 <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
                   {locale === 'bn' ? 'সম্পূর্ণ পাতা' : 'Full Page'}
                 </Text>
@@ -1343,7 +1697,8 @@ export function ProfileView({
                 {[1, 2, 3].map((i) => (
                   <View
                     key={i}
-                    className="p-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b] space-y-2 gap-2">
+                    className="p-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b] space-y-2 gap-2"
+                  >
                     <View className="flex-row items-center justify-between">
                       <Skeleton className="h-3.5 w-16 rounded-md" />
                       <Skeleton className="h-3.5 w-12 rounded-full" />
@@ -1367,11 +1722,14 @@ export function ProfileView({
                   <Pressable
                     key={item.id}
                     onPress={() => router.push('/saved')}
-                    className="p-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b]">
+                    className="p-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b]"
+                  >
                     <View className="flex-row items-center justify-between mb-1">
                       <View className="flex-row items-center gap-1.5">
                         <AppIcon
-                          android={item.type === 'DUA' ? 'menu_book' : 'article'}
+                          android={
+                            item.type === 'DUA' ? 'menu_book' : 'article'
+                          }
                           size={14}
                           color="#1877f2"
                         />
@@ -1389,8 +1747,12 @@ export function ProfileView({
                     </View>
                     <Text
                       numberOfLines={2}
-                      className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mt-0.5">
-                      {item.dua?.title || item.content || item.dua?.meaning || 'Saved item'}
+                      className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mt-0.5"
+                    >
+                      {item.dua?.title ||
+                        item.content ||
+                        item.dua?.meaning ||
+                        'Saved item'}
                     </Text>
                   </Pressable>
                 ))}
@@ -1416,6 +1778,71 @@ export function ProfileView({
         variant="danger"
         isLoading={isFriendActionLoading}
       />
+
+      {/* Interactive Cover & Profile Photo Editor Modal (Reposition & Resize) */}
+      <PhotoEditorModal
+        isOpen={isPhotoEditorOpen}
+        mode={photoEditorMode}
+        imageSrc={photoEditorSrc}
+        isSaving={isSavingPhoto}
+        onClose={() => {
+          if (!isSavingPhoto) {
+            setIsPhotoEditorOpen(false);
+          }
+        }}
+        onPickAnother={() => triggerPhotoPicker(photoEditorMode)}
+        onSave={handleSaveEditedPhoto}
+      />
+
+      {/* Facebook-Style Photo Post View Modal (when tapping on Profile Photo or Cover Photo) */}
+      <Modal
+        visible={Boolean(viewingPhotoPost)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setViewingPhotoPost(null)}
+      >
+        <View className="flex-1 bg-black/75 items-center justify-center p-3 sm:p-4">
+          <View className="w-full max-w-[640px] max-h-[90vh] rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] overflow-hidden shadow-2xl">
+            {/* Modal Header */}
+            <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526]">
+              <View className="flex-row items-center gap-2 flex-1 pr-2">
+                <AppIcon android="photo" size={18} color="#1877f2" />
+                <Text
+                  numberOfLines={1}
+                  className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] flex-1"
+                >
+                  {locale === 'bn'
+                    ? `${displayUser.name}-এর পোস্ট`
+                    : `${displayUser.name}'s Post`}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setViewingPhotoPost(null)}
+                className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:scale-95"
+              >
+                <AppIcon
+                  android="close"
+                  size={18}
+                  color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                />
+              </Pressable>
+            </View>
+
+            {/* Full Interactive Post Card with Comments Expanded */}
+            <ScrollView
+              showsVerticalScrollIndicator={true}
+              keyboardShouldPersistTaps="handled"
+            >
+              {viewingPhotoPost && (
+                <FeedPostCard
+                  post={viewingPhotoPost}
+                  defaultShowComments={true}
+                />
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }

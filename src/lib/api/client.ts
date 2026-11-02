@@ -45,8 +45,9 @@ async function rawFetch(
   options?: RequestOptions
 ): Promise<Response> {
   const token = tokenStorage.getAccessToken();
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options?.headers || {}),
   };
 
@@ -61,7 +62,7 @@ async function rawFetch(
     const response = await fetch(buildUrl(baseUrl, endpoint, options?.params), {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: isFormData ? (body as any) : body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
     return response;

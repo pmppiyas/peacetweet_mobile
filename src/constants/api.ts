@@ -98,4 +98,8 @@ export const API_ENDPOINTS = {
     DONORS: '/blood/donors',
     DONOR_MODE: '/blood/donor-mode',
   },
+  UPLOADS: {
+    IMAGE: '/uploads/image',
+    AVATAR: '/uploads/avatar',
+  },
 } as const;
