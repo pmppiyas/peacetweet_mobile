@@ -219,7 +219,7 @@ export function MessageFeedItem({
               : isMe
                 ? 'bg-primary-500 rounded-2xl rounded-br-xs'
                 : 'bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-2xl rounded-bl-xs'
-          } ${isTemp ? 'opacity-70' : ''}`}>
+          } ${isTemp ? 'opacity-95' : ''}`}>
           {isDeleted ? (
             <View className="flex-row items-center gap-1.5">
               <AppIcon
@@ -267,10 +267,22 @@ export function MessageFeedItem({
 
             {isMe && !isDeleted ? (
               <AppIcon
-                android={message.isRead ? 'done_all' : 'check'}
-                ios="checkmark"
-                size={13}
-                color={message.isRead ? '#ffffff' : 'rgba(255,255,255,0.8)'}
+                android={isTemp ? 'schedule' : message.isRead ? 'done_all' : 'check'}
+                ios={
+                  isTemp
+                    ? 'clock'
+                    : message.isRead
+                    ? 'checkmark.circle.fill'
+                    : 'checkmark'
+                }
+                size={12}
+                color={
+                  isTemp
+                    ? 'rgba(255,255,255,0.6)'
+                    : message.isRead
+                    ? '#ffffff'
+                    : 'rgba(255,255,255,0.85)'
+                }
               />
             ) : null}
           </View>

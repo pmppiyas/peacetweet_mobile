@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { chatApi } from '@/features/chat/api/chat.api';
 import { CACHE_KEYS, queryCache } from '@/lib/cache/queryCache';
+import { getAppSocket, initAppSocket } from '@/lib/socket/socket';
 import {
   ChatUser,
   ConversationItem,
@@ -161,24 +162,35 @@ export default function MessagesScreen() {
     [conversations]
   );
 
-  // Handle deep-link params (?conversationId=... or ?userId=...)
+  const handledParamRef = useRef<string>('');
+
+  // Handle deep-link params (?conversationId=... or ?userId=...) cleanly without re-fetching on every conversations state update
   useEffect(() => {
     if (!isAuthenticated) return;
+
+    const currentKey = `${params.conversationId || ''}::${params.userId || ''}`;
+    if (!currentKey || currentKey === '::' || handledParamRef.current === currentKey) {
+      return;
+    }
 
     if (params.conversationId && conversations.length > 0) {
       const match = conversations.find((c) => c.id === params.conversationId);
       if (match) {
+        handledParamRef.current = currentKey;
         setSelectedConversation(match);
       }
     } else if (params.userId) {
+      handledParamRef.current = currentKey;
       chatApi
         .getOrCreateConversation(params.userId)
         .then((conv) => {
           setSelectedConversation(conv);
         })
-        .catch(() => {});
+        .catch(() => {
+          handledParamRef.current = '';
+        });
     }
-  }, [params.conversationId, params.userId, isAuthenticated, conversations]);
+  }, [params.conversationId, params.userId, isAuthenticated, conversations.length]);
 
   const handleConversationUpdated = useCallback(
     (
@@ -199,8 +211,31 @@ export default function MessagesScreen() {
         return [updatedItem, ...rest];
       });
     },
-    []
+    [setConversations]
   );
+
+  // Real-time Socket.io update for conversations sidebar
+  useEffect(() => {
+    const s = initAppSocket() || getAppSocket();
+    if (!s) return;
+
+    const handleConvUpdated = (data: {
+      conversationId: string;
+      lastMessageText: string;
+      lastMessageAt: string;
+    }) => {
+      handleConversationUpdated(
+        data.conversationId,
+        data.lastMessageText,
+        data.lastMessageAt
+      );
+    };
+
+    s.on('conversation:updated', handleConvUpdated);
+    return () => {
+      s.off('conversation:updated', handleConvUpdated);
+    };
+  }, [handleConversationUpdated]);
 
   const handleConversationMarkedRead = useCallback((conversationId: string) => {
     setConversations((prev) =>

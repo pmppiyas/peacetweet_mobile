@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,11 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { useUi } from '@/providers/UiProvider';
 import { AppIcon } from '@/components/ui/Icon';
+import { getAppSocket, initAppSocket } from '@/lib/socket/socket';
 import { ChatMessage } from '../types/chat.types';
 
 const QUICK_EMOJIS = ['🤲', '🕊️', '❤️', '👍', '😊', '🌸', '👏', '🎉', '🤍'];
@@ -20,6 +22,8 @@ export interface MessageComposerViewProps {
   isSending: boolean;
   editingMessage?: ChatMessage | null;
   onCancelEdit?: () => void;
+  otherUserId?: string;
+  conversationId?: string;
 }
 
 export function MessageComposerView({
@@ -29,15 +33,44 @@ export function MessageComposerView({
   isSending,
   editingMessage,
   onCancelEdit,
+  otherUserId,
+  conversationId,
 }: MessageComposerViewProps) {
   const { locale, theme } = useUi();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [attachmentNotice, setAttachmentNotice] = useState(false);
+  const typingTimeoutRef = useRef<any>(null);
 
   const canSend = text.trim().length > 0 && !isSending;
 
+  const handleTextChange = (val: string) => {
+    onChangeText(val);
+
+    if (otherUserId && conversationId) {
+      const s = getAppSocket() || initAppSocket();
+      if (s) {
+        s.emit('message:typing', {
+          receiverId: otherUserId,
+          conversationId,
+          isTyping: val.trim().length > 0,
+        });
+
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        if (val.trim().length > 0) {
+          typingTimeoutRef.current = setTimeout(() => {
+            s.emit('message:typing', {
+              receiverId: otherUserId,
+              conversationId,
+              isTyping: false,
+            });
+          }, 2500);
+        }
+      }
+    }
+  };
+
   const handleAddEmoji = (emoji: string) => {
-    onChangeText(`${text}${emoji}`);
+    handleTextChange(`${text}${emoji}`);
   };
 
   const handleAttachmentClick = () => {
@@ -159,7 +192,7 @@ export function MessageComposerView({
           <View className="flex-1">
             <TextInput
               value={text}
-              onChangeText={onChangeText}
+              onChangeText={handleTextChange}
               placeholder={
                 locale === 'bn'
                   ? 'শান্তিপূর্ণ মেসেজ লিখুন...'
@@ -168,6 +201,16 @@ export function MessageComposerView({
               placeholderTextColor={iconColor}
               multiline
               maxLength={2000}
+              onKeyPress={(e: any) => {
+                if (
+                  Platform.OS === 'web' &&
+                  e.nativeEvent?.key === 'Enter' &&
+                  !e.nativeEvent?.shiftKey
+                ) {
+                  e.preventDefault?.();
+                  if (canSend) onSubmit();
+                }
+              }}
               onSubmitEditing={() => {
                 if (canSend) onSubmit();
               }}

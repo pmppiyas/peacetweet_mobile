@@ -25,6 +25,8 @@ import { MessageFeedItem } from './MessageFeedItem';
 import { MessageComposerView } from './MessageComposerView';
 import { ConversationDetailsModal } from './ConversationDetailsModal';
 import { ChatMessagesSkeleton } from './ChatSkeleton';
+import { ChatAvatar } from './ChatAvatar';
+import { getAppSocket, initAppSocket } from '@/lib/socket/socket';
 
 export interface ChatViewProps {
   conversation: ConversationItem;
@@ -60,7 +62,29 @@ export function ChatView({
   const setMessages = useCallback(
     (updater: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
       setMessagesState((prev) => {
-        const next = typeof updater === 'function' ? updater(prev) : updater;
+        let next: ChatMessage[];
+        if (typeof updater === 'function') {
+          next = updater(prev);
+        } else {
+          // Never wipe out pending in-flight messages (id starts with temp_) when background fetch arrives
+          const pending = prev.filter((m) => m.id.startsWith('temp_'));
+          if (pending.length === 0) {
+            next = updater;
+          } else {
+            const serverIds = new Set(updater.map((m) => m.id));
+            const stillPending = pending.filter(
+              (p) =>
+                !serverIds.has(p.id) &&
+                !updater.some(
+                  (s) =>
+                    s.senderId === p.senderId &&
+                    s.text === p.text &&
+                    Math.abs(new Date(s.createdAt).getTime() - new Date(p.createdAt).getTime()) < 60000
+                )
+            );
+            next = [...updater, ...stillPending];
+          }
+        }
         queryCache.set(cacheKey, next);
         return next;
       });
@@ -76,6 +100,8 @@ export function ChatView({
     useState<ChatMessage | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
+  const typingTimerRef = useRef<any>(null);
 
   const otherUser = getOtherUserFromConversation(conversation);
 
@@ -116,6 +142,125 @@ export function ChatView({
     ]
   );
 
+  // Real-time Socket.io Message, Seen & Typing Listeners
+  useEffect(() => {
+    const s = initAppSocket() || getAppSocket();
+    if (!s) return;
+
+    // 1. Message received from the other user in real-time
+    const handleReceived = (newMsg: ChatMessage) => {
+      if (newMsg.conversationId === conversation.id) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === newMsg.id)) return prev;
+          return [...prev, newMsg];
+        });
+        scrollToBottom(true);
+        // Mark as read immediately on active screen
+        chatApi.markAsRead(conversation.id).catch(() => {});
+        s.emit('message:read', {
+          conversationId: conversation.id,
+          receiverId: newMsg.senderId,
+        });
+        onConversationMarkedRead(conversation.id);
+        onConversationUpdated(
+          conversation.id,
+          newMsg.text,
+          newMsg.createdAt
+        );
+      }
+    };
+
+    // 2. Message sent confirmation from socket
+    const handleSent = (savedMsg: ChatMessage) => {
+      if (savedMsg.conversationId === conversation.id) {
+        setMessages((prev) => {
+          const matchIndex = prev.findIndex(
+            (m) => m.id.startsWith('temp_') && m.text === savedMsg.text
+          );
+          if (matchIndex !== -1) {
+            const next = [...prev];
+            next[matchIndex] = savedMsg;
+            return next;
+          }
+          if (!prev.some((m) => m.id === savedMsg.id)) {
+            return [...prev, savedMsg];
+          }
+          return prev;
+        });
+      }
+    };
+
+    // 3. Other user saw our message (update checkmarks to double checkmark)
+    const handleSeen = (payload: { conversationId: string }) => {
+      if (payload.conversationId === conversation.id) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.senderId === (user?.id || 'me') ? { ...m, isRead: true } : m
+          )
+        );
+      }
+    };
+
+    // 4. Other user typing indicator
+    const handleTyping = (payload: {
+      conversationId: string;
+      receiverId: string;
+      isTyping: boolean;
+    }) => {
+      if (payload.conversationId === conversation.id) {
+        setIsOtherTyping(Boolean(payload.isTyping));
+        if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+        if (payload.isTyping) {
+          typingTimerRef.current = setTimeout(() => {
+            setIsOtherTyping(false);
+          }, 3500);
+        }
+      }
+    };
+
+    // 5. Message edited in real-time
+    const handleUpdated = (updated: ChatMessage) => {
+      if (updated.conversationId === conversation.id) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === updated.id ? updated : m))
+        );
+      }
+    };
+
+    // 6. Message deleted in real-time
+    const handleDeleted = (deleted: ChatMessage) => {
+      if (deleted.conversationId === conversation.id) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === deleted.id ? deleted : m))
+        );
+      }
+    };
+
+    s.on('message:received', handleReceived);
+    s.on('message:sent', handleSent);
+    s.on('message:seen', handleSeen);
+    s.on('message:typing', handleTyping);
+    s.on('message:updated', handleUpdated);
+    s.on('message:deleted', handleDeleted);
+
+    return () => {
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      s.off('message:received', handleReceived);
+      s.off('message:sent', handleSent);
+      s.off('message:seen', handleSeen);
+      s.off('message:typing', handleTyping);
+      s.off('message:updated', handleUpdated);
+      s.off('message:deleted', handleDeleted);
+    };
+  }, [
+    conversation.id,
+    user?.id,
+    onConversationMarkedRead,
+    onConversationUpdated,
+    scrollToBottom,
+    setMessages,
+  ]);
+
   useEffect(() => {
     setEditingMessage(null);
     setText('');
@@ -129,7 +274,7 @@ export function ChatView({
 
     const interval = setInterval(() => {
       loadMessages(true);
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [conversation.id]);
@@ -184,7 +329,7 @@ export function ChatView({
     if (!receiverId) return;
 
     setIsSending(true);
-    const optimisticId = `temp_${Date.now()}`;
+    const optimisticId = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const nowIso = new Date().toISOString();
 
     const optimisticMsg: ChatMessage = {
@@ -201,6 +346,16 @@ export function ChatView({
     setText('');
     scrollToBottom(true);
 
+    // Stop typing indicator via socket
+    const s = getAppSocket() || initAppSocket();
+    if (s && receiverId) {
+      s.emit('message:typing', {
+        receiverId,
+        conversationId: conversation.id,
+        isTyping: false,
+      });
+    }
+
     try {
       const saved = await chatApi.sendMessage({
         receiverId,
@@ -208,9 +363,17 @@ export function ChatView({
         conversationId: conversation.id,
       });
 
-      setMessages((prev) =>
-        prev.map((m) => (m.id === optimisticId ? saved : m))
-      );
+      setMessages((prev) => {
+        const hasOptimistic = prev.some((m) => m.id === optimisticId);
+        if (hasOptimistic) {
+          return prev.map((m) => (m.id === optimisticId ? saved : m));
+        }
+        if (!prev.some((m) => m.id === saved.id)) {
+          return [...prev, saved];
+        }
+        return prev;
+      });
+
       onConversationUpdated(
         conversation.id,
         saved.text || trimmed,
@@ -353,6 +516,29 @@ export function ChatView({
               );
             })
           )}
+
+          {/* Animated Messenger-Style Typing Indicator */}
+          {isOtherTyping ? (
+            <View className="flex-row items-end gap-2 justify-start my-2">
+              <View className="w-8 h-8 shrink-0 items-center justify-center">
+                <ChatAvatar
+                  name={otherUser?.name || 'User'}
+                  avatarUrl={otherUser?.avatarUrl}
+                  size="xs"
+                />
+              </View>
+              <View className="px-3.5 py-2.5 rounded-2xl rounded-bl-xs bg-[#f0f2f5] dark:bg-[#3a3b3c] flex-row items-center gap-1.5 shadow-xs">
+                <View className="flex-row items-center gap-1">
+                  <View className="w-1.5 h-1.5 rounded-full bg-[#65676b] dark:bg-[#b0b3b8] opacity-70" />
+                  <View className="w-1.5 h-1.5 rounded-full bg-[#65676b] dark:bg-[#b0b3b8] opacity-70" />
+                  <View className="w-1.5 h-1.5 rounded-full bg-[#65676b] dark:bg-[#b0b3b8] opacity-70" />
+                </View>
+                <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] font-medium ml-1">
+                  {locale === 'bn' ? 'টাইপ করছেন...' : 'typing...'}
+                </Text>
+              </View>
+            </View>
+          ) : null}
         </ScrollView>
       </View>
 
@@ -367,6 +553,8 @@ export function ChatView({
           setEditingMessage(null);
           setText('');
         }}
+        otherUserId={otherUser?.id}
+        conversationId={conversation.id}
       />
 
       {/* Right Column / Drawer: Conversation Details Panel */}
