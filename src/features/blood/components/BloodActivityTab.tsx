@@ -259,7 +259,7 @@ export function BloodActivityTab({
                                     <UserAvatar
                                       name={donorName}
                                       avatarUrl={d.donor?.avatarUrl}
-                                      size="sm"
+                                      size="md"
                                     />
                                     <View className="flex-1 min-w-0">
                                       <View className="flex-row items-center gap-1.5 flex-wrap">

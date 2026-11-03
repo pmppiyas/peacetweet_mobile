@@ -688,7 +688,10 @@ export function FeedPostCard({
               <>
                 <View className="flex-row items-center gap-2 px-3">
                   <UserAvatar
-                    avatarUrl={original.author?.avatar}
+                    avatarUrl={
+                      original.author?.avatar ||
+                      (original.author as any)?.avatarUrl
+                    }
                     name={original.author?.name || 'User'}
                     size="sm"
                   />
@@ -948,12 +951,14 @@ export function FeedPostCard({
             <View className="gap-2">
               {comments.map((c) => (
                 <View key={c.id} className="flex-row items-start gap-2">
-                  <View className="h-7 w-7 rounded-full bg-primary-500 items-center justify-center mt-0.5">
-                    <Text className="text-white text-xs font-bold">
-                      {c.author?.name
-                        ? c.author.name.charAt(0).toUpperCase()
-                        : 'U'}
-                    </Text>
+                  <View className="mt-0.5">
+                    <UserAvatar
+                      avatarUrl={
+                        c.author?.avatar || (c.author as any)?.avatarUrl
+                      }
+                      name={c.author?.name || 'User'}
+                      size="xs"
+                    />
                   </View>
                   <View className="flex-1 rounded-2xl bg-white dark:bg-[#242526] px-3 py-1.5 border border-[#e4e6eb]/60 dark:border-[#393a3b]/60">
                     <Text

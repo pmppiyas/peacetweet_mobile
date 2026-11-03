@@ -12,6 +12,7 @@ import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
 import { AppIcon } from '@/components/ui/Icon';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 type PostMode = 'TEXT' | 'DUA' | 'BLOOD_REQUEST';
 
@@ -290,11 +291,11 @@ export function MobileComposerModal() {
 
           {/* User Identity Row */}
           <View className="flex-row items-center gap-2.5 mb-4">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-primary-500">
-              <Text className="text-white font-bold text-sm">
-                {user?.name ? user.name.charAt(0).toUpperCase() : '🕊️'}
-              </Text>
-            </View>
+            <UserAvatar
+              avatarUrl={user?.avatarUrl || (user as any)?.avatar}
+              name={user?.name || 'PeaceTweet User'}
+              size="md"
+            />
             <View>
               <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {user?.name || 'PeaceTweet User'}

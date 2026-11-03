@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from 'react-native';
+import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
@@ -27,7 +28,7 @@ const SIZE_CLASSES: Record<
     badge: 'h-2.5 w-2.5 border-[1.5px]',
   },
   md: {
-    container: 'h-11 w-11',
+    container: 'h-10 w-10',
     text: 'text-sm',
     badge: 'h-3 w-3 border-2',
   },
@@ -52,16 +53,21 @@ export function UserAvatar({
   className = '',
 }: UserAvatarProps) {
   const [imageFailed, setImageFailed] = useState(false);
+  const resolvedAvatarUrl = normalizeMediaUrl(avatarUrl);
   const initial = (name || '?').trim().charAt(0).toUpperCase() || '?';
   const sizeConfig = SIZE_CLASSES[size];
 
-  const showImage = Boolean(avatarUrl && !imageFailed);
+  useEffect(() => {
+    setImageFailed(false);
+  }, [resolvedAvatarUrl]);
+
+  const showImage = Boolean(resolvedAvatarUrl && !imageFailed);
 
   return (
     <View className={`relative shrink-0 select-none ${sizeConfig.container} ${className}`} pointerEvents="none">
       {showImage ? (
         <Image
-          source={{ uri: avatarUrl! }}
+          source={{ uri: resolvedAvatarUrl }}
           onError={() => setImageFailed(true)}
           className="h-full w-full rounded-full bg-primary-100 dark:bg-primary-950/60 select-none"
           resizeMode="cover"

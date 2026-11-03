@@ -10,6 +10,7 @@ import { router, usePathname } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon, type AndroidSymbol } from '@/components/ui/Icon';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 interface MenuItem {
   id: string;
@@ -168,11 +169,11 @@ export function MenuDrawer() {
                 <Pressable
                   onPress={() => closeAndNavigate('/profile')}
                   className="flex-row items-center gap-3 p-3 rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c]">
-                  <View className="h-11 w-11 items-center justify-center rounded-full bg-primary-500">
-                    <Text className="text-white font-bold text-base">
-                      {user.name?.charAt(0)?.toUpperCase() || 'P'}
-                    </Text>
-                  </View>
+                  <UserAvatar
+                    avatarUrl={user.avatarUrl || (user as any).avatar}
+                    name={user.name}
+                    size="md"
+                  />
                   <View className="flex-1">
                     <Text
                       numberOfLines={1}

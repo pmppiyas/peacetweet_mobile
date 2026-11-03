@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export default function SettingsScreen() {
   const { locale, setLocale, theme, toggleTheme } = useUi();
@@ -47,11 +48,11 @@ export default function SettingsScreen() {
 
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3 flex-1 pr-2">
-                <View className="h-12 w-12 rounded-full bg-primary-500 items-center justify-center overflow-hidden">
-                  <Text className="text-white text-lg font-black">
-                    {user.name?.charAt(0)?.toUpperCase() || 'P'}
-                  </Text>
-                </View>
+                <UserAvatar
+                  avatarUrl={user.avatarUrl || (user as any).avatar}
+                  name={user.name}
+                  size="md"
+                />
                 <View className="flex-1 min-w-0">
                   <Text numberOfLines={1} className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {user.name}

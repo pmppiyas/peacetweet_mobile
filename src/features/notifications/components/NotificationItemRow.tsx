@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import { AppIcon, AndroidSymbol } from '@/components/ui/Icon';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import type { SFSymbol } from 'sf-symbols-typescript';
 import {
   NotificationItem,
@@ -87,11 +88,8 @@ export function NotificationItemRow({
   onPress,
   onRequestDelete,
 }: NotificationItemRowProps) {
-  const [imgError, setImgError] = useState(false);
   const badge = getNotificationBadgeConfig(item.type);
   const actorName = item.actor?.name || 'Someone';
-  const initial = actorName.trim().charAt(0).toUpperCase() || 'S';
-  const showImage = Boolean(item.actor?.avatarUrl && !imgError);
 
   return (
     <Pressable
@@ -103,20 +101,11 @@ export function NotificationItemRow({
       }`}>
       {/* Avatar with badge */}
       <View className="relative shrink-0">
-        {showImage ? (
-          <Image
-            source={{ uri: item.actor!.avatarUrl! }}
-            onError={() => setImgError(true)}
-            className="h-11 w-11 rounded-full bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="h-11 w-11 rounded-full bg-[#e4e6eb] dark:bg-[#3a3b3c] items-center justify-center">
-            <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
-              {initial}
-            </Text>
-          </View>
-        )}
+        <UserAvatar
+          avatarUrl={item.actor?.avatarUrl || (item.actor as any)?.avatar}
+          name={actorName}
+          size="md"
+        />
 
         <View
           className={`absolute -bottom-0.5 -right-0.5 h-5 w-5 items-center justify-center rounded-full border-2 border-white dark:border-[#242526] ${badge.bgColor}`}>

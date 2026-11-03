@@ -411,7 +411,7 @@ export function SearchPageView() {
                         <UserAvatar
                           avatarUrl={item.entityAvatar}
                           name={item.entityName || item.query}
-                          size="sm"
+                          size="md"
                         />
                       ) : item.entityType === 'DUA' ? (
                         <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/50 select-none">

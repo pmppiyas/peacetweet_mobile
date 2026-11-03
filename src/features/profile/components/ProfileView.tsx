@@ -17,6 +17,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
 import { feedApi } from '@/features/feed/api/feed.api';
 import { AppIcon } from '@/components/ui/Icon';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { FeedPostCard } from '@/features/feed/components/FeedPostCard';
 import { FeedItem } from '@/features/feed/types/feed.types';
@@ -1313,9 +1314,13 @@ export function ProfileView({
                       className="w-[30%] items-center mb-2 active:opacity-80"
                     >
                       <View className="w-full aspect-square rounded-xl bg-primary-500 overflow-hidden items-center justify-center shadow-xs border border-[#e4e6eb] dark:border-[#393a3b]">
-                        {f.user.avatar ? (
+                        {f.user.avatar || (f.user as any).avatarUrl ? (
                           <Image
-                            source={{ uri: f.user.avatar }}
+                            source={{
+                              uri: normalizeMediaUrl(
+                                f.user.avatar || (f.user as any).avatarUrl
+                              ),
+                            }}
                             className="w-full h-full"
                             resizeMode="cover"
                           />
@@ -1546,19 +1551,13 @@ export function ProfileView({
                     className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80"
                   >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
-                      <View className="h-11 w-11 rounded-full bg-primary-600 items-center justify-center overflow-hidden">
-                        {item.user.avatar ? (
-                          <Image
-                            source={{ uri: item.user.avatar }}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Text className="text-white font-bold text-sm">
-                            {item.user.name?.charAt(0) || 'U'}
-                          </Text>
-                        )}
-                      </View>
+                      <UserAvatar
+                        avatarUrl={
+                          item.user.avatar || (item.user as any).avatarUrl
+                        }
+                        name={item.user.name}
+                        size="md"
+                      />
                       <View className="flex-1 min-w-0">
                         <Text
                           numberOfLines={1}

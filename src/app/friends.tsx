@@ -18,6 +18,7 @@ import {
   FriendUser,
 } from '@/features/friends/types/friends.types';
 import { AppIcon } from '@/components/ui/Icon';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { FriendsSkeleton } from '@/features/friends/components/FriendsSkeleton';
 import { AuthPromptCard } from '@/components/ui/AuthPromptCard';
 import { queryCache } from '@/lib/cache/queryCache';
@@ -309,11 +310,11 @@ export default function FriendsScreen() {
                     <Pressable
                       onPress={() => router.push(`/${u.username}` as any)}
                       className="flex-row items-center gap-3 flex-1 pr-2 active:opacity-80">
-                      <View className="h-11 w-11 rounded-full bg-indigo-500 items-center justify-center shrink-0">
-                        <Text className="text-white text-base font-bold">
-                          {u.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </Text>
-                      </View>
+                      <UserAvatar
+                        avatarUrl={(u as any).avatar || (u as any).avatarUrl}
+                        name={u.name}
+                        size="md"
+                      />
                       <View className="flex-1 min-w-0">
                         <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
                           {u.name}
@@ -377,11 +378,11 @@ export default function FriendsScreen() {
                       !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
                     }`}>
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
-                      <View className="h-11 w-11 rounded-full bg-amber-500 items-center justify-center shrink-0">
-                        <Text className="text-white text-base font-bold">
-                          {u.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </Text>
-                      </View>
+                      <UserAvatar
+                        avatarUrl={(u as any).avatar || (u as any).avatarUrl}
+                        name={u.name}
+                        size="md"
+                      />
                       <View className="flex-1 min-w-0">
                         <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
                           {u.name}
@@ -446,11 +447,11 @@ export default function FriendsScreen() {
                     <Pressable
                       onPress={() => router.push(`/${u.username}` as any)}
                       className="flex-row items-center gap-3 flex-1 pr-2 active:opacity-80">
-                      <View className="h-11 w-11 rounded-full bg-indigo-500 items-center justify-center shrink-0">
-                        <Text className="text-white text-base font-bold">
-                          {u.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </Text>
-                      </View>
+                      <UserAvatar
+                        avatarUrl={(u as any).avatar || (u as any).avatarUrl}
+                        name={u.name}
+                        size="md"
+                      />
                       <View className="flex-1 min-w-0">
                         <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
                           {u.name}
