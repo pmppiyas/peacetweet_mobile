@@ -56,6 +56,7 @@ export function Navbar() {
   const inputRef = useRef<any>(null);
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isPostViewerPage = pathname.startsWith('/post/');
   const isMessagesActive =
     pathname === '/messages' || pathname.startsWith('/messages/');
   const isBloodRoute = pathname === '/blood' || pathname.startsWith('/blood');
@@ -145,7 +146,7 @@ export function Navbar() {
     }
   }, [pathname]);
 
-  if (isAuthPage || isInsideActiveChat) {
+  if (isAuthPage || isPostViewerPage || isInsideActiveChat) {
     return null;
   }
 

@@ -19,7 +19,9 @@ import { TimeSlotPicker } from '@/features/bookmark/components/TimeSlotPicker';
 import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
+import { queryCache } from '@/lib/cache/queryCache';
 
 const FEELING_MAP: Record<string, { label: string; emoji: string }> = {
   grateful: { label: 'grateful', emoji: '🤲' },
@@ -72,9 +74,11 @@ export function formatRelativeDate(
 /* Media gallery (COLLAGE / SWIPE) – shows every photo attached to the post    */
 /* -------------------------------------------------------------------------- */
 function PostMedia({
+  post,
   urls,
   layout,
 }: {
+  post?: FeedItem;
   urls?: string[];
   layout?: 'COLLAGE' | 'SWIPE';
 }) {
@@ -87,22 +91,30 @@ function PostMedia({
   const onLayout = (e: LayoutChangeEvent) =>
     setWidth(Math.round(e.nativeEvent.layout.width));
 
+  const handleOpenPost = () => {
+    if (post?.id) {
+      queryCache.set(`post:detail:${post.id}`, post);
+      router.push(`/post/${post.id}` as any);
+    }
+  };
+
   if (layout === 'SWIPE' && list.length > 1) {
     return (
-      <View onLayout={onLayout} className="w-full rounded-xl overflow-hidden">
+      <View onLayout={onLayout} className="w-full overflow-hidden">
         {width > 0 ? (
           <ScrollView
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}>
             {list.map((uri, i) => (
-              <Image
-                key={`${uri}-${i}`}
-                source={{ uri }}
-                resizeMode="cover"
-                style={{ width, aspectRatio: 4 / 3 }}
-                className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-              />
+              <Pressable key={`${uri}-${i}`} onPress={handleOpenPost}>
+                <Image
+                  source={{ uri }}
+                  resizeMode="cover"
+                  style={{ width, aspectRatio: 4 / 3 }}
+                  className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
+                />
+              </Pressable>
             ))}
           </ScrollView>
         ) : null}
@@ -117,20 +129,26 @@ function PostMedia({
 
   if (list.length === 1) {
     return (
-      <View className="w-full rounded-xl overflow-hidden">
+      <Pressable
+        onPress={handleOpenPost}
+        style={{ width: '100%' }}
+        className="w-full overflow-hidden active:opacity-95">
         <Image
           source={{ uri: list[0] }}
           resizeMode="cover"
           style={{ width: '100%', aspectRatio: 4 / 3 }}
           className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
         />
-      </View>
+      </Pressable>
     );
   }
 
   if (list.length === 2) {
     return (
-      <View className="w-full flex-row gap-0.5 rounded-xl overflow-hidden">
+      <Pressable
+        onPress={handleOpenPost}
+        style={{ width: '100%' }}
+        className="w-full flex-row gap-0.5 overflow-hidden active:opacity-95">
         {list.map((uri, i) => (
           <Image
             key={`${uri}-${i}`}
@@ -140,14 +158,17 @@ function PostMedia({
             className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
           />
         ))}
-      </View>
+      </Pressable>
     );
   }
 
   const rest = list.slice(1, 4);
   const extra = list.length - 4;
   return (
-    <View className="w-full gap-0.5 rounded-xl overflow-hidden">
+    <Pressable
+      onPress={handleOpenPost}
+      style={{ width: '100%' }}
+      className="w-full gap-0.5 overflow-hidden active:opacity-95">
       <Image
         source={{ uri: list[0] }}
         resizeMode="cover"
@@ -171,7 +192,7 @@ function PostMedia({
           </View>
         ))}
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -205,19 +226,19 @@ export function PostBody({
     : null;
 
   return (
-    <View className="gap-3">
+    <View style={{ width: '100%' }} className="w-full gap-3">
       {/* Caption / editorial note */}
       {post.content ? (
         <Text
           selectable={true}
-          className="text-[15px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
+          className="px-3 text-[15px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
           {post.content}
         </Text>
       ) : null}
 
       {/* Dua details */}
       {post.type === 'DUA' && dua && !(dua as any).isUnavailable ? (
-        <View className="gap-3">
+        <View className="px-3 gap-3">
           {dua.title && (!post.content || post.content !== dua.title) ? (
             <Text
               selectable={true}
@@ -322,7 +343,7 @@ export function PostBody({
 
       {/* Blood request details */}
       {post.type === 'BLOOD_REQUEST' && blood && !(blood as any).isUnavailable ? (
-        <View className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/20 p-3 gap-2">
+        <View className="mx-3 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/20 p-3 gap-2">
           <View className="flex-row items-center gap-2 select-none">
             <View className="h-9 w-9 rounded-lg bg-rose-600 items-center justify-center select-none">
               <Text
@@ -378,8 +399,12 @@ export function PostBody({
         </View>
       ) : null}
 
-      {/* Photos */}
-      <PostMedia urls={post.mediaUrls} layout={post.mediaLayout} />
+      {/* Photos (px-0 edge-to-edge inside card) */}
+      <PostMedia
+        post={post}
+        urls={post.mediaUrls}
+        layout={post.mediaLayout}
+      />
     </View>
   );
 }
@@ -650,47 +675,47 @@ export function FeedPostCard({
             </Pressable>
           )}
         </View>
+      </View>
 
-        {/* 2. Main Post Content Body – every part of the post */}
-        <View className="mt-3 gap-3">
-          <PostBody post={post} defaultShowArabic={defaultShowArabic} />
+      {/* 2. Main Post Content Body – px-0 on outer wrapper so photos go edge-to-edge */}
+      <View style={{ width: '100%' }} className="w-full mt-1.5 pb-1.5 gap-3">
+        <PostBody post={post} defaultShowArabic={defaultShowArabic} />
 
-          {/* Shared / reposted original post */}
-          {post.originalPostId ? (
-            <View className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] p-3 gap-2">
-              {original && !original.isUnavailable ? (
-                <>
-                  <View className="flex-row items-center gap-2">
-                    <UserAvatar
-                      avatarUrl={original.author?.avatar}
-                      name={original.author?.name || 'User'}
-                      size="sm"
-                    />
-                    <View className="flex-1">
-                      <Text className="text-[13px] font-bold text-[#050505] dark:text-[#e4e6eb]">
-                        {original.author?.name}
-                      </Text>
-                      <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
-                        @{original.author?.username} •{' '}
-                        {formatRelativeDate(original.createdAt, locale)}
-                      </Text>
-                    </View>
-                  </View>
-                  <PostBody
-                    post={original}
-                    defaultShowArabic={defaultShowArabic}
+        {/* Shared / reposted original post */}
+        {post.originalPostId ? (
+          <View className="mx-3 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] overflow-hidden pt-3 pb-2 gap-2">
+            {original && !original.isUnavailable ? (
+              <>
+                <View className="flex-row items-center gap-2 px-3">
+                  <UserAvatar
+                    avatarUrl={original.author?.avatar}
+                    name={original.author?.name || 'User'}
+                    size="sm"
                   />
-                </>
-              ) : (
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center py-2">
-                  {locale === 'bn'
-                    ? 'এই পোস্টটি আর উপলব্ধ নেই'
-                    : 'This post is no longer available'}
-                </Text>
-              )}
-            </View>
-          ) : null}
-        </View>
+                  <View className="flex-1">
+                    <Text className="text-[13px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+                      {original.author?.name}
+                    </Text>
+                    <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                      @{original.author?.username} •{' '}
+                      {formatRelativeDate(original.createdAt, locale)}
+                    </Text>
+                  </View>
+                </View>
+                <PostBody
+                  post={original}
+                  defaultShowArabic={defaultShowArabic}
+                />
+              </>
+            ) : (
+              <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center py-2 px-3">
+                {locale === 'bn'
+                  ? 'এই পোস্টটি আর উপলব্ধ নেই'
+                  : 'This post is no longer available'}
+              </Text>
+            )}
+          </View>
+        ) : null}
       </View>
 
       {/* 3. 4-Column Action Bar matching FeedItem.tsx */}
@@ -902,8 +927,16 @@ export function FeedPostCard({
       {showComments && (
         <View className="px-3 py-2.5 border-t border-[#e4e6eb]/70 dark:border-[#393a3b]/70 bg-[#f8f9fa] dark:bg-[#18191a]/60 gap-2.5">
           {isLoadingComments ? (
-            <View className="py-2 items-center">
-              <ActivityIndicator size="small" color="#1877f2" />
+            <View className="gap-2.5 py-1">
+              {[1, 2, 3].map((i) => (
+                <View key={i} className="flex-row items-start gap-2">
+                  <Skeleton className="h-7 w-7 rounded-full shrink-0 mt-0.5" />
+                  <View className="flex-1 rounded-2xl bg-white dark:bg-[#242526] px-3 py-2 border border-[#e4e6eb]/60 dark:border-[#393a3b]/60 gap-1.5">
+                    <Skeleton className="h-2.5 w-24 rounded-md" />
+                    <Skeleton className="h-2.5 w-3/4 rounded-md" />
+                  </View>
+                </View>
+              ))}
             </View>
           ) : comments.length === 0 ? (
             <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center py-1">

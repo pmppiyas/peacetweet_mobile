@@ -39,6 +39,7 @@ import {
   uploadsApi,
   normalizeMediaUrl,
 } from '@/features/uploads/api/uploads.api';
+import { queryCache } from '@/lib/cache/queryCache';
 
 export function formatProfileDate(
   dateStr?: string | null,
@@ -115,7 +116,7 @@ export function ProfileView({
 }: ProfileViewProps) {
   const { locale, theme } = useUi();
   const { user: authUser, isAuthenticated, setUser } = useAuth();
-  const { refreshFeed } = useFeed();
+  const { items: feedItems, refreshFeed } = useFeed();
 
   const isOwner = Boolean(
     !targetUser ||
@@ -173,9 +174,6 @@ export function ProfileView({
   const [photoMenuType, setPhotoMenuType] = useState<PhotoEditorMode | null>(
     null
   );
-  const [viewingPhotoPost, setViewingPhotoPost] = useState<FeedItem | null>(
-    null
-  );
 
   // Sync bio input if user changes
   useEffect(() => {
@@ -197,6 +195,11 @@ export function ProfileView({
     setIsPostsLoading(true);
     try {
       const items = await profileApi.getUserPosts(displayUser.id);
+      items.forEach((p) => {
+        if (p?.id) {
+          queryCache.set(`post:detail:${p.id}`, p);
+        }
+      });
       setPosts(items);
     } catch {
       // ignore
@@ -502,8 +505,8 @@ export function ProfileView({
     }
   };
 
-  // Facebook-style: clicking Profile Picture or Cover Photo opens its Post View directly
-  const handleOpenPhotoPost = async (mode: PhotoEditorMode) => {
+  // Facebook-style: clicking Profile Picture or Cover Photo navigates INSTANTLY (0ms delay) to /post/[postId]
+  const handleOpenPhotoPost = (mode: PhotoEditorMode) => {
     setPhotoMenuType(null);
     if (!displayUser) return;
 
@@ -512,27 +515,39 @@ export function ProfileView({
     const normalizedTarget = normalizeMediaUrl(rawUrl);
     if (!normalizedTarget || !rawUrl) return;
 
-    // 1. Check if a post with this photo already exists in user's posts
-    const existingPost = posts.find(
+    const targetFilename = normalizedTarget.split('/').pop() || normalizedTarget;
+
+    // 1. Check if a post with this photo already exists in user's posts or global feedItems
+    const allKnownPosts = [...posts, ...feedItems];
+    const existingPost = allKnownPosts.find(
       (p) =>
         Array.isArray(p.mediaUrls) &&
-        p.mediaUrls.some((u) => normalizeMediaUrl(u) === normalizedTarget)
+        p.mediaUrls.some((u) => {
+          const norm = normalizeMediaUrl(u);
+          return (
+            norm === normalizedTarget ||
+            (targetFilename.length > 6 && norm.endsWith(targetFilename))
+          );
+        })
     );
 
     if (existingPost) {
-      setViewingPhotoPost(existingPost);
+      // Pre-populate queryCache so /post/[id] renders in 0ms without any loading spinner
+      queryCache.set(`post:detail:${existingPost.id}`, existingPost);
+      router.push(`/post/${existingPost.id}` as any);
       return;
     }
 
-    // 2. Fallback post object if photo was uploaded before auto-post creation
+    // 2. Construct instant post in memory and navigate IMMEDIATELY (0ms delay)
     const caption =
       mode === 'avatar' ? 'Updated profile picture' : 'Updated cover photo';
+    const instantId = `photo-${mode}-${displayUser.id}`;
 
-    const fallbackPost: FeedItem = {
-      id: `temp-${mode}-${displayUser.id}`,
+    const instantPost: FeedItem = {
+      id: instantId,
       type: 'TEXT',
       content: caption,
-      mediaUrls: [rawUrl],
+      mediaUrls: [normalizedTarget],
       mediaLayout: 'COLLAGE',
       createdAt:
         displayUser.updatedAt ||
@@ -544,7 +559,7 @@ export function ProfileView({
         id: displayUser.id,
         name: displayUser.name,
         username: displayUser.username,
-        avatar: displayUser.avatarUrl || null,
+        avatar: normalizeMediaUrl(displayUser.avatarUrl) || null,
       },
       dua: null,
       stats: {
@@ -559,27 +574,29 @@ export function ProfileView({
       },
     };
 
-    setViewingPhotoPost(fallbackPost);
+    queryCache.set(`post:detail:${instantId}`, instantPost);
+    router.push(`/post/${instantId}` as any);
 
-    // If owner is logged in, persist this photo as a real post in the database automatically
+    // Persist in background (non-blocking) if owner is logged in
     if (isOwner && isAuthenticated) {
-      try {
-        const res = await feedApi.createPost({
+      feedApi
+        .createPost({
           type: 'TEXT',
           content: caption,
           mediaUrls: [rawUrl],
           mediaLayout: 'COLLAGE',
           visibility: 'PUBLIC',
-        });
-        const created = ((res as any)?.data ?? res) as FeedItem;
-        if (created && created.id) {
-          setPosts((prev) => [created, ...prev]);
-          setViewingPhotoPost(created);
-          refreshFeed();
-        }
-      } catch {
-        // keep fallbackPost visible
-      }
+        })
+        .then((res) => {
+          const created = ((res as any)?.data ?? res) as FeedItem;
+          if (created && created.id) {
+            queryCache.set(`post:detail:${instantId}`, created);
+            queryCache.set(`post:detail:${created.id}`, created);
+            setPosts((prev) => [created, ...prev]);
+            refreshFeed();
+          }
+        })
+        .catch(() => {});
     }
   };
 
@@ -936,33 +953,9 @@ export function ProfileView({
           ) : null}
         </View>
 
-        {/* Action Buttons */}
-        <View className="flex-row items-center justify-center gap-2 mt-4 flex-wrap">
-          {isOwner ? (
-            <>
-              {/* Edit Profile / Settings */}
-              <Pressable
-                onPress={() => router.push('/settings/profile')}
-                className="flex-row items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 shadow-sm active:scale-95"
-              >
-                <AppIcon android="edit" size={15} color="#ffffff" />
-                <Text className="text-xs font-bold text-white">
-                  {locale === 'bn' ? 'প্রোফাইল সম্পাদনা' : 'Edit Profile'}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => router.push('/settings')}
-                className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95"
-              >
-                <AppIcon android="settings" size={15} color="#65676b" />
-                <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
-                  {locale === 'bn' ? 'সেটিংস' : 'Settings'}
-                </Text>
-              </Pressable>
-            </>
-          ) : (
-            /* Visitor Profile: Friendship & Message Buttons */
+        {/* Visitor Profile: Friendship & Message Action Buttons */}
+        {!isOwner && (
+          <View className="flex-row items-center justify-center gap-2 mt-4 flex-wrap">
             <>
               {friendshipStatus === 'NONE' && (
                 <Pressable
@@ -1060,13 +1053,13 @@ export function ProfileView({
                 </Pressable>
               )}
             </>
-          )}
-        </View>
+          </View>
+        )}
       </View>
 
-      {/* 3. Sticky Segmented Capsule Tab Switcher */}
-      <View className="bg-[#f0f2f5] dark:bg-[#18191a] pt-2 pb-1.5 px-3">
-        <View className="w-full max-w-[768px] mx-auto rounded-xl bg-[#e4e6eb] dark:bg-[#242526] p-1 flex-row items-center justify-between">
+      {/* 3. Sticky Segmented Tab Switcher */}
+      <View className="bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-2 py-1.5">
+        <View className="w-full max-w-[768px] mx-auto flex-row items-center justify-between gap-1">
           {/* Overview Tab */}
           <Pressable
             onPress={() => setActiveTab('overview')}
@@ -1208,12 +1201,12 @@ export function ProfileView({
       </View>
 
       {/* 4. Tab Contents */}
-      <View className="w-full max-w-[768px] mx-auto px-3 pb-3 mt-2">
+      <View className="w-full max-w-[768px] mx-auto px-0 pb-3 mt-2">
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
-          <View className="space-y-3 gap-3">
+          <View className="space-y-2 gap-2">
             {/* Intro Details Card */}
-            <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
               <Text className="text-base font-bold text-[#050505] dark:text-white mb-3">
                 {locale === 'bn' ? 'পরিচিতি' : 'Introduce'}
               </Text>
@@ -1269,7 +1262,7 @@ export function ProfileView({
             </View>
 
             {/* Friends Preview (Grid of 6) */}
-            <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
               <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
                 <View>
                   <Text className="text-base font-bold text-[#050505] dark:text-white">
@@ -1284,14 +1277,16 @@ export function ProfileView({
                         : 'friends'}
                   </Text>
                 </View>
-                <Pressable
-                  onPress={() => setActiveTab('friends')}
-                  className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
-                >
-                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
-                    {locale === 'bn' ? 'সব দেখুন' : 'See all'}
-                  </Text>
-                </Pressable>
+                {friends.length > 0 && (
+                  <Pressable
+                    onPress={() => setActiveTab('friends')}
+                    className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+                  >
+                    <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                      {locale === 'bn' ? 'সব দেখুন' : 'See all'}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
 
               {isFriendsLoading ? (
@@ -1343,7 +1338,7 @@ export function ProfileView({
             </View>
 
             {/* Groups Preview */}
-            <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
               <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
                 <View>
                   <Text className="text-base font-bold text-[#050505] dark:text-white">
@@ -1358,14 +1353,16 @@ export function ProfileView({
                         : 'groups'}
                   </Text>
                 </View>
-                <Pressable
-                  onPress={() => setActiveTab('groups')}
-                  className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
-                >
-                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
-                    {locale === 'bn' ? 'সব দেখুন' : 'See all'}
-                  </Text>
-                </Pressable>
+                {groups.length > 0 && (
+                  <Pressable
+                    onPress={() => setActiveTab('groups')}
+                    className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+                  >
+                    <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                      {locale === 'bn' ? 'সব দেখুন' : 'See all'}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
 
               {isGroupsLoading ? (
@@ -1434,18 +1431,20 @@ export function ProfileView({
             </View>
 
             {/* Recent Posts Section inside Overview */}
-            <View className="mt-1">
-              <Text className="text-base font-bold text-[#050505] dark:text-white mb-2 px-1">
-                {locale === 'bn' ? 'সাম্প্রতিক পোস্ট' : 'Recent Posts'}
-              </Text>
+            <View className="mt-0">
+              <View className="bg-white dark:bg-[#242526] px-4 py-3 border-y border-[#e4e6eb] dark:border-[#393a3b] mb-2">
+                <Text className="text-base font-bold text-[#050505] dark:text-white">
+                  {locale === 'bn' ? 'সাম্প্রতিক পোস্ট' : 'Recent Posts'}
+                </Text>
+              </View>
 
               {isPostsLoading ? (
-                <View className="space-y-3 gap-3">
+                <View className="space-y-2 gap-2">
                   <PostCardSkeleton />
                   <PostCardSkeleton />
                 </View>
               ) : posts.length === 0 ? (
-                <View className="rounded-2xl bg-white dark:bg-[#242526] p-6 border border-dashed border-[#e4e6eb] dark:border-[#393a3b] items-center justify-center">
+                <View className="bg-white dark:bg-[#242526] p-6 border-y border-[#e4e6eb] dark:border-[#393a3b] items-center justify-center">
                   <AppIcon android="article" size={28} color="#65676b" />
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
                     {locale === 'bn'
@@ -1454,11 +1453,11 @@ export function ProfileView({
                   </Text>
                 </View>
               ) : (
-                <View className="space-y-3 gap-3">
+                <View className="space-y-2 gap-2">
                   {posts.slice(0, 5).map((post) => (
                     <View
                       key={post.id}
-                      className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden"
+                      className="border-y border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden"
                     >
                       <FeedPostCard post={post} />
                     </View>
@@ -1471,7 +1470,7 @@ export function ProfileView({
 
         {/* POSTS TAB */}
         {activeTab === 'posts' && (
-          <View className="space-y-3 gap-3">
+          <View className="space-y-2 gap-2">
             {isPostsLoading ? (
               <>
                 <PostCardSkeleton />
@@ -1479,7 +1478,7 @@ export function ProfileView({
                 <PostCardSkeleton />
               </>
             ) : posts.length === 0 ? (
-              <View className="rounded-2xl bg-white dark:bg-[#242526] p-8 border border-dashed border-[#e4e6eb] dark:border-[#393a3b] items-center justify-center my-4">
+              <View className="bg-white dark:bg-[#242526] p-8 border-y border-[#e4e6eb] dark:border-[#393a3b] items-center justify-center">
                 <AppIcon android="article" size={32} color="#65676b" />
                 <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] mt-3">
                   {locale === 'bn' ? 'কোনো পোস্ট নেই' : 'No Posts Found'}
@@ -1494,7 +1493,7 @@ export function ProfileView({
               posts.map((post) => (
                 <View
                   key={post.id}
-                  className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden"
+                  className="border-y border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden"
                 >
                   <FeedPostCard post={post} />
                 </View>
@@ -1505,7 +1504,7 @@ export function ProfileView({
 
         {/* FRIENDS TAB */}
         {activeTab === 'friends' && (
-          <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+          <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
             <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
               <Text className="text-base font-bold text-[#050505] dark:text-white">
                 {locale === 'bn' ? 'সকল বন্ধু' : 'All Friends'} ({totalFriends})
@@ -1587,7 +1586,7 @@ export function ProfileView({
 
         {/* GROUPS TAB */}
         {activeTab === 'groups' && (
-          <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+          <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
             <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
               <Text className="text-base font-bold text-[#050505] dark:text-white">
                 {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} ({groups.length})
@@ -1676,20 +1675,22 @@ export function ProfileView({
 
         {/* SAVED TAB (Owner only) */}
         {activeTab === 'saved' && isOwner && (
-          <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
+          <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
             <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
               <Text className="text-base font-bold text-[#050505] dark:text-white">
                 {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} (
                 {savedItems.length})
               </Text>
-              <Pressable
-                onPress={() => router.push('/saved')}
-                className="px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
-              >
-                <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
-                  {locale === 'bn' ? 'সম্পূর্ণ পাতা' : 'Full Page'}
-                </Text>
-              </Pressable>
+              {savedItems.length > 0 && (
+                <Pressable
+                  onPress={() => router.push('/saved')}
+                  className="px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+                >
+                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                    {locale === 'bn' ? 'সম্পূর্ণ পাতা' : 'Full Page'}
+                  </Text>
+                </Pressable>
+              )}
             </View>
 
             {isSavedLoading ? (
@@ -1793,56 +1794,6 @@ export function ProfileView({
         onPickAnother={() => triggerPhotoPicker(photoEditorMode)}
         onSave={handleSaveEditedPhoto}
       />
-
-      {/* Facebook-Style Photo Post View Modal (when tapping on Profile Photo or Cover Photo) */}
-      <Modal
-        visible={Boolean(viewingPhotoPost)}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setViewingPhotoPost(null)}
-      >
-        <View className="flex-1 bg-black/75 items-center justify-center p-3 sm:p-4">
-          <View className="w-full max-w-[640px] max-h-[90vh] rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] overflow-hidden shadow-2xl">
-            {/* Modal Header */}
-            <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526]">
-              <View className="flex-row items-center gap-2 flex-1 pr-2">
-                <AppIcon android="photo" size={18} color="#1877f2" />
-                <Text
-                  numberOfLines={1}
-                  className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] flex-1"
-                >
-                  {locale === 'bn'
-                    ? `${displayUser.name}-এর পোস্ট`
-                    : `${displayUser.name}'s Post`}
-                </Text>
-              </View>
-              <Pressable
-                onPress={() => setViewingPhotoPost(null)}
-                className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:scale-95"
-              >
-                <AppIcon
-                  android="close"
-                  size={18}
-                  color={theme === 'dark' ? '#e4e6eb' : '#050505'}
-                />
-              </Pressable>
-            </View>
-
-            {/* Full Interactive Post Card with Comments Expanded */}
-            <ScrollView
-              showsVerticalScrollIndicator={true}
-              keyboardShouldPersistTaps="handled"
-            >
-              {viewingPhotoPost && (
-                <FeedPostCard
-                  post={viewingPhotoPost}
-                  defaultShowComments={true}
-                />
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 }

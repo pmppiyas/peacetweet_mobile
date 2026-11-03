@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 
 export function PostCardSkeleton() {
   return (
-    <View className="rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] p-3 space-y-3 gap-3 overflow-hidden">
+    <View className="border-y border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] p-3 space-y-3 gap-3 overflow-hidden">
       {/* Header */}
       <View className="flex-row items-center gap-2.5">
         <Skeleton className="h-10 w-10 rounded-full shrink-0" />
@@ -64,17 +64,11 @@ export function ProfileSkeleton() {
           <Skeleton className="h-3.5 w-4/5 rounded-md" />
           <Skeleton className="h-3.5 w-3/5 rounded-md" />
         </View>
-
-        {/* Action Buttons Skeleton */}
-        <View className="flex-row items-center justify-center gap-2 mt-4">
-          <Skeleton className="h-9 w-32 rounded-xl" />
-          <Skeleton className="h-9 w-24 rounded-xl" />
-        </View>
       </View>
 
       {/* Sticky Tab Switcher Skeleton */}
-      <View className="bg-[#f0f2f5] dark:bg-[#18191a] pt-2 pb-1.5 px-3">
-        <View className="w-full max-w-[768px] mx-auto rounded-xl bg-[#e4e6eb] dark:bg-[#242526] p-1 flex-row items-center justify-between gap-1">
+      <View className="bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-2 py-1.5">
+        <View className="w-full max-w-[768px] mx-auto flex-row items-center justify-between gap-1">
           <Skeleton className="flex-1 h-8 rounded-lg" />
           <Skeleton className="flex-1 h-8 rounded-lg" />
           <Skeleton className="flex-1 h-8 rounded-lg" />
@@ -84,9 +78,9 @@ export function ProfileSkeleton() {
       </View>
 
       {/* Tab Content Skeleton */}
-      <View className="w-full max-w-[768px] mx-auto px-3 pb-6 mt-2 space-y-3 gap-3">
+      <View className="w-full max-w-[768px] mx-auto px-0 pb-6 mt-2 space-y-2 gap-2">
         {/* Intro Card Skeleton */}
-        <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b] space-y-3 gap-3">
+        <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b] space-y-3 gap-3">
           <Skeleton className="h-5 w-32 rounded-md" />
           <View className="space-y-2.5 gap-2.5">
             <Skeleton className="h-4 w-48 rounded-md" />
@@ -97,7 +91,7 @@ export function ProfileSkeleton() {
         </View>
 
         {/* Friends Preview Skeleton */}
-        <View className="rounded-2xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b] space-y-3 gap-3">
+        <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b] space-y-3 gap-3">
           <View className="flex-row items-center justify-between">
             <Skeleton className="h-5 w-24 rounded-md" />
             <Skeleton className="h-4 w-14 rounded-md" />

@@ -81,12 +81,14 @@ export function MobileNav() {
   }, [isAuthenticated, setUnreadNotificationsCount]);
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isPostViewerPage = pathname.startsWith('/post/');
   const isMessagesActive =
     pathname === '/messages' || pathname.startsWith('/messages/');
   const isInsideActiveChat =
     isMessagesActive && Boolean(activeConversationId);
 
-  if (isAuthPage || isInsideActiveChat || isSearchOpen) return null;
+  if (isAuthPage || isPostViewerPage || isInsideActiveChat || isSearchOpen)
+    return null;
 
   const navItems: NavItem[] = [
     {
