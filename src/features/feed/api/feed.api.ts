@@ -90,11 +90,15 @@ export const feedApi = {
 
   createComment: async (
     postId: string,
-    content: string
+    content: string,
+    parentId?: string | null
   ): Promise<ApiResponse<{ comment: PostComment; commentCount: number }>> => {
     const { data } = await apiClient.post<
       ApiResponse<{ comment: PostComment; commentCount: number }>
-    >(API_ENDPOINTS.POSTS.CREATE_COMMENT(postId), { content });
+    >(API_ENDPOINTS.POSTS.CREATE_COMMENT(postId), {
+      content,
+      ...(parentId ? { parentId } : {}),
+    });
     return data;
   },
 };

@@ -111,10 +111,14 @@ export interface FeedFilters {
 export interface PostComment {
   id: string;
   postId: string;
+  parentId?: string | null;
   content: string;
   createdAt: string;
   updatedAt?: string;
   author: FeedAuthor;
+  replyCount?: number;
+  replies?: PostComment[];
+  isPosting?: boolean;
 }
 
 export interface CreatePostInput {

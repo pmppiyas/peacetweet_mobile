@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TextInput,
   LayoutChangeEvent,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
@@ -20,6 +21,12 @@ import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  CommentsBottomSheetModal,
+  insertOptimisticComment,
+  resolveOptimisticComment,
+  removeOptimisticComment,
+} from './CommentsBottomSheetModal';
 import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
 import { queryCache } from '@/lib/cache/queryCache';
 
@@ -534,8 +541,10 @@ export function FeedPostCard({
   const handleToggleComments = async () => {
     const next = !showComments;
     setShowComments(next);
-    if (next && comments.length === 0) {
-      setIsLoadingComments(true);
+    if (next) {
+      if (comments.length === 0) {
+        setIsLoadingComments(true);
+      }
       try {
         const res = await feedApi.getComments(post.id, 30);
         const list = ((res as any)?.data ?? res) as PostComment[];
@@ -547,30 +556,53 @@ export function FeedPostCard({
     }
   };
 
-  const handleAddComment = async () => {
-    if (!commentText.trim() || isSubmittingComment) return;
+  const handleAddComment = async (parentId?: string | null) => {
+    const trimmed = commentText.trim();
+    if (!trimmed) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
-    setIsSubmittingComment(true);
+
+    const tempId = `temp-comment-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const optimisticComment: PostComment = {
+      id: tempId,
+      postId: post.id,
+      parentId: parentId || null,
+      content: trimmed,
+      createdAt: new Date().toISOString(),
+      isPosting: true,
+      replies: [],
+      replyCount: 0,
+      author: {
+        id: user?.id || 'me',
+        name: user?.name || 'User',
+        username: user?.username || 'user',
+        avatar: user?.avatarUrl || (user as any)?.avatar || null,
+      },
+    };
+
+    // Instant optimistic update: clear input & append comment/reply with 'Posting...' badge
+    setCommentText('');
+    setComments((prev) => insertOptimisticComment(prev, optimisticComment));
+    const optimisticCount = commentCount + 1;
+    setCommentCount(optimisticCount);
+    updateCommentCount(post.id, optimisticCount);
+
     try {
-      const res = await feedApi.createComment(post.id, commentText.trim());
+      const res = await feedApi.createComment(post.id, trimmed, parentId);
       const payload = (res as any)?.data ?? res;
-      if (payload?.comment) {
-        setComments((prev) => [...prev, payload.comment]);
-      }
+      setComments((prev) =>
+        resolveOptimisticComment(prev, tempId, payload?.comment)
+      );
       if (typeof payload?.commentCount === 'number') {
         setCommentCount(payload.commentCount);
         updateCommentCount(post.id, payload.commentCount);
-      } else {
-        const nextCount = commentCount + 1;
-        setCommentCount(nextCount);
-        updateCommentCount(post.id, nextCount);
       }
-      setCommentText('');
-    } catch {}
-    setIsSubmittingComment(false);
+    } catch {
+      setComments((prev) => removeOptimisticComment(prev, tempId));
+      setCommentCount((prev) => Math.max(0, prev - 1));
+    }
   };
 
   return (
@@ -926,90 +958,17 @@ export function FeedPostCard({
         confirmText={locale === 'bn' ? 'হ্যাঁ, মুছে ফেলুন' : 'Remove'}
       />
 
-      {/* 4. Expandable Comments Section synced with localhost:5000 */}
-      {showComments && (
-        <View className="px-3 py-2.5 border-t border-[#e4e6eb]/70 dark:border-[#393a3b]/70 bg-[#f8f9fa] dark:bg-[#18191a]/60 gap-2.5">
-          {isLoadingComments ? (
-            <View className="gap-2.5 py-1">
-              {[1, 2, 3].map((i) => (
-                <View key={i} className="flex-row items-start gap-2">
-                  <Skeleton className="h-7 w-7 rounded-full shrink-0 mt-0.5" />
-                  <View className="flex-1 rounded-2xl bg-white dark:bg-[#242526] px-3 py-2 border border-[#e4e6eb]/60 dark:border-[#393a3b]/60 gap-1.5">
-                    <Skeleton className="h-2.5 w-24 rounded-md" />
-                    <Skeleton className="h-2.5 w-3/4 rounded-md" />
-                  </View>
-                </View>
-              ))}
-            </View>
-          ) : comments.length === 0 ? (
-            <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center py-1">
-              {locale === 'bn'
-                ? 'এখনো কোনো মন্তব্য নেই। প্রথম মন্তব্য করুন!'
-                : 'No comments yet. Be the first to comment!'}
-            </Text>
-          ) : (
-            <View className="gap-2">
-              {comments.map((c) => (
-                <View key={c.id} className="flex-row items-start gap-2">
-                  <View className="mt-0.5">
-                    <UserAvatar
-                      avatarUrl={
-                        c.author?.avatar || (c.author as any)?.avatarUrl
-                      }
-                      name={c.author?.name || 'User'}
-                      size="xs"
-                    />
-                  </View>
-                  <View className="flex-1 rounded-2xl bg-white dark:bg-[#242526] px-3 py-1.5 border border-[#e4e6eb]/60 dark:border-[#393a3b]/60">
-                    <Text
-                      selectable={false}
-                      className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
-                      {c.author?.name || 'User'}
-                    </Text>
-                    <Text
-                      selectable={true}
-                      className="text-xs text-[#050505] dark:text-[#e4e6eb] mt-0.5 select-text">
-                      {c.content}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* Add Comment Input */}
-          <View className="flex-row items-center gap-2 pt-1">
-            <TextInput
-              value={commentText}
-              onChangeText={setCommentText}
-              placeholder={
-                locale === 'bn' ? 'মন্তব্য লিখুন...' : 'Write a comment...'
-              }
-              placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-              className="flex-1 h-9 rounded-full bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] px-3.5 text-xs text-[#050505] dark:text-[#e4e6eb]"
-            />
-            <Pressable
-              disabled={!commentText.trim() || isSubmittingComment}
-              onPress={handleAddComment}
-              className={`h-9 w-9 rounded-full items-center justify-center ${
-                commentText.trim()
-                  ? 'bg-primary-500'
-                  : 'bg-gray-200 dark:bg-gray-800'
-              }`}>
-              {isSubmittingComment ? (
-                <ActivityIndicator size="small" color="#ffffff" />
-              ) : (
-                <AppIcon
-                  android="send"
-                  ios="paperplane.fill"
-                  size={14}
-                  color={commentText.trim() ? '#ffffff' : '#9ca3af'}
-                />
-              )}
-            </Pressable>
-          </View>
-        </View>
-      )}
+      {/* 4. Comments Bottom Sheet Modal (with center drag bar + swipe-down to close) */}
+      <CommentsBottomSheetModal
+        visible={showComments}
+        onClose={() => setShowComments(false)}
+        commentCount={commentCount}
+        comments={comments}
+        isLoadingComments={isLoadingComments}
+        commentText={commentText}
+        onChangeCommentText={setCommentText}
+        onSubmitComment={handleAddComment}
+      />
     </View>
   );
 }
