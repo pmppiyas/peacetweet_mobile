@@ -268,6 +268,12 @@ export function CommentsBottomSheetModal({
   const isDraggingSheet = useRef(false);
   const isClosingRef = useRef(false);
 
+  const backdropOpacity = translateY.interpolate({
+    inputRange: [0, fullHeight],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
   useEffect(() => {
     if (visible) {
       isClosingRef.current = false;
@@ -462,6 +468,23 @@ export function CommentsBottomSheetModal({
           backgroundColor: 'transparent',
           justifyContent: 'flex-end',
         }}>
+        {/* Pinned light black backdrop overlay (fades in/out, does NOT slide from bottom) */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            opacity: backdropOpacity,
+          }}>
+          <Pressable
+            style={{ flex: 1, width: '100%', height: '100%' }}
+            onPress={closeWithSlideDown}
+          />
+        </Animated.View>
+
         {/* Animated wrapper using explicit inline styles so NativeWind never strips height/bg */}
         <Animated.View
           style={{

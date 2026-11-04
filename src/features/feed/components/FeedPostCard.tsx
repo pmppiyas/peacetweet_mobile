@@ -546,12 +546,14 @@ export function FeedPostCard({
       router.push('/login');
       return;
     }
-    if (!hasSaved) {
-      setHasSaved(true);
-      setSaveCount((prev) => prev + 1);
-      if (!post.id.startsWith('temp-')) {
-        toggleSave(post.id, false);
-      }
+    if (hasSaved) {
+      setShowUnsaveConfirm(true);
+      return;
+    }
+    setHasSaved(true);
+    setSaveCount((prev) => prev + 1);
+    if (!post.id.startsWith('temp-')) {
+      toggleSave(post.id, false);
     }
     setIsTimePickerOpen(true);
   };
@@ -794,7 +796,7 @@ export function FeedPostCard({
           }`}>
           <AppIcon
             android="favorite"
-            ios="heart.fill"
+            ios={hasReacted ? 'heart.fill' : 'heart'}
             size={16}
             color={
               hasReacted
@@ -803,6 +805,8 @@ export function FeedPostCard({
                   ? '#b0b3b8'
                   : '#65676b'
             }
+            fill={hasReacted ? '#e11d48' : 'none'}
+            filled={hasReacted}
           />
           <Text
             selectable={false}
@@ -872,7 +876,7 @@ export function FeedPostCard({
           }`}>
           <AppIcon
             android="bookmark"
-            ios="bookmark.fill"
+            ios={hasSaved ? 'bookmark.fill' : 'bookmark'}
             size={16}
             color={
               hasSaved
@@ -881,6 +885,8 @@ export function FeedPostCard({
                   ? '#b0b3b8'
                   : '#65676b'
             }
+            fill={hasSaved ? '#d97706' : 'none'}
+            filled={hasSaved}
           />
           <Text
             selectable={false}
@@ -909,7 +915,9 @@ export function FeedPostCard({
         </Pressable>
 
         {/* Share */}
-        <Pressable className="flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg select-none">
+        <Pressable
+          onPress={() => setShowShareModal(true)}
+          className="flex-1 flex-row items-center justify-center gap-1 py-1.5 rounded-lg select-none active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
           <AppIcon
             android="share"
             ios="square.and.arrow.up"
@@ -970,7 +978,14 @@ export function FeedPostCard({
       <ConfirmDialog
         isOpen={showUnsaveConfirm}
         onClose={() => setShowUnsaveConfirm(false)}
-        onConfirm={() => toggleSave(post.id, true)}
+        onConfirm={() => {
+          setShowUnsaveConfirm(false);
+          setHasSaved(false);
+          setSaveCount((prev) => Math.max(0, prev - 1));
+          if (!post.id.startsWith('temp-')) {
+            toggleSave(post.id, true);
+          }
+        }}
         title={
           locale === 'bn'
             ? 'সংরক্ষণ তালিকা থেকে মুছবেন?'

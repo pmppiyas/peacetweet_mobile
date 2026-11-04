@@ -48,6 +48,12 @@ export function PostActionMenuModal({
   const translateY = useRef(new Animated.Value(fullHeight)).current;
   const isClosingRef = useRef(false);
 
+  const backdropOpacity = translateY.interpolate({
+    inputRange: [0, fullHeight],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
   useEffect(() => {
     if (visible) {
       isClosingRef.current = false;
@@ -144,11 +150,22 @@ export function PostActionMenuModal({
           backgroundColor: 'transparent',
           justifyContent: 'flex-end',
         }}>
-        {/* Tap backdrop to close */}
-        <Pressable
-          style={{ flex: 1, width: '100%' }}
-          onPress={closeWithSlideDown}
-        />
+        {/* Pinned light black backdrop overlay (fades in/out, does NOT slide from bottom) */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            opacity: backdropOpacity,
+          }}>
+          <Pressable
+            style={{ flex: 1, width: '100%', height: '100%' }}
+            onPress={closeWithSlideDown}
+          />
+        </Animated.View>
 
         {/* Bottom Sheet Container (hugs content height) */}
         <Animated.View
@@ -249,6 +266,8 @@ export function PostActionMenuModal({
                     ios={hasSaved ? 'bookmark.fill' : 'bookmark'}
                     size={20}
                     color={hasSaved ? '#ffffff' : isDark ? '#e4e6eb' : '#050505'}
+                    fill={hasSaved ? '#ffffff' : 'none'}
+                    filled={hasSaved}
                   />
                 </View>
                 <View className="flex-1">

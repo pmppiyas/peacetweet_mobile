@@ -206,6 +206,7 @@ export default function PostPhotoViewerScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUnsaveConfirm, setShowUnsaveConfirm] = useState(false);
 
   // Comments Modal states
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -419,14 +420,34 @@ export default function PostPhotoViewerScreen() {
       router.push('/login');
       return;
     }
+    if (hasSaved) {
+      setShowUnsaveConfirm(true);
+      return;
+    }
     const realId = resolveRealPostId();
     if (realId) {
-      toggleSave(realId, hasSaved);
+      toggleSave(realId, false);
       setPost((prev) =>
         prev
           ? {
               ...prev,
-              viewer: { ...prev.viewer, hasSaved: !hasSaved },
+              viewer: { ...prev.viewer, hasSaved: true },
+            }
+          : prev
+      );
+    }
+  };
+
+  const handleConfirmUnsave = () => {
+    setShowUnsaveConfirm(false);
+    const realId = resolveRealPostId();
+    if (realId) {
+      toggleSave(realId, true);
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              viewer: { ...prev.viewer, hasSaved: false },
             }
           : prev
       );
@@ -642,19 +663,10 @@ export default function PostPhotoViewerScreen() {
 
             {/* Share Button (Workable) */}
             <Pressable
-              onPress={handleShare}
+              onPress={() => setShowShareModal(true)}
               className="flex-row items-center gap-1.5 py-1 active:scale-95"
             >
-              {copiedShare ? (
-                <>
-                  <AppIcon android="check" size={20} color="#22c55e" />
-                  <Text className="text-xs font-bold text-emerald-500">
-                    Copied
-                  </Text>
-                </>
-              ) : (
-                <ShareArrowIcon size={23} color={primaryIconColor} />
-              )}
+              <ShareArrowIcon size={23} color={primaryIconColor} />
             </Pressable>
           </View>
 
@@ -744,6 +756,28 @@ export default function PostPhotoViewerScreen() {
                 : 'Are you sure you want to permanently remove this post?'
             }
             confirmText={locale === 'bn' ? 'হ্যাঁ, মুছে ফেলুন' : 'Delete'}
+          />
+
+          <ConfirmDialog
+            isOpen={showUnsaveConfirm}
+            onClose={() => setShowUnsaveConfirm(false)}
+            onConfirm={handleConfirmUnsave}
+            title={
+              locale === 'bn'
+                ? 'সংরক্ষণ তালিকা থেকে মুছবেন?'
+                : 'Remove from Saved?'
+            }
+            subtitle={
+              locale === 'bn'
+                ? 'এটি আপনার সংরক্ষিত তালিকা থেকে সরানো হবে।'
+                : 'This item will be removed from your saved list.'
+            }
+            description={
+              locale === 'bn'
+                ? 'আপনি কি নিশ্চিত যে এই পোস্টটি সংরক্ষণ তালিকা থেকে বাদ দিতে চান?'
+                : 'Are you sure you want to remove this item from your saved bookmarks?'
+            }
+            confirmText={locale === 'bn' ? 'হ্যাঁ, মুছে ফেলুন' : 'Remove'}
           />
         </>
       )}

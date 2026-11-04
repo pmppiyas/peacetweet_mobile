@@ -453,7 +453,7 @@ export default function SavedScreen() {
       <ScrollView
         className="flex-1"
         stickyHeaderIndices={[0]}
-        contentContainerStyle={{ paddingBottom: 28 }}
+        contentContainerStyle={{ paddingBottom: 0 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}

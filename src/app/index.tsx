@@ -24,7 +24,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingBottom: 16 }}
+      contentContainerStyle={{ paddingBottom: 0 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
