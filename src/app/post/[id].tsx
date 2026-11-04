@@ -29,6 +29,11 @@ import {
   resolveOptimisticComment,
   removeOptimisticComment,
 } from '@/features/feed/components/CommentsBottomSheetModal';
+import { PostActionMenuModal } from '@/features/feed/components/PostActionMenuModal';
+import { PostShareModal } from '@/features/feed/components/PostShareModal';
+import { EditPostModal } from '@/features/feed/components/EditPostModal';
+import { ReportPostModal } from '@/features/feed/components/ReportPostModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 function formatFacebookPhotoDate(dateStr?: string | null): string {
   if (!dateStr) return 'JUST NOW';
@@ -160,7 +165,13 @@ export default function PostPhotoViewerScreen() {
   const { width, height } = useWindowDimensions();
   const { locale, theme } = useUi();
   const { user, isAuthenticated } = useAuth();
-  const { items: feedItems, toggleReaction, updateCommentCount } = useFeed();
+  const {
+    items: feedItems,
+    toggleReaction,
+    toggleSave,
+    deletePost,
+    updateCommentCount,
+  } = useFeed();
 
   const [post, setPost] = useState<FeedItem | null>(() => {
     if (!postId) return null;
@@ -188,6 +199,13 @@ export default function PostPhotoViewerScreen() {
     post?.stats?.commentCount || 0
   );
   const [copiedShare, setCopiedShare] = useState(false);
+
+  // 3-Dot Action & Share & Edit & Report Modal states
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Comments Modal states
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -391,6 +409,38 @@ export default function PostPhotoViewerScreen() {
     }
   };
 
+  const isAuthor =
+    Boolean(user?.id && post?.author?.id && user.id === post.author.id) ||
+    user?.role === 'ADMIN';
+  const hasSaved = Boolean(post?.viewer?.hasSaved);
+
+  const handleToggleSave = () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    const realId = resolveRealPostId();
+    if (realId) {
+      toggleSave(realId, hasSaved);
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              viewer: { ...prev.viewer, hasSaved: !hasSaved },
+            }
+          : prev
+      );
+    }
+  };
+
+  const handleDeletePost = async () => {
+    const realId = resolveRealPostId();
+    if (realId) {
+      await deletePost(realId);
+      handleClose();
+    }
+  };
+
   const handleClose = () => {
     if (router.canGoBack()) {
       router.back();
@@ -457,14 +507,17 @@ export default function PostPhotoViewerScreen() {
           <AppIcon android="close" size={24} color={primaryIconColor} />
         </Pressable>
 
-        {/* Top Right: Tag, Location, 3-Dot (Visual-only / Not workable) */}
-        <View className="flex-row items-center gap-5">
-          <View className="opacity-95">
+        {/* Top Right: Location & 3-Dot Action Menu */}
+        <View className="flex-row items-center gap-2">
+          <View className="opacity-95 p-2">
             <AppIcon android="location_on" size={22} color={primaryIconColor} />
           </View>
-          <View className="opacity-95">
+          <Pressable
+            onPress={() => setShowActionMenu(true)}
+            className="h-10 w-10 rounded-full items-center justify-center active:bg-black/5 dark:active:bg-white/10"
+          >
             <AppIcon android="more_vert" size={22} color={primaryIconColor} />
-          </View>
+          </Pressable>
         </View>
       </View>
 
@@ -636,6 +689,64 @@ export default function PostPhotoViewerScreen() {
         onChangeCommentText={setCommentText}
         onSubmitComment={handleAddComment}
       />
+
+      {/* ============================================================== */}
+      {/* 5. 3-DOT ACTION MENU & REUSABLE MODALS                         */}
+      {/* ============================================================== */}
+      {post && (
+        <>
+          <PostActionMenuModal
+            visible={showActionMenu}
+            onClose={() => setShowActionMenu(false)}
+            post={post}
+            isAuthor={isAuthor}
+            hasSaved={hasSaved}
+            onEdit={() => setShowEditModal(true)}
+            onDelete={() => setShowDeleteConfirm(true)}
+            onToggleSave={handleToggleSave}
+            onCopyLink={handleShare}
+            onOpenShare={() => setShowShareModal(true)}
+            onReport={() => setShowReportModal(true)}
+          />
+
+          <PostShareModal
+            visible={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            post={post}
+          />
+
+          <EditPostModal
+            visible={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            post={post}
+            onSuccess={(updated) => setPost(updated)}
+          />
+
+          <ReportPostModal
+            visible={showReportModal}
+            onClose={() => setShowReportModal(false)}
+            post={post}
+          />
+
+          <ConfirmDialog
+            isOpen={showDeleteConfirm}
+            onClose={() => setShowDeleteConfirm(false)}
+            onConfirm={handleDeletePost}
+            title={locale === 'bn' ? 'পোস্ট মুছবেন?' : 'Delete Post?'}
+            subtitle={
+              locale === 'bn'
+                ? 'এই পোস্টটি মুছে ফেলা হবে।'
+                : 'This post will be deleted.'
+            }
+            description={
+              locale === 'bn'
+                ? 'আপনি কি নিশ্চিত যে এই পোস্টটি স্থায়ীভাবে মুছে ফেলতে চান?'
+                : 'Are you sure you want to permanently remove this post?'
+            }
+            confirmText={locale === 'bn' ? 'হ্যাঁ, মুছে ফেলুন' : 'Delete'}
+          />
+        </>
+      )}
     </View>
   );
 }

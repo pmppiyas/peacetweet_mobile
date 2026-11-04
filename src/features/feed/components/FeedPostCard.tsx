@@ -9,6 +9,7 @@ import {
   TextInput,
   LayoutChangeEvent,
   Modal,
+  Share,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
@@ -27,6 +28,10 @@ import {
   resolveOptimisticComment,
   removeOptimisticComment,
 } from './CommentsBottomSheetModal';
+import { PostActionMenuModal } from './PostActionMenuModal';
+import { PostShareModal } from './PostShareModal';
+import { EditPostModal } from './EditPostModal';
+import { ReportPostModal } from './ReportPostModal';
 import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
 import { queryCache } from '@/lib/cache/queryCache';
 
@@ -439,6 +444,12 @@ export function FeedPostCard({
     updateCommentCount,
   } = useFeed();
 
+  const [currentPost, setCurrentPost] = useState<FeedItem>(post);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+
   const [showComments, setShowComments] = useState(defaultShowComments);
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [showDeletePostConfirm, setShowDeletePostConfirm] = useState(false);
@@ -447,6 +458,27 @@ export function FeedPostCard({
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  useEffect(() => {
+    setCurrentPost(post);
+  }, [post]);
+
+  const handleCopyLink = async () => {
+    const shareUrl =
+      typeof window !== 'undefined' && window.location?.origin
+        ? `${window.location.origin}/post/${post.id}`
+        : `https://peacetweet.app/post/${post.id}`;
+    try {
+      if (
+        typeof navigator !== 'undefined' &&
+        (navigator as any).clipboard?.writeText
+      ) {
+        await (navigator as any).clipboard.writeText(shareUrl);
+      } else {
+        await Share.share({ message: shareUrl, url: shareUrl });
+      }
+    } catch {}
+  };
 
   const [hasReacted, setHasReacted] = useState(
     Boolean(post.viewer?.hasReacted)
@@ -694,24 +726,23 @@ export function FeedPostCard({
             </View>
           </View>
 
-          {isAuthor && (
-            <Pressable
-              onPress={() => setShowDeletePostConfirm(true)}
-              className="p-1.5 rounded-full active:bg-rose-50 dark:active:bg-rose-950/30">
-              <AppIcon
-                android="delete"
-                ios="trash"
-                size={16}
-                color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
-              />
-            </Pressable>
-          )}
+          {/* 3-Dot Kebab Menu Button for all posts */}
+          <Pressable
+            onPress={() => setShowActionMenu(true)}
+            className="p-1.5 -mr-1 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+            <AppIcon
+              android="more_vert"
+              ios="ellipsis"
+              size={20}
+              color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
+            />
+          </Pressable>
         </View>
       </View>
 
       {/* 2. Main Post Content Body – px-0 on outer wrapper so photos go edge-to-edge */}
       <View style={{ width: '100%' }} className="w-full mt-1.5 pb-1.5 gap-3">
-        <PostBody post={post} defaultShowArabic={defaultShowArabic} />
+        <PostBody post={currentPost} defaultShowArabic={defaultShowArabic} />
 
         {/* Shared / reposted original post */}
         {post.originalPostId ? (
@@ -968,6 +999,43 @@ export function FeedPostCard({
         commentText={commentText}
         onChangeCommentText={setCommentText}
         onSubmitComment={handleAddComment}
+      />
+
+      {/* 5. Reusable Post 3-Dot Action Menu Modal */}
+      <PostActionMenuModal
+        visible={showActionMenu}
+        onClose={() => setShowActionMenu(false)}
+        post={currentPost}
+        isAuthor={isAuthor}
+        hasSaved={hasSaved}
+        onEdit={() => setShowEditModal(true)}
+        onDelete={() => setShowDeletePostConfirm(true)}
+        onToggleSave={handleToggleSave}
+        onCopyLink={handleCopyLink}
+        onOpenShare={() => setShowShareModal(true)}
+        onReport={() => setShowReportModal(true)}
+      />
+
+      {/* 6. Reusable Social Media Share Modal */}
+      <PostShareModal
+        visible={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        post={currentPost}
+      />
+
+      {/* 7. Reusable Edit Post Modal */}
+      <EditPostModal
+        visible={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        post={currentPost}
+        onSuccess={(updated) => setCurrentPost(updated)}
+      />
+
+      {/* 8. Reusable Report Post Modal */}
+      <ReportPostModal
+        visible={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        post={currentPost}
       />
     </View>
   );
