@@ -95,10 +95,44 @@ export const feedApi = {
   ): Promise<ApiResponse<{ comment: PostComment; commentCount: number }>> => {
     const { data } = await apiClient.post<
       ApiResponse<{ comment: PostComment; commentCount: number }>
-    >(API_ENDPOINTS.POSTS.CREATE_COMMENT(postId), {
+    >(API_ENDPOINTS.COMMENTS.CREATE, {
+      postId,
       content,
       ...(parentId ? { parentId } : {}),
     });
+    return data;
+  },
+
+  updateComment: async (
+    commentId: string,
+    content: string
+  ): Promise<ApiResponse<{ comment: PostComment; message: string }>> => {
+    const { data } = await apiClient.patch<
+      ApiResponse<{ comment: PostComment; message: string }>
+    >(API_ENDPOINTS.COMMENTS.UPDATE(commentId), { content });
+    return data;
+  },
+
+  deleteComment: async (
+    commentId: string
+  ): Promise<
+    ApiResponse<{
+      success: boolean;
+      deletedId: string;
+      deletedIds: string[];
+      postId: string;
+      commentCount: number;
+    }>
+  > => {
+    const { data } = await apiClient.delete<
+      ApiResponse<{
+        success: boolean;
+        deletedId: string;
+        deletedIds: string[];
+        postId: string;
+        commentCount: number;
+      }>
+    >(API_ENDPOINTS.COMMENTS.DELETE(commentId));
     return data;
   },
 };

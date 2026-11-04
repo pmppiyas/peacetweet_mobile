@@ -35,12 +35,12 @@ export function insertOptimisticComment(
   newComment: PostComment
 ): PostComment[] {
   if (!newComment.parentId) {
-    return [...list, newComment];
+    return [newComment, ...list];
   }
   const addReply = (items: PostComment[]): PostComment[] =>
     items.map((item) => {
       if (item.id === newComment.parentId) {
-        const nextReplies = [...(item.replies || []), newComment];
+        const nextReplies = [newComment, ...(item.replies || [])];
         return {
           ...item,
           replies: nextReplies,
@@ -259,6 +259,7 @@ export function CommentsBottomSheetModal({
   const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
   const replyingToRef = useRef<PostComment | null>(null);
   const inputRef = useRef<any>(null);
+  const scrollViewRef = useRef<any>(null);
 
   const fullHeight = windowHeight || 700;
   const translateY = useRef(new Animated.Value(fullHeight)).current;
@@ -307,6 +308,11 @@ export function CommentsBottomSheetModal({
     replyingToRef.current = null;
     setReplyingTo(null);
     onSubmitComment(parentId);
+    if (!parentId) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo?.({ y: 0, animated: true });
+      }, 50);
+    }
   };
 
   const closeWithSlideDown = () => {
@@ -515,10 +521,12 @@ export function CommentsBottomSheetModal({
               {...bodyPanResponder.panHandlers}
               style={{ flex: 1, minHeight: 0 }}>
               <ScrollView
+                ref={scrollViewRef}
                 style={{ flex: 1 }}
                 contentContainerStyle={{
                   paddingHorizontal: 16,
-                  paddingVertical: 12,
+                  paddingTop: 10,
+                  paddingBottom: 4,
                 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={true}
@@ -552,7 +560,7 @@ export function CommentsBottomSheetModal({
                     </Text>
                   </View>
                 ) : (
-                  <View className="gap-4 pb-4">
+                  <View className="gap-3 pb-1">
                     {comments.map((c) => (
                       <CommentTreeItem
                         key={c.id}

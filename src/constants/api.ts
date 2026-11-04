@@ -46,6 +46,13 @@ export const API_ENDPOINTS = {
     COMMENTS: (id: string) => `/posts/${id}/comments`,
     CREATE_COMMENT: (id: string) => `/posts/${id}/comments`,
   },
+  COMMENTS: {
+    LIST: (postId: string) => `/comments/post/${postId}`,
+    CREATE: '/comments',
+    REPLY: (commentId: string) => `/comments/${commentId}/replies`,
+    UPDATE: (id: string) => `/comments/${id}`,
+    DELETE: (id: string) => `/comments/${id}`,
+  },
   NOTIFICATIONS: {
     LIST: '/notifications',
     UNREAD_COUNT: '/notifications/unread-count',
