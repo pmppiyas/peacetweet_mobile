@@ -17,12 +17,13 @@ import { FeedPostCard } from '@/features/feed/components/FeedPostCard';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function HomeScreen() {
-  const { locale, setComposerModalOpen } = useUi();
+  const { locale, setComposerModalOpen, openComposer } = useUi();
   const { user, isAuthenticated } = useAuth();
   const { items, isLoading, isRefreshing, error, refreshFeed } = useFeed();
 
   return (
     <ScrollView
+      testID="feed-scroll-view"
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
       contentContainerStyle={{ paddingBottom: 0 }}
       refreshControl={
@@ -65,7 +66,7 @@ export default function HomeScreen() {
                 </Pressable>
 
                 <Pressable
-                  onPress={() => setComposerModalOpen(true)}
+                  onPress={() => openComposer({ mode: 'TEXT' })}
                   className="h-9 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 justify-center">
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
                     {user?.name
@@ -78,7 +79,7 @@ export default function HomeScreen() {
               {/* Compact 3-Column Bottom Action Buttons */}
               <View className="flex-row gap-1 pt-1 mt-2 border-t border-[#e4e6eb] dark:border-[#393a3b]">
                 <Pressable
-                  onPress={() => setComposerModalOpen(true)}
+                  onPress={() => openComposer({ mode: 'TEXT', action: 'photo' })}
                   className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
                   <AppIcon
                     android="image"
@@ -92,7 +93,7 @@ export default function HomeScreen() {
                 </Pressable>
 
                 <Pressable
-                  onPress={() => setComposerModalOpen(true)}
+                  onPress={() => openComposer({ mode: 'DUA' })}
                   className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
                   <AppIcon
                     android="menu_book"
@@ -106,7 +107,7 @@ export default function HomeScreen() {
                 </Pressable>
 
                 <Pressable
-                  onPress={() => setComposerModalOpen(true)}
+                  onPress={() => openComposer({ mode: 'TEXT', action: 'feeling' })}
                   className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
                   <AppIcon
                     android="sentiment_satisfied"
@@ -170,7 +171,11 @@ export default function HomeScreen() {
                 {index > 0 && (
                   <View className="h-2 w-full bg-[#f0f2f5] dark:bg-[#18191a] border-y border-[#e4e6eb] dark:border-[#393a3b]" />
                 )}
-                <FeedPostCard post={post} />
+                <View
+                  nativeID={`feed-post-${post.id}`}
+                  collapsable={false}>
+                  <FeedPostCard post={post} />
+                </View>
               </React.Fragment>
             ))}
           </View>

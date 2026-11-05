@@ -11,6 +11,7 @@ import { Navbar } from '@/components/navigation/Navbar';
 import { MobileNav } from '@/components/navigation/MobileNav';
 import { MenuDrawer } from '@/components/navigation/MenuDrawer';
 import { MobileComposerModal } from '@/components/feed/MobileComposerModal';
+import { GlobalPhotoViewerModal } from '@/components/feed/GlobalPhotoViewerModal';
 import { AppSplashLoader } from '@/components/ui/AppSplashLoader';
 import { SearchPageView } from '@/features/search/components/SearchPageView';
 
@@ -53,6 +54,7 @@ export default function RootLayout() {
                 <MobileNav />
                 <MenuDrawer />
                 <MobileComposerModal />
+                <GlobalPhotoViewerModal />
               </SafeAreaView>
             </View>
           </FeedProvider>

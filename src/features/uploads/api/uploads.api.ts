@@ -30,4 +30,35 @@ export const uploadsApi = {
       publicId: data?.publicId,
     };
   },
+
+  uploadMultipleImages: async (files: (File | Blob)[]): Promise<string[]> => {
+    if (files.length === 0) return [];
+    try {
+      const formData = new FormData();
+      files.forEach((file) => formData.append('files', file));
+
+      const res = await apiClient.post<any>('/uploads/images', formData);
+      const data = res?.data?.data || res?.data;
+      if (Array.isArray(data)) {
+        return data
+          .map((item) => normalizeMediaUrl(item?.url || item))
+          .filter(Boolean);
+      }
+    } catch {
+      // Fallback: parallel uploads
+    }
+
+    const results = await Promise.allSettled(
+      files.map((file, idx) =>
+        uploadsApi.uploadImage(file, `photo_${Date.now()}_${idx}.jpg`)
+      )
+    );
+    return results
+      .filter(
+        (r): r is PromiseFulfilledResult<UploadImageResult> =>
+          r.status === 'fulfilled'
+      )
+      .map((r) => r.value.url)
+      .filter(Boolean);
+  },
 };

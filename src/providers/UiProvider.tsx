@@ -1,11 +1,19 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'nativewind';
 import { appStorage } from '@/lib/storage/secureStorage';
+import { FeedItem } from '@/features/feed/types/feed.types';
 
 const LOCALE_STORAGE_KEY = 'peacetweet_locale';
 const THEME_STORAGE_KEY = 'peacetweet_theme';
 
 export type PostUploadType = 'STANDARD' | 'BLOOD';
+export type ComposerMode = 'TEXT' | 'DUA' | 'BLOOD_REQUEST';
+export type ComposerAction = 'photo' | 'feeling' | null;
+
+export interface PhotoViewerState {
+  post: FeedItem;
+  initialImageUrl?: string;
+}
 
 interface UiContextType {
   locale: 'bn' | 'en';
@@ -16,6 +24,12 @@ interface UiContextType {
   setSearchOpen: (open: boolean) => void;
   isComposerModalOpen: boolean;
   setComposerModalOpen: (open: boolean) => void;
+  composerInitialMode: ComposerMode;
+  composerInitialAction: ComposerAction;
+  openComposer: (options?: { mode?: ComposerMode; action?: ComposerAction }) => void;
+  activePhotoViewer: PhotoViewerState | null;
+  openPhotoViewer: (post: FeedItem, initialImageUrl?: string) => void;
+  closePhotoViewer: () => void;
   chatSearchQuery: string;
   setChatSearchQuery: (query: string) => void;
   activeConversationId: string | null;
@@ -45,7 +59,32 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<'bn' | 'en'>(getInitialLocale);
   const [isMenuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
-  const [isComposerModalOpen, setComposerModalOpen] = useState(false);
+  const [isComposerModalOpen, setComposerModalOpenState] = useState(false);
+  const [composerInitialMode, setComposerInitialMode] = useState<ComposerMode>('TEXT');
+  const [composerInitialAction, setComposerInitialAction] = useState<ComposerAction>(null);
+
+  const openComposer = (options?: { mode?: ComposerMode; action?: ComposerAction }) => {
+    setComposerInitialMode(options?.mode || 'TEXT');
+    setComposerInitialAction(options?.action || null);
+    setComposerModalOpenState(true);
+  };
+
+  const setComposerModalOpen = (open: boolean) => {
+    if (!open) {
+      setComposerInitialAction(null);
+    }
+    setComposerModalOpenState(open);
+  };
+
+  const [activePhotoViewer, setActivePhotoViewer] = useState<PhotoViewerState | null>(null);
+
+  const openPhotoViewer = (post: FeedItem, initialImageUrl?: string) => {
+    setActivePhotoViewer({ post, initialImageUrl });
+  };
+
+  const closePhotoViewer = () => {
+    setActivePhotoViewer(null);
+  };
   const [chatSearchQuery, setChatSearchQuery] = useState('');
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
@@ -104,6 +143,12 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         setSearchOpen,
         isComposerModalOpen,
         setComposerModalOpen,
+        composerInitialMode,
+        composerInitialAction,
+        openComposer,
+        activePhotoViewer,
+        openPhotoViewer,
+        closePhotoViewer,
         chatSearchQuery,
         setChatSearchQuery,
         activeConversationId,

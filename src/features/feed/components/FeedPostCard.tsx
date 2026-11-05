@@ -10,6 +10,7 @@ import {
   LayoutChangeEvent,
   Modal,
   Share,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
@@ -34,6 +35,10 @@ import { EditPostModal } from './EditPostModal';
 import { ReportPostModal } from './ReportPostModal';
 import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
 import { queryCache } from '@/lib/cache/queryCache';
+import {
+  imageRatioCache,
+  resolveImageAspectRatio,
+} from '@/lib/cache/imageRatioCache';
 
 const FEELING_MAP: Record<string, { label: string; emoji: string }> = {
   grateful: { label: 'grateful', emoji: '🤲' },
@@ -83,16 +88,80 @@ export function formatRelativeDate(
 }
 
 /* -------------------------------------------------------------------------- */
+/* Single Post Image – adapts dynamically to natural aspect ratio (auto height */
+/* with max-height cap), avoiding horizontal or vertical photo crops in feed. */
+/* -------------------------------------------------------------------------- */
+function SingleFeedImage({
+  uri,
+  onPress,
+}: {
+  uri: string;
+  onPress: () => void;
+}) {
+  const [aspectRatio, setAspectRatio] = useState<number | null>(
+    () => imageRatioCache.get(uri) || null
+  );
+
+  useEffect(() => {
+    if (!uri) return;
+    resolveImageAspectRatio(uri, (r) => {
+      setAspectRatio(r);
+    });
+  }, [uri]);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        width: '100%',
+        maxHeight: 560,
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      className="w-full overflow-hidden active:opacity-95 bg-[#e4e6eb] dark:bg-[#3a3b3c]">
+      <Image
+        source={{ uri }}
+        resizeMode="cover"
+        onLoad={(e: any) => {
+          const src = e?.nativeEvent?.source || e?.target;
+          const nw = src?.width || src?.naturalWidth;
+          const nh = src?.height || src?.naturalHeight;
+          if (nw > 0 && nh > 0) {
+            const r = nw / nh;
+            imageRatioCache.set(uri, r);
+            setAspectRatio(r);
+          }
+        }}
+        style={
+          {
+            width: '100%',
+            aspectRatio: aspectRatio || undefined,
+            maxHeight: 560,
+            ...(Platform.OS === 'web' && !aspectRatio
+              ? { height: 'auto', display: 'block' }
+              : {}),
+          } as any
+        }
+        className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
+      />
+    </Pressable>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* Media gallery (COLLAGE / SWIPE) – shows every photo attached to the post    */
 /* -------------------------------------------------------------------------- */
 function PostMedia({
   post,
   urls,
   layout,
+  onOpenPhoto,
 }: {
   post?: FeedItem;
   urls?: string[];
   layout?: 'COLLAGE' | 'SWIPE';
+  onOpenPhoto?: (url: string) => void;
 }) {
   const [width, setWidth] = useState(0);
   const list = (urls || [])
@@ -103,109 +172,119 @@ function PostMedia({
   const onLayout = (e: LayoutChangeEvent) =>
     setWidth(Math.round(e.nativeEvent.layout.width));
 
-  const handleOpenPost = () => {
-    if (post?.id) {
+  const handlePressPhoto = (uri: string) => {
+    if (onOpenPhoto) {
+      onOpenPhoto(uri);
+    } else if (post?.id) {
       queryCache.set(`post:detail:${post.id}`, post);
       router.push(`/post/${post.id}` as any);
     }
   };
 
-  if (layout === 'SWIPE' && list.length > 1) {
+  const renderMedia = () => {
+    if (layout === 'SWIPE' && list.length > 1) {
+      return (
+        <View onLayout={onLayout} className="w-full overflow-hidden">
+          {width > 0 ? (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}>
+              {list.map((uri, i) => (
+                <Pressable key={`${uri}-${i}`} onPress={() => handlePressPhoto(uri)}>
+                  <Image
+                    source={{ uri }}
+                    resizeMode="cover"
+                    style={{ width, aspectRatio: 4 / 3 }}
+                    className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
+                  />
+                </Pressable>
+              ))}
+            </ScrollView>
+          ) : null}
+          <View className="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5">
+            <Text className="text-[10px] font-bold text-white">
+              1 / {list.length}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    if (list.length === 1) {
+      return (
+        <SingleFeedImage
+          uri={list[0]}
+          onPress={() => handlePressPhoto(list[0])}
+        />
+      );
+    }
+
+    if (list.length === 2) {
+      return (
+        <View
+          style={{ width: '100%' }}
+          className="w-full flex-row gap-0.5 overflow-hidden">
+          {list.map((uri, i) => (
+            <Pressable
+              key={`${uri}-${i}`}
+              onPress={() => handlePressPhoto(uri)}
+              style={{ flex: 1 }}
+              className="active:opacity-95">
+              <Image
+                source={{ uri }}
+                resizeMode="cover"
+                style={{ width: '100%', aspectRatio: 1 }}
+                className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
+              />
+            </Pressable>
+          ))}
+        </View>
+      );
+    }
+
+    const rest = list.slice(1, 4);
+    const extra = list.length - 4;
     return (
-      <View onLayout={onLayout} className="w-full overflow-hidden">
-        {width > 0 ? (
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}>
-            {list.map((uri, i) => (
-              <Pressable key={`${uri}-${i}`} onPress={handleOpenPost}>
-                <Image
-                  source={{ uri }}
-                  resizeMode="cover"
-                  style={{ width, aspectRatio: 4 / 3 }}
-                  className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-                />
-              </Pressable>
-            ))}
-          </ScrollView>
-        ) : null}
-        <View className="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5">
-          <Text className="text-[10px] font-bold text-white">
-            1 / {list.length}
-          </Text>
+      <View
+        style={{ width: '100%' }}
+        className="w-full gap-0.5 overflow-hidden">
+        <Pressable
+          onPress={() => handlePressPhoto(list[0])}
+          className="active:opacity-95">
+          <Image
+            source={{ uri: list[0] }}
+            resizeMode="cover"
+            style={{ width: '100%', aspectRatio: 16 / 9 }}
+            className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
+          />
+        </Pressable>
+        <View className="flex-row gap-0.5">
+          {rest.map((uri, i) => (
+            <Pressable
+              key={`${uri}-${i}`}
+              onPress={() => handlePressPhoto(uri)}
+              style={{ flex: 1 }}
+              className="relative active:opacity-95">
+              <Image
+                source={{ uri }}
+                resizeMode="cover"
+                style={{ width: '100%', aspectRatio: 1 }}
+                className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
+              />
+              {i === rest.length - 1 && extra > 0 ? (
+                <View className="absolute inset-0 items-center justify-center bg-black/50">
+                  <Text className="text-xl font-black text-white">+{extra}</Text>
+                </View>
+              ) : null}
+            </Pressable>
+          ))}
         </View>
       </View>
     );
-  }
+  };
 
-  if (list.length === 1) {
-    return (
-      <Pressable
-        onPress={handleOpenPost}
-        style={{ width: '100%' }}
-        className="w-full overflow-hidden active:opacity-95">
-        <Image
-          source={{ uri: list[0] }}
-          resizeMode="cover"
-          style={{ width: '100%', aspectRatio: 4 / 3 }}
-          className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-        />
-      </Pressable>
-    );
-  }
-
-  if (list.length === 2) {
-    return (
-      <Pressable
-        onPress={handleOpenPost}
-        style={{ width: '100%' }}
-        className="w-full flex-row gap-0.5 overflow-hidden active:opacity-95">
-        {list.map((uri, i) => (
-          <Image
-            key={`${uri}-${i}`}
-            source={{ uri }}
-            resizeMode="cover"
-            style={{ flex: 1, aspectRatio: 1 }}
-            className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-          />
-        ))}
-      </Pressable>
-    );
-  }
-
-  const rest = list.slice(1, 4);
-  const extra = list.length - 4;
-  return (
-    <Pressable
-      onPress={handleOpenPost}
-      style={{ width: '100%' }}
-      className="w-full gap-0.5 overflow-hidden active:opacity-95">
-      <Image
-        source={{ uri: list[0] }}
-        resizeMode="cover"
-        style={{ width: '100%', aspectRatio: 16 / 9 }}
-        className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-      />
-      <View className="flex-row gap-0.5">
-        {rest.map((uri, i) => (
-          <View key={`${uri}-${i}`} style={{ flex: 1 }} className="relative">
-            <Image
-              source={{ uri }}
-              resizeMode="cover"
-              style={{ width: '100%', aspectRatio: 1 }}
-              className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-            />
-            {i === rest.length - 1 && extra > 0 ? (
-              <View className="absolute inset-0 items-center justify-center bg-black/50">
-                <Text className="text-xl font-black text-white">+{extra}</Text>
-              </View>
-            ) : null}
-          </View>
-        ))}
-      </View>
-    </Pressable>
-  );
+  return renderMedia();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -214,9 +293,11 @@ function PostMedia({
 export function PostBody({
   post,
   defaultShowArabic = false,
+  onOpenPhoto,
 }: {
   post: FeedItem;
   defaultShowArabic?: boolean;
+  onOpenPhoto?: (url: string) => void;
 }) {
   const { locale, theme } = useUi();
   const [showArabic, setShowArabic] = useState(defaultShowArabic);
@@ -416,6 +497,7 @@ export function PostBody({
         post={post}
         urls={post.mediaUrls}
         layout={post.mediaLayout}
+        onOpenPhoto={onOpenPhoto}
       />
     </View>
   );
@@ -434,7 +516,7 @@ export function FeedPostCard({
   defaultShowArabic = false,
   defaultShowComments = false,
 }: FeedPostCardProps) {
-  const { locale, theme } = useUi();
+  const { locale, theme, openPhotoViewer } = useUi();
   const { user, isAuthenticated } = useAuth();
   const {
     toggleReaction,
@@ -449,6 +531,10 @@ export function FeedPostCard({
   const [showShareModal, setShowShareModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+
+  const handleOpenPhoto = (url: string) => {
+    openPhotoViewer(currentPost, url);
+  };
 
   const [showComments, setShowComments] = useState(defaultShowComments);
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
@@ -744,7 +830,11 @@ export function FeedPostCard({
 
       {/* 2. Main Post Content Body – px-0 on outer wrapper so photos go edge-to-edge */}
       <View style={{ width: '100%' }} className="w-full mt-1.5 pb-1.5 gap-3">
-        <PostBody post={currentPost} defaultShowArabic={defaultShowArabic} />
+        <PostBody
+          post={currentPost}
+          defaultShowArabic={defaultShowArabic}
+          onOpenPhoto={handleOpenPhoto}
+        />
 
         {/* Shared / reposted original post */}
         {post.originalPostId ? (

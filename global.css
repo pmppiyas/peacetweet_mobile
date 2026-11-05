@@ -92,3 +92,10 @@ button:focus,
   -webkit-user-select: text !important;
   user-select: text !important;
 }
+
+/* Ensure react-native-web Modal portals always sit above everything, including full-screen photo viewer overlays */
+body > div[style*="position: fixed"],
+body > div:has([aria-modal="true"]),
+[aria-modal="true"] {
+  z-index: 9999999 !important;
+}

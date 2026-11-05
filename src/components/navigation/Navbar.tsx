@@ -60,8 +60,7 @@ export function Navbar() {
   const isMessagesActive =
     pathname === '/messages' || pathname.startsWith('/messages/');
   const isBloodRoute = pathname === '/blood' || pathname.startsWith('/blood');
-  const isInsideActiveChat =
-    isMessagesActive && Boolean(activeConversationId);
+  const isInsideActiveChat = isMessagesActive && Boolean(activeConversationId);
 
   const targetSearchWidth = width >= 640 ? 220 : 180;
 
@@ -192,7 +191,8 @@ export function Navbar() {
             router.push('/');
           }
         }}
-        className="flex-row items-center gap-2 shrink-0 select-none">
+        className="flex-row items-center gap-2 shrink-0 select-none"
+      >
         {isBloodRoute ? (
           <AppIcon android="water_drop" size={24} color="#e11d48" />
         ) : null}
@@ -202,7 +202,8 @@ export function Navbar() {
             isBloodRoute
               ? 'text-rose-600 dark:text-rose-500'
               : 'text-primary-700 dark:text-white'
-          }`}>
+          }`}
+        >
           PeaceTweet
         </Text>
       </Pressable>
@@ -214,7 +215,8 @@ export function Navbar() {
           alignItems: 'center',
           justifyContent: 'flex-end',
           gap: 10,
-        }}>
+        }}
+      >
         {isSearchExpanded ? (
           <Animated.View
             style={[
@@ -229,7 +231,8 @@ export function Navbar() {
                 overflow: 'hidden',
               },
               searchContainerOutlineStyle,
-            ]}>
+            ]}
+          >
             {/* Left Search Icon (clickable button to trigger search submission) */}
             <Pressable
               onPress={handleSearchSubmit}
@@ -243,7 +246,8 @@ export function Navbar() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 zIndex: 2,
-              }}>
+              }}
+            >
               <AppIcon
                 android="search"
                 ios="magnifyingglass"
@@ -327,7 +331,8 @@ export function Navbar() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 zIndex: 2,
-              }}>
+              }}
+            >
               <AppIcon
                 android="close"
                 ios="xmark"
@@ -339,7 +344,8 @@ export function Navbar() {
         ) : (
           <Pressable
             onPress={openSearchBar}
-            className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:opacity-80">
+            className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:opacity-80"
+          >
             <AppIcon
               android="search"
               ios="magnifyingglass"
@@ -352,7 +358,8 @@ export function Navbar() {
 
         <Pressable
           onPress={() => setMenuDrawerOpen(true)}
-          className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:opacity-80">
+          className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:opacity-80"
+        >
           <NineDotsIcon color={iconColor} />
         </Pressable>
       </View>

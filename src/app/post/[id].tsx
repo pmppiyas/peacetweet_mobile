@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   Image,
   Pressable,
-  ScrollView,
-  TextInput,
   ActivityIndicator,
-  Modal,
   Share,
+  Platform,
+  Animated,
+  Easing,
+  PanResponder,
   useWindowDimensions,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -34,6 +35,11 @@ import { PostShareModal } from '@/features/feed/components/PostShareModal';
 import { EditPostModal } from '@/features/feed/components/EditPostModal';
 import { ReportPostModal } from '@/features/feed/components/ReportPostModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useScrollExitGesture } from '@/components/feed/useScrollExitGesture';
+import {
+  imageRatioCache,
+  resolveImageAspectRatio,
+} from '@/lib/cache/imageRatioCache';
 
 function formatFacebookPhotoDate(dateStr?: string | null): string {
   if (!dateStr) return 'JUST NOW';
@@ -65,25 +71,6 @@ function formatFacebookPhotoDate(dateStr?: string | null): string {
   } catch {
     return 'TODAY';
   }
-}
-
-/* Top-bar Tag Icon (matching Facebook photo viewer screenshot) */
-function TagOutlineIcon({ size = 22, color = '#ffffff' }) {
-  return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <Path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-      <Circle cx="7.5" cy="7.5" r="1.5" fill={color} />
-    </Svg>
-  );
 }
 
 /* Facebook Thumbs-Up Like Icon */
@@ -162,7 +149,7 @@ export default function PostPhotoViewerScreen() {
   }>();
   const postId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const { width, height } = useWindowDimensions();
+  const { height } = useWindowDimensions();
   const { locale, theme } = useUi();
   const { user, isAuthenticated } = useAuth();
   const {
@@ -179,6 +166,7 @@ export default function PostPhotoViewerScreen() {
     if (cached) return cached;
     return feedItems.find((item) => item.id === postId) || null;
   });
+
   const [isLoading, setIsLoading] = useState(() => {
     if (!postId) return false;
     const hasCached =
@@ -198,24 +186,174 @@ export default function PostPhotoViewerScreen() {
   const [commentCount, setCommentCount] = useState(
     post?.stats?.commentCount || 0
   );
-  const [copiedShare, setCopiedShare] = useState(false);
 
-  // 3-Dot Action & Share & Edit & Report Modal states
+  // Modals & Action states
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUnsaveConfirm, setShowUnsaveConfirm] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
 
-  // Comments Modal states
+  // Comments Bottom Sheet State
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [comments, setComments] = useState<PostComment[]>([]);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [commentText, setCommentText] = useState('');
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
-  // Fetch post by ID from backend (silent background refresh if already cached)
+  // Animation values for 3 independent layers
+  const translateY = useRef(new Animated.Value(0)).current;
+  const photoOpacity = useRef(new Animated.Value(1)).current;
+  const backdropOpacity = useRef(new Animated.Value(1)).current;
+  const controlsOpacity = useRef(new Animated.Value(1)).current;
+  const isNavigatingRef = useRef(false);
+
+  // Smoothly moves the photo upward while immediately vanishing the black layer and controls
+  const applyProgress = useCallback(
+    (progress: number) => {
+      if (progress <= 0) {
+        translateY.setValue(0);
+        photoOpacity.setValue(1);
+        backdropOpacity.setValue(1);
+        controlsOpacity.setValue(1);
+        return;
+      }
+      translateY.setValue(-progress);
+      const fadeStart = 150;
+      const pFade = Math.max(0, progress - fadeStart);
+      photoOpacity.setValue(Math.max(0, 1 - pFade / 200));
+      backdropOpacity.setValue(Math.max(0, 1 - progress / 15));
+      controlsOpacity.setValue(Math.max(0, 1 - progress / 10));
+    },
+    [backdropOpacity, controlsOpacity, photoOpacity, translateY]
+  );
+
+  // Navigate to feed function (slides upwards into feed)
+  const handleGoToFeed = useCallback((direction: 'up' | 'down' = 'up') => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+
+    const targetY = direction === 'up' ? -(height || 800) : (height || 800);
+
+    Animated.timing(translateY, {
+      toValue: targetY,
+      duration: 220,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: Platform.OS !== 'web',
+    }).start(() => {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/');
+      }
+    });
+  }, [height, router, translateY]);
+
+  const handleImmediateGoToFeed = useCallback(() => {
+    isNavigatingRef.current = true;
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  }, [router]);
+
+  // Web: mouse wheel / touch drag follows 1:1 (Facebook-style) and leaves to feed
+  useScrollExitGesture({
+    enabled: Platform.OS === 'web',
+    distance: height || 800,
+    isBlocked: () =>
+      isCommentsOpen ||
+      showActionMenu ||
+      showShareModal ||
+      showEditModal ||
+      showReportModal ||
+      showDeleteConfirm ||
+      showUnsaveConfirm ||
+      isNavigatingRef.current,
+    onProgress: applyProgress,
+    onComplete: handleImmediateGoToFeed,
+    onDismissDown: handleImmediateGoToFeed,
+  });
+
+  // Escape closes the viewer
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (isCommentsOpen || showActionMenu || isNavigatingRef.current) return;
+      if (e.key === 'Escape') handleImmediateGoToFeed();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [handleImmediateGoToFeed, isCommentsOpen, showActionMenu]);
+
+  // Touch PanResponder: swiping exits upwards to feed on native React Native
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        if (Platform.OS === 'web' || isCommentsOpen || showActionMenu || showShareModal || isNavigatingRef.current) return false;
+        return (
+          Math.abs(gestureState.dy) > 16 &&
+          Math.abs(gestureState.dy) > Math.abs(gestureState.dx) * 1.5
+        );
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (isNavigatingRef.current) return;
+        translateY.setValue(gestureState.dy);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (isNavigatingRef.current) return;
+        if (Math.abs(gestureState.dy) > 40 || Math.abs(gestureState.vy) > 0.35) {
+          handleGoToFeed('up');
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            bounciness: 4,
+            useNativeDriver: Platform.OS !== 'web',
+          }).start();
+        }
+      },
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderTerminate: () => {
+        if (isNavigatingRef.current) return;
+        Animated.spring(translateY, {
+          toValue: 0,
+          bounciness: 4,
+          useNativeDriver: Platform.OS !== 'web',
+        }).start();
+      },
+    })
+  ).current;
+
+  const resolveRealPostId = useCallback((): string | null => {
+    if (
+      post?.id &&
+      !post.id.startsWith('temp-') &&
+      !post.id.startsWith('photo-')
+    ) {
+      return post.id;
+    }
+    const cached = postId
+      ? queryCache.get<FeedItem>(`post:detail:${postId}`)
+      : null;
+    if (
+      cached?.id &&
+      !cached.id.startsWith('temp-') &&
+      !cached.id.startsWith('photo-')
+    ) {
+      return cached.id;
+    }
+    if (postId && !postId.startsWith('temp-') && !postId.startsWith('photo-')) {
+      return postId;
+    }
+    return null;
+  }, [post?.id, postId]);
+
+  // Fetch post details from API
   const loadPost = useCallback(async () => {
     if (!postId) {
       setIsLoading(false);
@@ -265,37 +403,12 @@ export default function PostPhotoViewerScreen() {
     loadPost();
   }, [loadPost]);
 
-  const resolveRealPostId = useCallback((): string | null => {
-    if (
-      post?.id &&
-      !post.id.startsWith('temp-') &&
-      !post.id.startsWith('photo-')
-    ) {
-      return post.id;
-    }
-    const cached = postId
-      ? queryCache.get<FeedItem>(`post:detail:${postId}`)
-      : null;
-    if (
-      cached?.id &&
-      !cached.id.startsWith('temp-') &&
-      !cached.id.startsWith('photo-')
-    ) {
-      return cached.id;
-    }
-    if (postId && !postId.startsWith('temp-') && !postId.startsWith('photo-')) {
-      return postId;
-    }
-    return null;
-  }, [post?.id, postId]);
-
   // Load comments when comment button is pressed
   const handleOpenComments = async () => {
     setIsCommentsOpen(true);
     const targetId = resolveRealPostId();
-    if (!targetId) {
-      return;
-    }
+    if (!targetId) return;
+
     setIsLoadingComments(true);
     try {
       const res = await feedApi.getComments(targetId, 50);
@@ -310,7 +423,7 @@ export default function PostPhotoViewerScreen() {
     }
   };
 
-  // Toggle Like / Reaction (Workable)
+  // Toggle Like / Reaction
   const handleToggleLike = async () => {
     if (!isAuthenticated) {
       router.push('/login');
@@ -332,7 +445,7 @@ export default function PostPhotoViewerScreen() {
     }
   };
 
-  // Submit new comment or reply (Optimistic UI with 'Posting...' badge)
+  // Submit comment inside CommentsBottomSheetModal
   const handleAddComment = async (parentId?: string | null) => {
     const trimmed = commentText.trim();
     if (!trimmed) return;
@@ -341,9 +454,7 @@ export default function PostPhotoViewerScreen() {
       return;
     }
     const targetId = resolveRealPostId();
-    if (!targetId) {
-      return;
-    }
+    if (!targetId) return;
 
     const tempId = `temp-comment-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const optimisticComment: PostComment = {
@@ -385,7 +496,7 @@ export default function PostPhotoViewerScreen() {
     }
   };
 
-  // Share post (Workable)
+  // Share post
   const handleShare = async () => {
     const shareUrl =
       typeof window !== 'undefined'
@@ -397,8 +508,6 @@ export default function PostPhotoViewerScreen() {
         (navigator as any).clipboard?.writeText
       ) {
         await (navigator as any).clipboard.writeText(shareUrl);
-        setCopiedShare(true);
-        setTimeout(() => setCopiedShare(false), 2000);
       } else {
         await Share.share({
           message: shareUrl,
@@ -458,19 +567,11 @@ export default function PostPhotoViewerScreen() {
     const realId = resolveRealPostId();
     if (realId) {
       await deletePost(realId);
-      handleClose();
+      handleGoToFeed();
     }
   };
 
-  const handleClose = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/profile');
-    }
-  };
-
-  // Resolve display fields from post or fallback params
+  // Resolve display fields
   const mediaUrls = (
     post?.mediaUrls?.length
       ? post.mediaUrls
@@ -494,60 +595,117 @@ export default function PostPhotoViewerScreen() {
     post?.content !== undefined ? post.content : params.content || '';
   const createdAtStr = post?.createdAt || params.createdAt || '';
 
-  const [imgAspectRatio, setImgAspectRatio] = useState<number>(() =>
-    contentText?.toLowerCase().includes('cover') ? 16 / 9 : 1
-  );
+  const [imgAspectRatio, setImgAspectRatio] = useState<number>(() => {
+    const cached = imageRatioCache.get(primaryImageUrl);
+    if (cached) return cached;
+    return contentText?.toLowerCase().includes('cover') ? 16 / 9 : 1;
+  });
 
   useEffect(() => {
     if (!primaryImageUrl) return;
-    Image.getSize(
-      primaryImageUrl,
-      (w, h) => {
-        if (w > 0 && h > 0) {
-          setImgAspectRatio(w / h);
-        }
-      },
-      () => {}
-    );
+    resolveImageAspectRatio(primaryImageUrl, (r) => {
+      setImgAspectRatio(r);
+    });
   }, [primaryImageUrl]);
 
   const isDark = theme === 'dark';
-  const primaryIconColor = isDark ? '#ffffff' : '#050505';
-  const mutedColor = isDark ? '#b0b3b8' : '#65676b';
+  // Blank background around photo: pure black in dark mode, darkish slate (#0b0e14) in light mode
+  const viewerBg = isDark ? '#000000' : '#0b0e14';
+  const primaryIconColor = '#ffffff';
+  const mutedColor = '#b0b3b8';
+
+  const headerBtnBg = 'rgba(0, 0, 0, 0.45)';
+  const headerIconColor = '#ffffff';
+
+  const textColor = '#ffffff';
+  const mutedTextColor = 'rgba(255, 255, 255, 0.85)';
+  const dotColor = 'rgba(255, 255, 255, 0.8)';
+  const publicIconColor = '#ffffff';
+
+  const textShadowStyle = {
+    textShadowColor: 'rgba(0, 0, 0, 0.95)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  };
+
+  const actionBtnBg = 'rgba(0, 0, 0, 0.45)';
+  const actionBtnBorder = 'rgba(255, 255, 255, 0.22)';
+  const actionIconColor = '#ffffff';
+  const actionTextColor = '#ffffff';
+
+  const activeLikeBg = 'rgba(24, 119, 242, 0.35)';
+  const activeLikeBorder = 'rgba(24, 119, 242, 0.7)';
+
+  const activeSaveBg = 'rgba(24, 119, 242, 0.35)';
+  const activeSaveBorder = 'rgba(24, 119, 242, 0.7)';
+
+  const effectivePost: FeedItem = (post || {
+    id: postId || 'temp-id',
+    type: 'STANDARD',
+    dua: null,
+    content: contentText,
+    mediaUrls: mediaUrls,
+    createdAt: createdAtStr || new Date().toISOString(),
+    author: {
+      id: '',
+      name: authorName,
+      username: authorUsername,
+      avatar: authorAvatar,
+    },
+    stats: {
+      reactionCount,
+      commentCount,
+      saveCount: 0,
+      shareCount: 0,
+    },
+    viewer: {
+      hasReacted,
+      hasSaved,
+    },
+  }) as FeedItem;
 
   return (
-    <View className="flex-1 bg-white dark:bg-black justify-between select-none">
-      {/* ============================================================== */}
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: 'transparent',
+        touchAction: 'none',
+        userSelect: 'none',
+      } as any}
+      {...panResponder.panHandlers}
+      className="flex-1 select-none">
+      {/* ────────────────── LAYER 1: BLACK / DARKISH BACKDROP ────────────────── */}
+      <Animated.View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: viewerBg,
+          opacity: backdropOpacity,
+        }}
+      />
 
-      <View className="w-full max-w-[768px] mx-auto px-4 pt-3 pb-2 flex-row items-center justify-between z-20">
-        {/* Top Left: X icon */}
-        <Pressable
-          onPress={handleClose}
-          className="h-10 w-10 rounded-full items-center justify-center active:bg-black/5 dark:active:bg-white/10"
-        >
-          <AppIcon android="close" size={24} color={primaryIconColor} />
-        </Pressable>
-
-        {/* Top Right: Location & 3-Dot Action Menu */}
-        <View className="flex-row items-center gap-2">
-          <View className="opacity-95 p-2">
-            <AppIcon android="location_on" size={22} color={primaryIconColor} />
-          </View>
-          <Pressable
-            onPress={() => setShowActionMenu(true)}
-            className="h-10 w-10 rounded-full items-center justify-center active:bg-black/5 dark:active:bg-white/10"
-          >
-            <AppIcon android="more_vert" size={22} color={primaryIconColor} />
-          </Pressable>
-        </View>
-      </View>
-
-      {/* ============================================================== */}
-      {/* 2. CENTER PHOTO VIEWPORT                                       */}
-      {/* ============================================================== */}
-      <View className="flex-1 items-center justify-center pt-12 w-full max-w-[768px] mx-auto overflow-hidden">
+      {/* ────────────────── LAYER 2: PHOTO VIEWPORT ────────────────── */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          transform: [{ translateY }],
+          opacity: photoOpacity,
+          pointerEvents: 'box-none',
+        }}>
+      {/* ────────────────── 1. FULLSCREEN PHOTO VIEWPORT (TAP TO TOGGLE CONTROLS) ────────────────── */}
+      <Pressable
+        onPress={() => setControlsVisible((prev) => !prev)}
+        className="absolute inset-0 w-full h-full items-center justify-center overflow-hidden">
         {isLoading && !primaryImageUrl ? (
-          <Skeleton className="w-full aspect-square rounded-none" />
+          <Skeleton className={`w-full aspect-square rounded-none ${isDark ? 'bg-neutral-900' : 'bg-neutral-200'}`} />
         ) : primaryImageUrl ? (
           <Image
             source={{ uri: primaryImageUrl }}
@@ -556,141 +714,246 @@ export default function PostPhotoViewerScreen() {
               const nw = src?.width || src?.naturalWidth;
               const nh = src?.height || src?.naturalHeight;
               if (nw > 0 && nh > 0) {
-                setImgAspectRatio(nw / nh);
+                const r = nw / nh;
+                if (primaryImageUrl) imageRatioCache.set(primaryImageUrl, r);
+                setImgAspectRatio(r);
               }
             }}
             style={{
               width: '100%',
-              aspectRatio: imgAspectRatio,
-            }}
-            className="w-full"
+              maxWidth: '100%',
+              maxHeight: '100%',
+              aspectRatio: imgAspectRatio || undefined,
+              objectFit: 'contain',
+              pointerEvents: 'none',
+            } as any}
             resizeMode="contain"
           />
         ) : (
           <View className="items-center justify-center p-8">
-            <AppIcon android="photo" size={48} color="#65676b" />
-            <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2">
+            <AppIcon android="photo" size={48} color={mutedColor} />
+            <Text className="text-xs mt-2" style={{ color: mutedColor }}>
               {locale === 'bn' ? 'ছবি পাওয়া যায়নি' : 'Photo not available'}
             </Text>
           </View>
         )}
-      </View>
+      </Pressable>
+    </Animated.View>
 
-      {/* ============================================================== */}
-      {/* 3. BOTTOM OVERLAY: Author, Date, Caption & Workable Actions    */}
-      {/* ============================================================== */}
-      <View className="w-full max-w-[768px] mx-auto px-4 pt-3 pb-5 bg-white dark:bg-black z-20">
-        {/* Author Row */}
-        <View className="flex-row items-center gap-3">
+    {/* ────────────────── LAYER 3: CONTROLS (HEADER & BOTTOM BAR) ────────────────── */}
+    {controlsVisible ? (
+      <Animated.View
+        pointerEvents="box-none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          opacity: controlsOpacity,
+          zIndex: 40,
+        }}>
+        {/* Top Floating Header Bar */}
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 40,
+            backgroundColor: 'transparent',
+            pointerEvents: 'box-none',
+          } as any}
+          className="w-full max-w-[768px] mx-auto px-4 pt-3 pb-3 flex-row items-center justify-between">
+          {/* Top Left: Close Button -> Go to Feed */}
           <Pressable
-            onPress={() => {
-              if (authorUsername) {
-                router.push(`/${authorUsername}` as any);
-              }
+            onPress={(e) => {
+              e?.stopPropagation?.();
+              handleImmediateGoToFeed();
             }}
-            className="active:opacity-80"
-          >
-            <UserAvatar avatarUrl={authorAvatar} name={authorName} size="md" />
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            className="h-10 w-10 rounded-full items-center justify-center active:scale-95"
+            style={{ cursor: 'pointer', pointerEvents: 'auto', backgroundColor: headerBtnBg, backdropFilter: 'blur(6px)' } as any}
+            accessibilityLabel="Back to feed">
+            <AppIcon android="close" size={24} color={headerIconColor} />
           </Pressable>
 
-          <View className="flex-1">
-            <Pressable
-              onPress={() => {
-                if (authorUsername) {
-                  router.push(`/${authorUsername}` as any);
-                }
-              }}
-              className="self-start active:opacity-80"
-            >
-              <Text className="text-[16px] font-bold text-[#050505] dark:text-white leading-tight">
-                {authorName}
-              </Text>
-            </Pressable>
-
-            <View className="flex-row items-center gap-1.5 mt-0.5">
-              <Text className="text-[11.5px] font-medium text-[#65676b] dark:text-[#b0b3b8] tracking-wide">
-                {formatFacebookPhotoDate(createdAtStr)}
-              </Text>
-              <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
-                •
-              </Text>
-              <AppIcon android="public" size={13} color={mutedColor} />
-            </View>
-          </View>
-        </View>
-
-        {/* Post Caption */}
-        {contentText ? (
-          <Text className="text-[15px] text-[#050505] dark:text-white mt-2.5 leading-5">
-            {contentText}
-          </Text>
-        ) : null}
-
-        {/* Bottom Workable Action Bar (Like, Comment, Share + Reaction Pills) */}
-        <View className="flex-row items-center justify-between mt-4 pt-1">
-          <View className="flex-row items-center gap-6">
-            {/* Like Button (Workable) */}
-            <Pressable
-              onPress={handleToggleLike}
-              className="flex-row items-center gap-1.5 py-1 active:scale-95"
-            >
-              <ThumbLikeIcon
-                size={22}
-                color={hasReacted ? '#1877f2' : primaryIconColor}
-                filled={hasReacted}
-              />
-              <Text
-                className={`text-[14px] font-semibold ${
-                  hasReacted
-                    ? 'text-[#1877f2]'
-                    : 'text-[#050505] dark:text-white'
-                }`}
-              >
-                {reactionCount}
-              </Text>
-            </Pressable>
-
-            {/* Comment Button (Workable) */}
-            <Pressable
-              onPress={handleOpenComments}
-              className="flex-row items-center gap-1.5 py-1 active:scale-95"
-            >
-              <CommentOutlineIcon size={21} color={primaryIconColor} />
-              <Text className="text-[14px] font-semibold text-[#050505] dark:text-white">
-                {commentCount}
-              </Text>
-            </Pressable>
-
-            {/* Share Button (Workable) */}
-            <Pressable
-              onPress={() => setShowShareModal(true)}
-              className="flex-row items-center gap-1.5 py-1 active:scale-95"
-            >
-              <ShareArrowIcon size={23} color={primaryIconColor} />
-            </Pressable>
-          </View>
-
-          {/* Right: Facebook Reaction Badges Pill (❤️ 😆 👍) */}
+          {/* Top Right: 3-Dot Post Action Menu */}
           <Pressable
-            onPress={handleToggleLike}
-            className="flex-row items-center active:opacity-80"
-          >
-            <View className="h-5 w-5 rounded-full bg-rose-500 items-center justify-center border border-white dark:border-black z-30">
-              <Text className="text-[10px]">❤️</Text>
-            </View>
-            <View className="h-5 w-5 rounded-full bg-amber-400 items-center justify-center border border-white dark:border-black -ml-1.5 z-20">
-              <Text className="text-[10px]">😆</Text>
-            </View>
-            <View className="h-5 w-5 rounded-full bg-[#1877f2] items-center justify-center border border-white dark:border-black -ml-1.5 z-10">
-              <Text className="text-[10px]">👍</Text>
-            </View>
+            onPress={(e) => {
+              e?.stopPropagation?.();
+              setShowActionMenu(true);
+            }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            className="h-10 w-10 rounded-full items-center justify-center active:scale-95"
+            style={{ cursor: 'pointer', pointerEvents: 'auto', backgroundColor: headerBtnBg, backdropFilter: 'blur(6px)' } as any}
+            accessibilityLabel="Post options">
+            <AppIcon android="more_vert" size={22} color={headerIconColor} />
           </Pressable>
         </View>
-      </View>
 
-      {/* ============================================================== */}
-      {/* 4. WORKABLE COMMENTS BOTTOM SHEET MODAL                        */}
-      {/* ============================================================== */}
+        {/* Bottom Floating Bar: Author, Caption & Action Row */}
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 40,
+            backgroundColor: 'transparent',
+            pointerEvents: 'box-none',
+          } as any}
+          className="w-full px-3.5 pb-4 select-none">
+          <View className="w-full max-w-[768px] mx-auto" style={{ pointerEvents: 'box-none' } as any}>
+            {/* Author Row & Caption Text */}
+            <View className="w-full pb-1" style={{ pointerEvents: 'auto' } as any}>
+              {/* Author Row */}
+              <View className="flex-row items-center gap-2.5">
+                <Pressable
+                  onPress={() => {
+                    if (authorUsername) {
+                      router.push(`/${authorUsername}` as any);
+                    }
+                  }}
+                  className="active:opacity-80">
+                  <UserAvatar avatarUrl={authorAvatar} name={authorName} size="md" />
+                </Pressable>
+
+                <View className="flex-1">
+                  <View className="flex-row items-center gap-1.5 flex-wrap">
+                    <Pressable
+                      onPress={() => {
+                        if (authorUsername) {
+                          router.push(`/${authorUsername}` as any);
+                        }
+                      }}
+                      className="self-start active:opacity-80">
+                      <Text
+                        style={[{ color: textColor }, textShadowStyle] as any}
+                        className="text-[15.5px] font-bold leading-tight">
+                        {authorName}
+                      </Text>
+                    </Pressable>
+                    <AppIcon
+                      android="verified"
+                      ios="checkmark.seal.fill"
+                      size={14}
+                      color="#1877f2"
+                    />
+                    <Text
+                      style={[{ color: dotColor }, textShadowStyle] as any}
+                      className="text-[11px]">
+                      •
+                    </Text>
+                    <AppIcon android="public" size={12} color={publicIconColor} />
+                  </View>
+
+                  <Text
+                    style={[{ color: mutedTextColor }, textShadowStyle] as any}
+                    className="text-[11.5px] font-medium mt-0.5">
+                    {formatFacebookPhotoDate(createdAtStr)}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Caption Text */}
+              {contentText ? (
+                <Text
+                  style={[{ color: textColor }, textShadowStyle] as any}
+                  className="text-[14px] mt-2 leading-5 font-normal"
+                  numberOfLines={3}>
+                  {contentText}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Bottom Controls Row: Action Icons (Like, Comment, Share, Save) */}
+            <View className="flex-row items-center gap-2.5 mt-2.5" style={{ pointerEvents: 'auto' } as any}>
+              {/* 1. Like Button */}
+              <Pressable
+                onPress={handleToggleLike}
+                style={{
+                  backgroundColor: hasReacted ? activeLikeBg : actionBtnBg,
+                  borderColor: hasReacted ? activeLikeBorder : actionBtnBorder,
+                  borderWidth: 1,
+                  backdropFilter: 'blur(6px)',
+                } as any}
+                className="h-10 px-3.5 rounded-full flex-row items-center justify-center gap-1.5 active:scale-95"
+                accessibilityLabel="Like">
+                <ThumbLikeIcon
+                  size={20}
+                  color={hasReacted ? '#1877f2' : actionIconColor}
+                  filled={hasReacted}
+                />
+                {reactionCount > 0 ? (
+                  <Text
+                    style={[{ color: hasReacted ? '#1877f2' : actionTextColor }, textShadowStyle] as any}
+                    className="text-[13px] font-bold">
+                    {reactionCount}
+                  </Text>
+                ) : null}
+              </Pressable>
+
+              {/* 2. Comment Button */}
+              <Pressable
+                onPress={handleOpenComments}
+                style={{
+                  backgroundColor: actionBtnBg,
+                  borderColor: actionBtnBorder,
+                  borderWidth: 1,
+                  backdropFilter: 'blur(6px)',
+                } as any}
+                className="h-10 px-3.5 rounded-full flex-row items-center justify-center gap-1.5 active:scale-95"
+                accessibilityLabel="Comments">
+                <CommentOutlineIcon size={20} color={actionIconColor} />
+                {commentCount > 0 ? (
+                  <Text
+                    style={[{ color: actionTextColor }, textShadowStyle] as any}
+                    className="text-[13px] font-bold">
+                    {commentCount}
+                  </Text>
+                ) : null}
+              </Pressable>
+
+              {/* 3. Share Button */}
+              <Pressable
+                onPress={() => setShowShareModal(true)}
+                style={{
+                  backgroundColor: actionBtnBg,
+                  borderColor: actionBtnBorder,
+                  borderWidth: 1,
+                  backdropFilter: 'blur(6px)',
+                } as any}
+                className="h-10 w-10 rounded-full items-center justify-center active:scale-95"
+                accessibilityLabel="Share">
+                <ShareArrowIcon size={19} color={actionIconColor} />
+              </Pressable>
+
+              {/* 4. Bookmark / Save Button */}
+              <Pressable
+                onPress={handleToggleSave}
+                style={{
+                  backgroundColor: hasSaved ? activeSaveBg : actionBtnBg,
+                  borderColor: hasSaved ? activeSaveBorder : actionBtnBorder,
+                  borderWidth: 1,
+                  backdropFilter: 'blur(6px)',
+                } as any}
+                className="h-10 w-10 rounded-full items-center justify-center active:scale-95"
+                accessibilityLabel="Save">
+                <AppIcon
+                  android="bookmark"
+                  size={19}
+                  color={hasSaved ? '#1877f2' : actionIconColor}
+                  filled={hasSaved}
+                />
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Animated.View>
+    ) : null}
+
+      {/* ────────────────── 4. COMMENTS BOTTOM SHEET MODAL ────────────────── */}
       <CommentsBottomSheetModal
         visible={isCommentsOpen}
         onClose={() => setIsCommentsOpen(false)}
@@ -702,15 +965,13 @@ export default function PostPhotoViewerScreen() {
         onSubmitComment={handleAddComment}
       />
 
-      {/* ============================================================== */}
-      {/* 5. 3-DOT ACTION MENU & REUSABLE MODALS                         */}
-      {/* ============================================================== */}
-      {post && (
+      {/* ────────────────── 5. REUSABLE MODALS ────────────────── */}
+      {effectivePost && (
         <>
           <PostActionMenuModal
             visible={showActionMenu}
             onClose={() => setShowActionMenu(false)}
-            post={post}
+            post={effectivePost}
             isAuthor={isAuthor}
             hasSaved={hasSaved}
             onEdit={() => setShowEditModal(true)}
@@ -724,60 +985,48 @@ export default function PostPhotoViewerScreen() {
           <PostShareModal
             visible={showShareModal}
             onClose={() => setShowShareModal(false)}
-            post={post}
+            post={effectivePost}
           />
 
           <EditPostModal
             visible={showEditModal}
             onClose={() => setShowEditModal(false)}
-            post={post}
+            post={effectivePost}
             onSuccess={(updated) => setPost(updated)}
           />
 
           <ReportPostModal
             visible={showReportModal}
             onClose={() => setShowReportModal(false)}
-            post={post}
+            post={effectivePost}
           />
 
           <ConfirmDialog
             isOpen={showDeleteConfirm}
             onClose={() => setShowDeleteConfirm(false)}
             onConfirm={handleDeletePost}
-            title={locale === 'bn' ? 'পোস্ট মুছবেন?' : 'Delete Post?'}
+            title={locale === 'bn' ? 'পোস্টটি মুছে ফেলবেন?' : 'Delete Post?'}
             subtitle={
               locale === 'bn'
-                ? 'এই পোস্টটি মুছে ফেলা হবে।'
-                : 'This post will be deleted.'
+                ? 'এই পোস্টটি মুছে ফেললে তা আর পুনরুদ্ধার করা যাবে না।'
+                : 'Are you sure you want to delete this post? This action cannot be undone.'
             }
-            description={
-              locale === 'bn'
-                ? 'আপনি কি নিশ্চিত যে এই পোস্টটি স্থায়ীভাবে মুছে ফেলতে চান?'
-                : 'Are you sure you want to permanently remove this post?'
-            }
-            confirmText={locale === 'bn' ? 'হ্যাঁ, মুছে ফেলুন' : 'Delete'}
+            confirmText={locale === 'bn' ? 'মুছে ফেলুন' : 'Delete'}
+            variant="danger"
           />
 
           <ConfirmDialog
             isOpen={showUnsaveConfirm}
             onClose={() => setShowUnsaveConfirm(false)}
             onConfirm={handleConfirmUnsave}
-            title={
-              locale === 'bn'
-                ? 'সংরক্ষণ তালিকা থেকে মুছবেন?'
-                : 'Remove from Saved?'
-            }
+            title={locale === 'bn' ? 'সেভ থেকে সরিয়ে ফেলবেন?' : 'Remove from Saved?'}
             subtitle={
               locale === 'bn'
-                ? 'এটি আপনার সংরক্ষিত তালিকা থেকে সরানো হবে।'
-                : 'This item will be removed from your saved list.'
+                ? 'আপনি কি নিশ্চিত যে এই পোস্টটি আপনার সেভ করা তালিকা থেকে সরাতে চান?'
+                : 'Are you sure you want to remove this post from your saved collection?'
             }
-            description={
-              locale === 'bn'
-                ? 'আপনি কি নিশ্চিত যে এই পোস্টটি সংরক্ষণ তালিকা থেকে বাদ দিতে চান?'
-                : 'Are you sure you want to remove this item from your saved bookmarks?'
-            }
-            confirmText={locale === 'bn' ? 'হ্যাঁ, মুছে ফেলুন' : 'Remove'}
+            confirmText={locale === 'bn' ? 'সরিয়ে ফেলুন' : 'Remove'}
+            variant="danger"
           />
         </>
       )}
