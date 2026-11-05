@@ -324,7 +324,13 @@ export function LocationSelector({
         animationType="slide"
         transparent={true}
         onRequestClose={() => setActivePicker(null)}>
-        <SafeAreaView className="flex-1 justify-end bg-black/50">
+        <SafeAreaView
+          style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            ...(Platform.OS === 'web' ? ({ zIndex: 99999 } as any) : {}),
+          }}>
           <View className="bg-white dark:bg-[#18191a] rounded-t-3xl max-h-[75%] border-t border-[#f0f2f5] dark:border-[#242526]">
             {/* Modal Top Header */}
             <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#f0f2f5] dark:border-[#242526]">

@@ -6,9 +6,15 @@ import { FeedItem } from '@/features/feed/types/feed.types';
 const LOCALE_STORAGE_KEY = 'peacetweet_locale';
 const THEME_STORAGE_KEY = 'peacetweet_theme';
 
-export type PostUploadType = 'STANDARD' | 'BLOOD';
+export type PostUploadType = 'STANDARD' | 'BLOOD' | 'UPDATE';
 export type ComposerMode = 'TEXT' | 'DUA' | 'BLOOD_REQUEST';
 export type ComposerAction = 'photo' | 'feeling' | null;
+
+export interface OpenComposerOptions {
+  mode?: ComposerMode;
+  action?: ComposerAction;
+  editingPost?: FeedItem | null;
+}
 
 export interface PhotoViewerState {
   post: FeedItem;
@@ -26,7 +32,9 @@ interface UiContextType {
   setComposerModalOpen: (open: boolean) => void;
   composerInitialMode: ComposerMode;
   composerInitialAction: ComposerAction;
-  openComposer: (options?: { mode?: ComposerMode; action?: ComposerAction }) => void;
+  composerEditingPost: FeedItem | null;
+  setComposerEditingPost: (post: FeedItem | null) => void;
+  openComposer: (options?: OpenComposerOptions) => void;
   activePhotoViewer: PhotoViewerState | null;
   openPhotoViewer: (post: FeedItem, initialImageUrl?: string) => void;
   closePhotoViewer: () => void;
@@ -62,16 +70,40 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   const [isComposerModalOpen, setComposerModalOpenState] = useState(false);
   const [composerInitialMode, setComposerInitialMode] = useState<ComposerMode>('TEXT');
   const [composerInitialAction, setComposerInitialAction] = useState<ComposerAction>(null);
+  const [composerEditingPost, setComposerEditingPost] = useState<FeedItem | null>(null);
 
-  const openComposer = (options?: { mode?: ComposerMode; action?: ComposerAction }) => {
+  const [isUploadingPost, setIsUploadingPostState] = useState(false);
+  const [postUploadType, setPostUploadType] = useState<PostUploadType>('STANDARD');
+  const [isPostUploadSuccess, setIsPostUploadSuccess] = useState(false);
+
+  const setIsUploadingPost = (val: boolean, type: PostUploadType = 'STANDARD') => {
+    setIsUploadingPostState(val);
+    if (val) {
+      setPostUploadType(type);
+    }
+  };
+
+  const triggerPostSuccess = () => {
+    setIsUploadingPostState(false);
+    setIsPostUploadSuccess(true);
+    setTimeout(() => {
+      setIsPostUploadSuccess(false);
+    }, 2500);
+  };
+
+  const openComposer = (options?: OpenComposerOptions) => {
+    if (isUploadingPost) return;
     setComposerInitialMode(options?.mode || 'TEXT');
     setComposerInitialAction(options?.action || null);
+    setComposerEditingPost(options?.editingPost || null);
     setComposerModalOpenState(true);
   };
 
   const setComposerModalOpen = (open: boolean) => {
+    if (open && isUploadingPost) return;
     if (!open) {
       setComposerInitialAction(null);
+      setComposerEditingPost(null);
     }
     setComposerModalOpenState(open);
   };
@@ -91,24 +123,6 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   >(null);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
-  const [isUploadingPost, setIsUploadingPostState] = useState(false);
-  const [postUploadType, setPostUploadType] = useState<PostUploadType>('STANDARD');
-  const [isPostUploadSuccess, setIsPostUploadSuccess] = useState(false);
-
-  const setIsUploadingPost = (val: boolean, type: PostUploadType = 'STANDARD') => {
-    setIsUploadingPostState(val);
-    if (val) {
-      setPostUploadType(type);
-    }
-  };
-
-  const triggerPostSuccess = () => {
-    setIsUploadingPostState(false);
-    setIsPostUploadSuccess(true);
-    setTimeout(() => {
-      setIsPostUploadSuccess(false);
-    }, 2500);
-  };
 
   const { colorScheme, setColorScheme } = useColorScheme();
 
@@ -145,6 +159,8 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         setComposerModalOpen,
         composerInitialMode,
         composerInitialAction,
+        composerEditingPost,
+        setComposerEditingPost,
         openComposer,
         activePhotoViewer,
         openPhotoViewer,

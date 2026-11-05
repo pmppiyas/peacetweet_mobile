@@ -150,7 +150,7 @@ export default function PostPhotoViewerScreen() {
   const postId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const { height } = useWindowDimensions();
-  const { locale, theme } = useUi();
+  const { locale, theme, openComposer } = useUi();
   const { user, isAuthenticated } = useAuth();
   const {
     items: feedItems,
@@ -974,7 +974,32 @@ export default function PostPhotoViewerScreen() {
             post={effectivePost}
             isAuthor={isAuthor}
             hasSaved={hasSaved}
-            onEdit={() => setShowEditModal(true)}
+            onEdit={() => {
+              if (
+                effectivePost.type === 'BLOOD_REQUEST' ||
+                Boolean(effectivePost.bloodRequest) ||
+                Boolean(effectivePost.bloodRequestId)
+              ) {
+                openComposer({
+                  mode: 'BLOOD_REQUEST',
+                  editingPost: effectivePost,
+                });
+              } else if (
+                effectivePost.type === 'DUA' ||
+                Boolean(effectivePost.dua) ||
+                Boolean(effectivePost.duaId)
+              ) {
+                openComposer({
+                  mode: 'DUA',
+                  editingPost: effectivePost,
+                });
+              } else {
+                openComposer({
+                  mode: 'TEXT',
+                  editingPost: effectivePost,
+                });
+              }
+            }}
             onDelete={() => setShowDeleteConfirm(true)}
             onToggleSave={handleToggleSave}
             onCopyLink={handleShare}

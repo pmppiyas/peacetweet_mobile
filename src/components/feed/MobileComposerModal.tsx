@@ -9,6 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Platform,
+  Alert,
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useUi, ComposerMode, ComposerAction } from '@/providers/UiProvider';
@@ -16,8 +17,80 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
 import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { DateTimePicker } from '@/components/ui/DateTimePicker';
+import { LocationSelector, LocationValue } from '@/components/ui/LocationSelector';
+import { matchUserLocationToGeo } from '@/constants/bangladeshGeo';
 import { uploadsApi } from '@/features/uploads/api/uploads.api';
 import { FEELINGS, getFeelingById } from '@/features/feed/constants/feelings';
+import {
+  imageRatioCache,
+  resolveImageAspectRatio,
+} from '@/lib/cache/imageRatioCache';
+
+function ComposerSingleImage({
+  uri,
+  onRemove,
+}: {
+  uri: string;
+  onRemove: () => void;
+}) {
+  const [aspectRatio, setAspectRatio] = useState<number | null>(
+    () => imageRatioCache.get(uri) || null
+  );
+
+  useEffect(() => {
+    if (!uri) return;
+    resolveImageAspectRatio(uri, (r) => {
+      setAspectRatio(r);
+    });
+  }, [uri]);
+
+  return (
+    <View
+      style={{
+        width: '100%',
+        maxHeight: 520,
+        borderRadius: 16,
+        overflow: 'hidden',
+        position: 'relative',
+        backgroundColor: '#e4e6eb',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      className="dark:bg-[#2d2e2f]">
+      <Image
+        source={{ uri }}
+        resizeMode="cover"
+        onLoad={(e: any) => {
+          const src = e?.nativeEvent?.source || e?.target;
+          const nw = src?.width || src?.naturalWidth;
+          const nh = src?.height || src?.naturalHeight;
+          if (nw > 0 && nh > 0) {
+            const r = nw / nh;
+            imageRatioCache.set(uri, r);
+            setAspectRatio(r);
+          }
+        }}
+        style={
+          {
+            width: '100%',
+            aspectRatio: aspectRatio || undefined,
+            maxHeight: 520,
+            ...(Platform.OS === 'web' && !aspectRatio
+              ? { height: 'auto', display: 'block', maxHeight: 520 }
+              : {}),
+          } as any
+        }
+      />
+      <Pressable
+        onPress={onRemove}
+        className="absolute top-2.5 right-2.5 h-7 w-7 rounded-full bg-black/75 items-center justify-center active:scale-90 shadow-md z-10"
+        accessibilityLabel="Remove photo">
+        <AppIcon android="close" ios="xmark" size={14} color="#ffffff" />
+      </Pressable>
+    </View>
+  );
+}
 
 const BLOOD_GROUPS = [
   { label: 'A+', value: 'A_POSITIVE' },
@@ -30,11 +103,22 @@ const BLOOD_GROUPS = [
   { label: 'O-', value: 'O_NEGATIVE' },
 ];
 
-const URGENCIES = [
-  { value: 'REGULAR', label: 'Regular', labelBn: 'সাধারণ' },
-  { value: 'URGENT', label: 'Urgent', labelBn: 'জরুরি' },
-  { value: 'EMERGENCY', label: 'Emergency 🚨', labelBn: 'অতি জরুরি 🚨' },
-] as const;
+function mapToBloodGroupValue(bg?: string | null): string {
+  if (!bg || bg === 'NONE') return '';
+  const normalized = bg.trim().toUpperCase();
+  const directMatch = BLOOD_GROUPS.find(
+    (g) => g.value === normalized || g.label === normalized
+  );
+  if (directMatch) return directMatch.value;
+
+  const converted = normalized
+    .replace('+', '_POSITIVE')
+    .replace('-', '_NEGATIVE');
+  const convertedMatch = BLOOD_GROUPS.find((g) => g.value === converted);
+  if (convertedMatch) return convertedMatch.value;
+
+  return '';
+}
 
 export function MobileComposerModal() {
   const {
@@ -42,17 +126,28 @@ export function MobileComposerModal() {
     setComposerModalOpen,
     composerInitialMode,
     composerInitialAction,
+    composerEditingPost,
+    setComposerEditingPost,
     locale,
     theme,
     setIsUploadingPost,
     triggerPostSuccess,
   } = useUi();
   const { user } = useAuth();
-  const { createPost } = useFeed();
+  const { createPost, updatePost } = useFeed();
+
+  const isEditing = Boolean(composerEditingPost);
+  const isEditingDua =
+    isEditing &&
+    (composerEditingPost?.type === 'DUA' ||
+      Boolean(composerEditingPost?.dua) ||
+      Boolean(composerEditingPost?.duaId));
 
   // Mode & Content
   const [postType, setPostType] = useState<ComposerMode>('TEXT');
   const [content, setContent] = useState('');
+  const [contentHeight, setContentHeight] = useState(44);
+  const contentInputRef = useRef<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -60,6 +155,47 @@ export function MobileComposerModal() {
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [mediaLayout, setMediaLayout] = useState<'COLLAGE' | 'SWIPE'>('COLLAGE');
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [mediaContainerWidth, setMediaContainerWidth] = useState(0);
+  const [swipeActiveIdx, setSwipeActiveIdx] = useState(0);
+
+  // Dynamic Facebook-like typography: prominent large font for short thoughts, comfortable reading font for longer posts
+  const isShortText = content.length < 85 && mediaUrls.length === 0;
+
+  const handleContentChange = (val: string) => {
+    setContent(val);
+    if (Platform.OS === 'web' && contentInputRef.current) {
+      try {
+        const node = contentInputRef.current;
+        const textarea =
+          node?.tagName === 'TEXTAREA' ? node : node?.querySelector?.('textarea') || node;
+        if (textarea && textarea.style) {
+          textarea.style.height = 'auto';
+          const minH = mediaUrls.length > 0 ? 36 : 52;
+          const newH = Math.max(minH, textarea.scrollHeight);
+          textarea.style.height = `${newH}px`;
+          setContentHeight(newH);
+        }
+      } catch {}
+    }
+  };
+
+  // Recalculate content height when photos are added or removed
+  useEffect(() => {
+    if (Platform.OS === 'web' && contentInputRef.current) {
+      try {
+        const node = contentInputRef.current;
+        const textarea =
+          node?.tagName === 'TEXTAREA' ? node : node?.querySelector?.('textarea') || node;
+        if (textarea && textarea.style) {
+          textarea.style.height = 'auto';
+          const minH = mediaUrls.length > 0 ? 36 : 52;
+          const newH = Math.max(minH, textarea.scrollHeight);
+          textarea.style.height = `${newH}px`;
+          setContentHeight(newH);
+        }
+      } catch {}
+    }
+  }, [mediaUrls.length]);
 
   // Feelings
   const [feeling, setFeeling] = useState<string | null>(null);
@@ -73,36 +209,138 @@ export function MobileComposerModal() {
   const [duaFadilah, setDuaFadilah] = useState('');
 
   // Blood request fields
+  const [forMyself, setForMyself] = useState(false);
   const [patientName, setPatientName] = useState('');
   const [bloodGroup, setBloodGroup] = useState('');
   const [units, setUnits] = useState(1);
-  const [urgency, setUrgency] = useState<'REGULAR' | 'URGENT' | 'EMERGENCY'>('REGULAR');
   const [hospitalName, setHospitalName] = useState('');
-  const [location, setLocation] = useState('');
+  const [locationValue, setLocationValue] = useState<LocationValue>(() =>
+    matchUserLocationToGeo(user)
+  );
   const [contactNumber, setContactNumber] = useState('');
-  const [neededDate, setNeededDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [alternateContact, setAlternateContact] = useState('');
+  const [neededDate, setNeededDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(12, 0, 0, 0);
+    return d.toISOString();
+  });
   const [problem, setProblem] = useState('');
   const [bloodNote, setBloodNote] = useState('');
 
-  const selectedFeeling = getFeelingById(feeling);
-
-  // Handle deep-link initial mode / action when modal opens
+  // Sync location initially from user profile if user has a set location
   useEffect(() => {
-    if (isComposerModalOpen) {
-      if (composerInitialMode) {
-        setPostType(composerInitialMode);
-      }
-      if (composerInitialAction === 'photo') {
-        setTimeout(() => {
-          handlePickImages();
-        }, 300);
-      } else if (composerInitialAction === 'feeling') {
-        setTimeout(() => {
-          setShowFeelingPicker(true);
-        }, 200);
+    if (user) {
+      const userGeo = matchUserLocationToGeo(user);
+      if (userGeo.location) {
+        setLocationValue((prev) => (!prev.location ? userGeo : prev));
       }
     }
-  }, [isComposerModalOpen, composerInitialMode, composerInitialAction]);
+  }, [user]);
+
+  // Auto fill name, blood group & location if forMyself is checked
+  useEffect(() => {
+    if (forMyself && user) {
+      if (user.name) {
+        setPatientName(user.name);
+      }
+      if (user.bloodGroup) {
+        const bgVal = mapToBloodGroupValue(user.bloodGroup);
+        if (bgVal) {
+          setBloodGroup(bgVal);
+        }
+      }
+      const userGeo = matchUserLocationToGeo(user);
+      if (userGeo.location) {
+        setLocationValue(userGeo);
+      }
+    }
+  }, [forMyself, user]);
+
+  const selectedFeeling = getFeelingById(feeling);
+
+  // Handle deep-link initial mode / action or edit post hydration when modal opens
+  useEffect(() => {
+    if (isComposerModalOpen) {
+      setContentHeight(44);
+      if (composerEditingPost) {
+        const isBlood =
+          composerEditingPost.type === 'BLOOD_REQUEST' ||
+          Boolean(composerEditingPost.bloodRequest) ||
+          Boolean(composerEditingPost.bloodRequestId);
+
+        const isDua =
+          composerEditingPost.type === 'DUA' ||
+          Boolean(composerEditingPost.dua) ||
+          Boolean(composerEditingPost.duaId);
+
+        if (isBlood) {
+          setPostType('BLOOD_REQUEST');
+          const br = composerEditingPost.bloodRequest;
+          if (br) {
+            setForMyself(Boolean(br.forMyself));
+            setPatientName(br.patientName || '');
+            if (br.bloodGroup) {
+              setBloodGroup(mapToBloodGroupValue(br.bloodGroup));
+            }
+            setUnits(br.units || 1);
+            setHospitalName(br.hospitalName || '');
+            setLocationValue({
+              country: (br as any).country || 'Bangladesh',
+              countryCode: (br as any).countryCode || 'BD',
+              state: (br as any).state || '',
+              city: (br as any).city || '',
+              location: br.location || '',
+            });
+            setContactNumber(br.contactNumber || '');
+            setAlternateContact(br.alternateContact || '');
+            if (br.neededDate) {
+              setNeededDate(new Date(br.neededDate).toISOString());
+            }
+            setProblem(br.problem || '');
+            setBloodNote((br as any).note || '');
+          }
+          setContent(composerEditingPost.content || '');
+        } else if (isDua) {
+          setPostType('DUA');
+          const duaObj = composerEditingPost.dua;
+          const extractedTitle =
+            duaObj?.title ||
+            composerEditingPost.content?.replace(/^🌙\s*/, '') ||
+            '';
+          setDuaTitle(extractedTitle);
+          setDuaMeaning(duaObj?.meaningBangla || duaObj?.meaning || '');
+          setDuaTransliteration(duaObj?.transliteration || '');
+          setDuaArabicText(duaObj?.arabicText || '');
+          setDuaFadilah(duaObj?.fadilah || '');
+        } else {
+          setPostType('TEXT');
+          setContent(composerEditingPost.content || '');
+          setMediaUrls(composerEditingPost.mediaUrls || []);
+          setMediaLayout(composerEditingPost.mediaLayout || 'COLLAGE');
+        }
+        setFeeling(composerEditingPost.feeling || null);
+      } else {
+        if (composerInitialMode) {
+          setPostType(composerInitialMode);
+        }
+        if (composerInitialAction === 'photo') {
+          setTimeout(() => {
+            handlePickImages();
+          }, 300);
+        } else if (composerInitialAction === 'feeling') {
+          setTimeout(() => {
+            setShowFeelingPicker(true);
+          }, 200);
+        }
+      }
+    }
+  }, [
+    isComposerModalOpen,
+    composerEditingPost,
+    composerInitialMode,
+    composerInitialAction,
+  ]);
 
   if (!isComposerModalOpen) return null;
 
@@ -113,14 +351,16 @@ export function MobileComposerModal() {
       : postType === 'DUA'
         ? duaMeaning.trim().length > 0
         : Boolean(
-            patientName.trim() &&
+            (forMyself ? user?.name || patientName.trim() : patientName.trim()) &&
               bloodGroup &&
               hospitalName.trim() &&
+              (locationValue.location?.trim() || locationValue.districtId) &&
               contactNumber.trim()
           );
 
   const resetForm = () => {
     setContent('');
+    setContentHeight(160);
     setMediaUrls([]);
     setMediaLayout('COLLAGE');
     setFeeling(null);
@@ -130,18 +370,23 @@ export function MobileComposerModal() {
     setDuaTransliteration('');
     setDuaMeaning('');
     setDuaFadilah('');
+    setForMyself(false);
     setPatientName('');
     setBloodGroup('');
     setUnits(1);
-    setUrgency('REGULAR');
     setHospitalName('');
-    setLocation('');
+    setLocationValue(matchUserLocationToGeo(user));
     setContactNumber('');
-    setNeededDate(new Date().toISOString().split('T')[0]);
+    setAlternateContact('');
+    const resetD = new Date();
+    resetD.setDate(resetD.getDate() + 1);
+    resetD.setHours(12, 0, 0, 0);
+    setNeededDate(resetD.toISOString());
     setProblem('');
     setBloodNote('');
     setErrorMessage(null);
     setPostType('TEXT');
+    setComposerEditingPost(null);
   };
 
   const handleClose = () => {
@@ -204,81 +449,178 @@ export function MobileComposerModal() {
   const handleSubmit = async () => {
     if (!isPostValid || isSubmitting || isUploadingMedia) return;
 
+    // Capture snapshot of form inputs before immediate close & reset
+    const pIsEditing = isEditing;
+    const pEditingPost = composerEditingPost;
+    const pType = postType;
+    const pContent = content.trim();
+    const pMediaUrls = [...mediaUrls];
+    const pMediaLayout = mediaLayout;
+    const pFeeling = feeling;
+    const pDuaTitle = duaTitle.trim();
+    const pDuaMeaning = duaMeaning.trim();
+    const pDuaTransliteration = duaTransliteration.trim();
+    const pDuaFadilah = duaFadilah.trim();
+    const pDuaArabicText = duaArabicText.trim();
+    const pForMyself = forMyself;
+    const pPatientName = (pForMyself ? user?.name || patientName : patientName).trim();
+    const pBloodGroup = bloodGroup;
+    const pUnits = units;
+    const pHospitalName = hospitalName.trim();
+    const pLocationValue = { ...locationValue };
+    const pContactNumber = contactNumber.trim();
+    const pAlternateContact = alternateContact.trim();
+    const pNeededDate = neededDate;
+    const pProblem = problem.trim();
+    const pBloodNote = bloodNote.trim();
+
+    // 1. Immediately close composer modal just like frontend
     setIsSubmitting(true);
     setIsUploadingPost(
       true,
-      postType === 'BLOOD_REQUEST' ? 'BLOOD' : 'STANDARD'
+      pIsEditing
+        ? 'UPDATE'
+        : pType === 'BLOOD_REQUEST'
+        ? 'BLOOD'
+        : 'STANDARD'
     );
-    setErrorMessage(null);
+    handleClose();
 
-    try {
-      if (postType === 'TEXT') {
-        await createPost({
-          type: 'TEXT',
-          content: content.trim() || undefined,
-          mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
-          mediaLayout: mediaUrls.length > 1 ? mediaLayout : 'COLLAGE',
-          feeling: feeling || undefined,
-          visibility: 'PUBLIC',
-          status: 'PUBLISHED',
-        });
-      } else if (postType === 'DUA') {
-        await createPost({
-          type: 'DUA',
-          content: duaTitle.trim() ? `🌙 ${duaTitle.trim()}` : undefined,
-          feeling: feeling || undefined,
-          visibility: 'PUBLIC',
-          status: 'PUBLISHED',
-          duaData: {
-            title: duaTitle.trim() || undefined,
-            meaning: duaMeaning.trim(),
-            transliteration: duaTransliteration.trim() || undefined,
-            fadilah: duaFadilah.trim() || undefined,
-            arabicText: duaArabicText.trim() || undefined,
-          },
-        });
-      } else if (postType === 'BLOOD_REQUEST') {
-        const fullProblem = [
-          `[${urgency}]`,
-          problem.trim(),
-          bloodNote.trim() ? `Note: ${bloodNote.trim()}` : '',
-        ]
-          .filter(Boolean)
-          .join(' - ');
+    // 2. Perform upload & post creation in the background
+    (async () => {
+      try {
+        if (pIsEditing && pEditingPost) {
+          if (pType === 'DUA') {
+            await updatePost(pEditingPost.id, {
+              type: 'DUA',
+              content: pDuaTitle ? `🌙 ${pDuaTitle}` : undefined,
+              feeling: pFeeling || undefined,
+              duaData: {
+                title: pDuaTitle || undefined,
+                meaning: pDuaMeaning,
+                transliteration: pDuaTransliteration || undefined,
+                fadilah: pDuaFadilah || undefined,
+                arabicText: pDuaArabicText || undefined,
+              },
+            });
+          } else if (pType === 'BLOOD_REQUEST') {
+            const fullProblem = [
+              pProblem,
+              pBloodNote ? `Note: ${pBloodNote}` : '',
+            ]
+              .filter(Boolean)
+              .join(' - ');
 
-        await createPost({
-          type: 'BLOOD_REQUEST',
-          content: content.trim() || (fullProblem ? `🩸 ${fullProblem}` : undefined),
-          feeling: feeling || undefined,
-          visibility: 'PUBLIC',
-          status: 'PUBLISHED',
-          bloodRequestData: {
-            patientName: patientName.trim(),
-            bloodGroup,
-            units: Number(units) || 1,
-            hospitalName: hospitalName.trim(),
-            location: location.trim() || hospitalName.trim(),
-            contactNumber: contactNumber.trim(),
-            neededDate: neededDate ? new Date(neededDate).toISOString() : new Date().toISOString(),
-            problem: fullProblem || undefined,
-          },
-        });
-      }
+            await updatePost(pEditingPost.id, {
+              type: 'BLOOD_REQUEST',
+              content: pContent || (fullProblem ? `🩸 ${fullProblem}` : undefined),
+              feeling: pFeeling || undefined,
+              bloodRequestData: {
+                patientName: pPatientName,
+                forMyself: pForMyself,
+                bloodGroup: pBloodGroup,
+                units: Number(pUnits) || 1,
+                hospitalName: pHospitalName,
+                country: pLocationValue.country || 'Bangladesh',
+                countryCode: pLocationValue.countryCode || 'BD',
+                state: pLocationValue.state,
+                city: pLocationValue.city,
+                location: pLocationValue.location.trim() || pHospitalName,
+                contactNumber: pContactNumber,
+                alternateContact: pAlternateContact || undefined,
+                neededDate: pNeededDate ? new Date(pNeededDate).toISOString() : new Date().toISOString(),
+                problem: pProblem || undefined,
+                note: pBloodNote || undefined,
+              },
+            });
+          } else {
+            await updatePost(pEditingPost.id, {
+              type: 'TEXT',
+              content: pContent || undefined,
+              feeling: pFeeling || undefined,
+              mediaUrls: pMediaUrls,
+              mediaLayout: pMediaUrls.length > 1 ? pMediaLayout : 'COLLAGE',
+            });
+          }
+        } else if (pType === 'TEXT') {
+          await createPost({
+            type: 'TEXT',
+            content: pContent || undefined,
+            mediaUrls: pMediaUrls.length > 0 ? pMediaUrls : undefined,
+            mediaLayout: pMediaUrls.length > 1 ? pMediaLayout : 'COLLAGE',
+            feeling: pFeeling || undefined,
+            visibility: 'PUBLIC',
+            status: 'PUBLISHED',
+          });
+        } else if (pType === 'DUA') {
+          await createPost({
+            type: 'DUA',
+            content: pDuaTitle ? `🌙 ${pDuaTitle}` : undefined,
+            feeling: pFeeling || undefined,
+            visibility: 'PUBLIC',
+            status: 'PUBLISHED',
+            duaData: {
+              title: pDuaTitle || undefined,
+              meaning: pDuaMeaning,
+              transliteration: pDuaTransliteration || undefined,
+              fadilah: pDuaFadilah || undefined,
+              arabicText: pDuaArabicText || undefined,
+            },
+          });
+        } else if (pType === 'BLOOD_REQUEST') {
+          const fullProblem = [
+            pProblem,
+            pBloodNote ? `Note: ${pBloodNote}` : '',
+          ]
+            .filter(Boolean)
+            .join(' - ');
 
-      handleClose();
-      triggerPostSuccess();
-    } catch (err: any) {
-      setIsUploadingPost(false);
-      setErrorMessage(
-        err?.response?.data?.message ||
+          await createPost({
+            type: 'BLOOD_REQUEST',
+            content: pContent || (fullProblem ? `🩸 ${fullProblem}` : undefined),
+            feeling: pFeeling || undefined,
+            visibility: 'PUBLIC',
+            status: 'PUBLISHED',
+            bloodRequestData: {
+              patientName: pPatientName,
+              forMyself: pForMyself,
+              bloodGroup: pBloodGroup,
+              units: Number(pUnits) || 1,
+              hospitalName: pHospitalName,
+              country: pLocationValue.country || 'Bangladesh',
+              countryCode: pLocationValue.countryCode || 'BD',
+              state: pLocationValue.state,
+              city: pLocationValue.city,
+              location: pLocationValue.location.trim() || pHospitalName,
+              contactNumber: pContactNumber,
+              alternateContact: pAlternateContact || undefined,
+              neededDate: pNeededDate ? new Date(pNeededDate).toISOString() : new Date().toISOString(),
+              problem: pProblem || undefined,
+              note: pBloodNote || undefined,
+            },
+          });
+        }
+
+        // Trigger success animation on bottom nav bar
+        triggerPostSuccess();
+      } catch (err: any) {
+        setIsUploadingPost(false);
+        const msg =
+          err?.response?.data?.message ||
           err?.message ||
           (locale === 'bn'
             ? 'পোস্ট করতে সমস্যা হয়েছে।'
-            : 'Failed to create post. Please try again.')
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+            : 'Failed to create post. Please try again.');
+        console.error('Failed to create post in background:', err);
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          window.alert(msg);
+        } else {
+          Alert.alert(locale === 'bn' ? 'ত্রুটি' : 'Error', msg);
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
+    })();
   };
 
   // Circular character progress ring
@@ -310,13 +652,35 @@ export function MobileComposerModal() {
 
           <View className="flex-row items-center gap-1.5">
             <AppIcon
-              android="auto_awesome"
-              ios="sparkles"
+              android={isEditing ? 'edit' : 'auto_awesome'}
+              ios={isEditing ? 'pencil' : 'sparkles'}
               size={16}
-              color="#1877f2"
+              color={
+                isEditing
+                  ? postType === 'BLOOD_REQUEST'
+                    ? '#e11d48'
+                    : postType === 'DUA'
+                    ? '#059669'
+                    : '#1877f2'
+                  : '#1877f2'
+              }
             />
             <Text className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb]">
-              {locale === 'bn' ? 'নতুন পোস্ট' : 'Create Post'}
+              {isEditing
+                ? postType === 'BLOOD_REQUEST'
+                  ? locale === 'bn'
+                    ? 'রক্তের অনুরোধ সম্পাদনা'
+                    : 'Edit Blood Request'
+                  : postType === 'DUA'
+                  ? locale === 'bn'
+                    ? 'পবিত্র দু’আ সম্পাদনা'
+                    : 'Edit Dua Post'
+                  : locale === 'bn'
+                    ? 'পোস্ট সম্পাদনা'
+                    : 'Edit Post'
+                : locale === 'bn'
+                  ? 'নতুন পোস্ট'
+                  : 'Create Post'}
             </Text>
           </View>
 
@@ -337,8 +701,8 @@ export function MobileComposerModal() {
             ) : (
               <>
                 <AppIcon
-                  android="send"
-                  ios="paperplane.fill"
+                  android={isEditing ? 'check' : 'send'}
+                  ios={isEditing ? 'checkmark' : 'paperplane.fill'}
                   size={14}
                   color={isPostValid ? '#ffffff' : '#9ca3af'}
                 />
@@ -348,16 +712,23 @@ export function MobileComposerModal() {
                       ? 'text-white'
                       : 'text-gray-400 dark:text-gray-500'
                   }`}>
-                  {locale === 'bn' ? 'পোস্ট' : 'Post'}
+                  {isEditing
+                    ? locale === 'bn'
+                      ? 'আপডেট'
+                      : 'Update'
+                    : locale === 'bn'
+                      ? 'পোস্ট'
+                      : 'Post'}
                 </Text>
               </>
             )}
           </Pressable>
         </View>
 
-        {/* ────────────────── 2. POST TYPE SEGMENTED ROW ────────────────── */}
-        <View className="px-4 py-2.5 border-b border-[#e4e6eb]/60 dark:border-[#2d2e2f] bg-[#fbfbfb] dark:bg-[#1f2022]">
-          <View className="flex-row gap-1.5 p-1 rounded-2xl bg-[#f0f2f5] dark:bg-[#2a2b2d]">
+        {/* ────────────────── 2. POST TYPE SEGMENTED ROW (Only when creating new post) ────────────────── */}
+        {!isEditing && (
+          <View className="px-4 py-2.5 border-b border-[#e4e6eb]/60 dark:border-[#2d2e2f] bg-[#fbfbfb] dark:bg-[#1f2022]">
+            <View className="flex-row gap-1.5 p-1 rounded-2xl bg-[#f0f2f5] dark:bg-[#2a2b2d]">
             <Pressable
               onPress={() => {
                 setPostType('TEXT');
@@ -428,11 +799,13 @@ export function MobileComposerModal() {
             </Pressable>
           </View>
         </View>
+      )}
 
         {/* ────────────────── 3. SCROLLABLE WRITING CANVAS ────────────────── */}
         <ScrollView
           className="flex-1 px-4 py-3.5"
-          contentContainerStyle={{ paddingBottom: 24 }}>
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+          keyboardShouldPersistTaps="handled">
           {/* Error Message */}
           {errorMessage && (
             <View className="mb-3 rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/40 dark:border-rose-900/50 px-3.5 py-2.5 flex-row items-center gap-2">
@@ -490,94 +863,206 @@ export function MobileComposerModal() {
 
           {/* ────────────── MODE 1: REFLECTION / TEXT ────────────── */}
           {postType === 'TEXT' && (
-            <View className="gap-3">
+            <View className="gap-2.5 flex-1">
               <TextInput
+                ref={contentInputRef}
                 value={content}
-                onChangeText={setContent}
+                onChangeText={handleContentChange}
                 multiline
+                scrollEnabled={false}
+                onContentSizeChange={(e) => {
+                  const h = e.nativeEvent?.contentSize?.height;
+                  const minH = mediaUrls.length > 0 ? 36 : 52;
+                  if (h && h > 0) {
+                    setContentHeight(Math.max(minH, Math.ceil(h)));
+                  }
+                }}
                 placeholder={
                   locale === 'bn'
                     ? 'আপনার ভাবনা, কুরআন-হাদিসের সুন্দর নসিহত বা দোয়া শেয়ার করুন...'
                     : "What's on your mind? Share a reflection, reminder, or story..."
                 }
                 placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                className="min-h-[140px] text-[17px] leading-6 text-[#050505] dark:text-[#e4e6eb]"
+                style={{
+                  minHeight: mediaUrls.length > 0 ? 36 : 52,
+                  height: Math.max(mediaUrls.length > 0 ? 36 : 52, contentHeight),
+                  fontSize: isShortText ? 22 : 16,
+                  lineHeight: isShortText ? 30 : 22,
+                  width: '100%',
+                  outlineStyle: 'none',
+                  borderWidth: 0,
+                  padding: 0,
+                  margin: 0,
+                  ...(Platform.OS === 'web'
+                    ? {
+                        resize: 'none',
+                        overflow: 'hidden',
+                        boxSizing: 'border-box',
+                      }
+                    : {}),
+                } as any}
+                className="w-full text-[#050505] dark:text-[#e4e6eb]"
                 textAlignVertical="top"
               />
 
-              {/* Attached Photos Strip */}
+              {/* Attached Photos Live Feed Preview */}
               {mediaUrls.length > 0 && (
-                <View className="p-3 rounded-2xl border border-[#e4e6eb] dark:border-[#2d2e2f] bg-[#f8f9fa] dark:bg-[#1f2022] gap-2.5">
-                  <View className="flex-row items-center justify-between">
-                    <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
-                      {locale === 'bn'
-                        ? `সংযুক্ত ছবি (${mediaUrls.length}/10)`
-                        : `Attached Photos (${mediaUrls.length}/10)`}
-                    </Text>
-                    {mediaUrls.length > 1 && (
-                      <View className="flex-row items-center gap-1 rounded-xl bg-[#e4e6eb] dark:bg-[#2d2e2f] p-0.5">
+                <View
+                  onLayout={(e) =>
+                    setMediaContainerWidth(Math.round(e.nativeEvent.layout.width))
+                  }
+                  className="w-full gap-2 mt-1">
+                  {/* Gallery Controls (Only when 2+ photos attached) */}
+                  {mediaUrls.length > 1 && (
+                    <View className="flex-row items-center justify-between px-0.5 pb-0.5">
+                      <View className="flex-row items-center gap-1 rounded-full bg-[#f0f2f5] dark:bg-[#2a2b2d] p-0.5">
                         <Pressable
                           onPress={() => setMediaLayout('COLLAGE')}
-                          className={`flex-row items-center gap-1 rounded-lg px-2.5 py-1 ${
+                          className={`flex-row items-center gap-1 rounded-full px-2.5 py-0.5 ${
                             mediaLayout === 'COLLAGE'
                               ? 'bg-white dark:bg-[#18191a] shadow-xs'
                               : ''
                           }`}>
                           <AppIcon
                             android="layers"
-                            size={12}
+                            size={11}
                             color={mediaLayout === 'COLLAGE' ? '#1877f2' : '#65676b'}
                           />
                           <Text
-                            className={`text-xs font-semibold ${
+                            className={`text-[11px] font-semibold ${
                               mediaLayout === 'COLLAGE'
                                 ? 'text-primary-600 dark:text-primary-300'
                                 : 'text-[#65676b] dark:text-[#b0b3b8]'
                             }`}>
-                            Collage
+                            {locale === 'bn' ? 'কোলাজ' : 'Collage'}
                           </Text>
                         </Pressable>
                         <Pressable
                           onPress={() => setMediaLayout('SWIPE')}
-                          className={`flex-row items-center gap-1 rounded-lg px-2.5 py-1 ${
+                          className={`flex-row items-center gap-1 rounded-full px-2.5 py-0.5 ${
                             mediaLayout === 'SWIPE'
                               ? 'bg-white dark:bg-[#18191a] shadow-xs'
                               : ''
                           }`}>
                           <AppIcon
                             android="more_horiz"
-                            size={12}
+                            size={11}
                             color={mediaLayout === 'SWIPE' ? '#1877f2' : '#65676b'}
                           />
                           <Text
-                            className={`text-xs font-semibold ${
+                            className={`text-[11px] font-semibold ${
                               mediaLayout === 'SWIPE'
                                 ? 'text-primary-600 dark:text-primary-300'
                                 : 'text-[#65676b] dark:text-[#b0b3b8]'
                             }`}>
-                            Swipe
+                            {locale === 'bn' ? 'স্লাইড' : 'Swipe'}
                           </Text>
                         </Pressable>
                       </View>
-                    )}
-                  </View>
 
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ gap: 10 }}>
-                    {mediaUrls.map((url, idx) => (
+                      <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                        {mediaUrls.length}/10
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* ─── LIVE FEED MEDIA PREVIEW ─── */}
+                  {/* Case 1: SWIPE Carousel */}
+                  {mediaLayout === 'SWIPE' && mediaUrls.length > 1 ? (
+                    <View className="w-full rounded-2xl overflow-hidden relative bg-[#e4e6eb] dark:bg-[#2d2e2f]">
+                      <ScrollView
+                        horizontal
+                        pagingEnabled
+                        showsHorizontalScrollIndicator={false}
+                        onMomentumScrollEnd={(e) => {
+                          const w = mediaContainerWidth > 0 ? mediaContainerWidth : 1;
+                          const idx = Math.min(
+                            mediaUrls.length - 1,
+                            Math.max(0, Math.round(e.nativeEvent.contentOffset.x / w))
+                          );
+                          setSwipeActiveIdx(idx);
+                        }}>
+                        {mediaUrls.map((url, idx) => (
+                          <View
+                            key={`${url}-${idx}`}
+                            style={{
+                              width: mediaContainerWidth > 0 ? mediaContainerWidth : 320,
+                              aspectRatio: 4 / 3,
+                            }}
+                            className="relative bg-[#e4e6eb] dark:bg-[#2d2e2f]">
+                            <Image
+                              source={{ uri: url }}
+                              style={{ width: '100%', height: '100%' }}
+                              resizeMode="cover"
+                            />
+                            <Pressable
+                              onPress={() => removeMediaUrl(idx)}
+                              className="absolute top-2.5 right-2.5 h-7 w-7 rounded-full bg-black/75 items-center justify-center active:scale-90 shadow-md z-10"
+                              accessibilityLabel="Remove photo">
+                              <AppIcon
+                                android="close"
+                                ios="xmark"
+                                size={14}
+                                color="#ffffff"
+                              />
+                            </Pressable>
+                          </View>
+                        ))}
+                      </ScrollView>
+                      <View className="absolute top-2.5 left-2.5 rounded-full bg-black/60 px-2.5 py-0.5 z-10 pointer-events-none">
+                        <Text className="text-[11px] font-bold text-white">
+                          {swipeActiveIdx + 1} / {mediaUrls.length}
+                        </Text>
+                      </View>
+                    </View>
+                  ) : mediaUrls.length === 1 ? (
+                    /* Case 2: Exactly 1 Image (Natural Aspect Ratio up to 520px, matches feed SingleFeedImage) */
+                    <ComposerSingleImage
+                      uri={mediaUrls[0]}
+                      onRemove={() => removeMediaUrl(0)}
+                    />
+                  ) : mediaUrls.length === 2 ? (
+                    /* Case 3: Exactly 2 Images (Side by Side 1:1, matches feed 2-image layout) */
+                    <View className="w-full flex-row gap-1.5 rounded-2xl overflow-hidden">
+                      {mediaUrls.map((url, idx) => (
+                        <View
+                          key={`${url}-${idx}`}
+                          style={{ flex: 1, aspectRatio: 1 }}
+                          className="relative rounded-xl overflow-hidden bg-[#e4e6eb] dark:bg-[#2d2e2f]">
+                          <Image
+                            source={{ uri: url }}
+                            style={{ width: '100%', height: '100%' }}
+                            resizeMode="cover"
+                          />
+                          <Pressable
+                            onPress={() => removeMediaUrl(idx)}
+                            className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/75 items-center justify-center active:scale-90 shadow-md z-10"
+                            accessibilityLabel="Remove photo">
+                            <AppIcon
+                              android="close"
+                              ios="xmark"
+                              size={12}
+                              color="#ffffff"
+                            />
+                          </Pressable>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    /* Case 4: 3+ Images Collage (Hero 16:9 + 3 row thumbnails, matches feed collage) */
+                    <View className="w-full gap-1.5 rounded-2xl overflow-hidden">
+                      {/* Hero Image */}
                       <View
-                        key={`${url}-${idx}`}
-                        className="h-20 w-20 rounded-xl overflow-hidden relative border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
+                        style={{ width: '100%', aspectRatio: 16 / 9 }}
+                        className="relative rounded-xl overflow-hidden bg-[#e4e6eb] dark:bg-[#2d2e2f]">
                         <Image
-                          source={{ uri: url }}
+                          source={{ uri: mediaUrls[0] }}
                           style={{ width: '100%', height: '100%' }}
                           resizeMode="cover"
                         />
                         <Pressable
-                          onPress={() => removeMediaUrl(idx)}
-                          className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/75 items-center justify-center active:scale-90"
+                          onPress={() => removeMediaUrl(0)}
+                          className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/75 items-center justify-center active:scale-90 shadow-md z-10"
                           accessibilityLabel="Remove photo">
                           <AppIcon
                             android="close"
@@ -587,8 +1072,90 @@ export function MobileComposerModal() {
                           />
                         </Pressable>
                       </View>
-                    ))}
-                  </ScrollView>
+
+                      {/* Row of 3 Thumbnails */}
+                      <View className="flex-row gap-1.5">
+                        {mediaUrls.slice(1, 4).map((url, sliceIdx) => {
+                          const realIdx = sliceIdx + 1;
+                          const isLast = sliceIdx === 2;
+                          const extraCount = mediaUrls.length - 4;
+
+                          return (
+                            <View
+                              key={`${url}-${realIdx}`}
+                              style={{ flex: 1, aspectRatio: 1 }}
+                              className="relative rounded-xl overflow-hidden bg-[#e4e6eb] dark:bg-[#2d2e2f]">
+                              <Image
+                                source={{ uri: url }}
+                                style={{ width: '100%', height: '100%' }}
+                                resizeMode="cover"
+                              />
+
+                              {/* Remove Button */}
+                              <Pressable
+                                onPress={() => removeMediaUrl(realIdx)}
+                                className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-black/75 items-center justify-center active:scale-90 shadow-md z-10"
+                                accessibilityLabel="Remove photo">
+                                <AppIcon
+                                  android="close"
+                                  ios="xmark"
+                                  size={11}
+                                  color="#ffffff"
+                                />
+                              </Pressable>
+
+                              {/* Overlay for +N photos */}
+                              {isLast && extraCount > 0 && (
+                                <View className="absolute inset-0 bg-black/55 items-center justify-center pointer-events-none">
+                                  <Text className="text-lg font-black text-white">
+                                    +{extraCount}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Thumbnail management strip for when there are more than 4 photos */}
+                  {mediaUrls.length > 4 && (
+                    <View className="gap-1.5 pt-1">
+                      <Text className="text-[11px] font-medium text-[#65676b] dark:text-[#b0b3b8]">
+                        {locale === 'bn'
+                          ? `সবগুলো ছবি (${mediaUrls.length}টি) — মুছে ফেলতে ✕ চাপুন:`
+                          : `All attached photos (${mediaUrls.length}) — tap ✕ to remove:`}
+                      </Text>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ gap: 8 }}>
+                        {mediaUrls.map((url, idx) => (
+                          <View
+                            key={`strip-${url}-${idx}`}
+                            className="h-14 w-14 rounded-lg overflow-hidden relative border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
+                            <Image
+                              source={{ uri: url }}
+                              style={{ width: '100%', height: '100%' }}
+                              resizeMode="cover"
+                            />
+                            <Pressable
+                              onPress={() => removeMediaUrl(idx)}
+                              className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full bg-black/75 items-center justify-center active:scale-90"
+                              accessibilityLabel="Remove photo">
+                              <AppIcon
+                                android="close"
+                                ios="xmark"
+                                size={10}
+                                color="#ffffff"
+                              />
+                            </Pressable>
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
                 </View>
               )}
             </View>
@@ -629,13 +1196,21 @@ export function MobileComposerModal() {
                   value={duaMeaning}
                   onChangeText={setDuaMeaning}
                   multiline
+                  scrollEnabled={false}
                   placeholder={
                     locale === 'bn'
                       ? 'দু’আটির অর্থ সুন্দরভাবে বাংলায় লিখুন...'
                       : 'Write the translation / meaning...'
                   }
                   placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                  className="w-full min-h-[90px] rounded-2xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] p-3 text-sm text-[#050505] dark:text-[#e4e6eb]"
+                  style={{
+                    minHeight: 90,
+                    outlineStyle: 'none',
+                    ...(Platform.OS === 'web'
+                      ? { resize: 'none', overflow: 'hidden' }
+                      : {}),
+                  } as any}
+                  className="w-full rounded-2xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] p-3 text-sm text-[#050505] dark:text-[#e4e6eb]"
                   textAlignVertical="top"
                 />
               </View>
@@ -731,69 +1306,89 @@ export function MobileComposerModal() {
                     </Pressable>
                   ))}
                 </View>
+                {forMyself && !user?.bloodGroup && (
+                  <Text className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1">
+                    {locale === 'bn'
+                      ? '⚠️ প্রোফাইলে রক্তের গ্রুপ যুক্ত নেই, এখান থেকে বেছে নিন'
+                      : '⚠️ Blood group not set in your profile, please select here'}
+                  </Text>
+                )}
               </View>
 
-              {/* Urgency Selector */}
-              <View className="gap-1.5">
+              {/* Patient Name with "For myself" button */}
+              <View className="gap-1">
                 <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {locale === 'bn' ? 'জরুরিতার মাত্রা' : 'Urgency Level'}
+                  {locale === 'bn' ? 'রোগীর নাম *' : 'Patient Name *'}
                 </Text>
-                <View className="flex-row gap-2">
-                  {URGENCIES.map((u) => (
-                    <Pressable
-                      key={u.value}
-                      onPress={() => setUrgency(u.value)}
-                      className={`flex-1 py-2 rounded-xl border items-center active:scale-95 ${
-                        urgency === u.value
-                          ? 'border-rose-600 bg-rose-50 dark:bg-rose-950/60'
-                          : 'border-[#e4e6eb] dark:border-[#393a3b]'
-                      }`}>
-                      <Text
-                        className={`text-xs font-bold ${
-                          urgency === u.value
-                            ? 'text-rose-700 dark:text-rose-300'
-                            : 'text-[#65676b] dark:text-[#b0b3b8]'
-                        }`}>
-                        {locale === 'bn' ? u.labelBn : u.label}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-
-              {/* Patient Name & Units */}
-              <View className="flex-row gap-2.5">
-                <View className="flex-1 gap-1">
-                  <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {locale === 'bn' ? 'রোগীর নাম *' : 'Patient Name *'}
-                  </Text>
+                <View className="flex-row items-center gap-2">
                   <TextInput
-                    value={patientName}
-                    onChangeText={setPatientName}
-                    placeholder="Patient Name"
-                    placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                    className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
-                  />
-                </View>
-
-                <View className="w-28 gap-1">
-                  <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {locale === 'bn' ? 'কত ব্যাগ' : 'Units (Bags)'}
-                  </Text>
-                  <TextInput
-                    value={String(units)}
-                    onChangeText={(val) =>
-                      setUnits(Math.max(1, parseInt(val) || 1))
+                    value={forMyself ? user?.name || patientName : patientName}
+                    onChangeText={(val) => {
+                      if (forMyself) setForMyself(false);
+                      setPatientName(val);
+                    }}
+                    placeholder={
+                      locale === 'bn' ? 'রোগীর পূর্ণ নাম' : 'Patient Full Name'
                     }
-                    keyboardType="numeric"
-                    placeholder="1"
                     placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                    className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] text-center font-bold"
+                    className="flex-1 rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
                   />
+                  <Pressable
+                    onPress={() => {
+                      setForMyself((prev) => {
+                        const next = !prev;
+                        if (next && user) {
+                          if (user.name) setPatientName(user.name);
+                          if (user.bloodGroup) {
+                            const bgVal = mapToBloodGroupValue(user.bloodGroup);
+                            if (bgVal) setBloodGroup(bgVal);
+                          }
+                          const userGeo = matchUserLocationToGeo(user);
+                          if (userGeo.location) setLocationValue(userGeo);
+                        }
+                        return next;
+                      });
+                    }}
+                    className={`flex-row items-center justify-center gap-1.5 px-3 py-2 rounded-xl border active:scale-95 ${
+                      forMyself
+                        ? 'border-rose-600 bg-rose-50 dark:bg-rose-950/60'
+                        : 'border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b]'
+                    }`}>
+                    <AppIcon
+                      android={forMyself ? 'check_box' : 'check_box_outline_blank'}
+                      size={16}
+                      color={forMyself ? '#e11d48' : '#65676b'}
+                    />
+                    <Text
+                      className={`text-xs font-bold ${
+                        forMyself
+                          ? 'text-rose-600 dark:text-rose-400'
+                          : 'text-[#050505] dark:text-[#e4e6eb]'
+                      }`}>
+                      {locale === 'bn' ? 'নিজের জন্য' : 'For myself'}
+                    </Text>
+                  </Pressable>
                 </View>
               </View>
 
-              {/* Hospital Name & Area */}
+              {/* Units (Bags) */}
+              <View className="gap-1">
+                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  {locale === 'bn' ? 'কত ব্যাগ রক্ত প্রয়োজন *' : 'Units (Bags) Needed *'}
+                </Text>
+                <TextInput
+                  value={String(units)}
+                  onChangeText={(val) =>
+                    setUnits(Math.max(1, parseInt(val) || 1))
+                  }
+                  keyboardType="numeric"
+                  placeholder="1"
+                  placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
+                  className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
+                />
+              </View>
+
+              {/* Hospital Name */}
               <View className="gap-1">
                 <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
                   {locale === 'bn' ? 'হাসপাতালের নাম *' : 'Hospital Name *'}
@@ -801,36 +1396,43 @@ export function MobileComposerModal() {
                 <TextInput
                   value={hospitalName}
                   onChangeText={setHospitalName}
-                  placeholder="e.g. Dhaka Medical College Hospital"
+                  placeholder={
+                    locale === 'bn'
+                      ? 'উদা: ঢাকা মেডিকেল কলেজ হাসপাতাল'
+                      : 'e.g. Dhaka Medical College Hospital'
+                  }
                   placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
                   className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
                 />
               </View>
 
-              {/* Location / Area */}
-              <View className="gap-1">
-                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {locale === 'bn' ? 'লোকেশন / জেলা' : 'Location / City'}
-                </Text>
-                <TextInput
-                  value={location}
-                  onChangeText={setLocation}
-                  placeholder="e.g. Dhaka, Bangladesh"
-                  placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                  className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
+              {/* Cascading Location Selector (Division, District, Upazila, Area) */}
+              <View className="gap-1.5">
+                <View className="flex-row items-center gap-1.5">
+                  <AppIcon android="pin_drop" size={15} color="#e11d48" />
+                  <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                    {locale === 'bn'
+                      ? 'রক্তের প্রয়োজনস্থল (লোকেশন) *'
+                      : 'Location of Blood Need *'}
+                  </Text>
+                </View>
+                <LocationSelector
+                  value={locationValue}
+                  onChange={setLocationValue}
+                  required={true}
                 />
               </View>
 
-              {/* Contact Number & Date Needed */}
+              {/* Contact Numbers (Row) */}
               <View className="flex-row gap-2.5">
                 <View className="flex-1 gap-1">
                   <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {locale === 'bn' ? 'যোগাযোগ নম্বর *' : 'Contact Phone *'}
+                    {locale === 'bn' ? 'মোবাইল নম্বর *' : 'Contact Phone *'}
                   </Text>
                   <TextInput
                     value={contactNumber}
                     onChangeText={setContactNumber}
-                    placeholder="01XXXXXXXXX"
+                    placeholder="017XXXXXXXX"
                     keyboardType="phone-pad"
                     placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
                     className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
@@ -839,22 +1441,37 @@ export function MobileComposerModal() {
 
                 <View className="flex-1 gap-1">
                   <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {locale === 'bn' ? 'প্রয়োজনের তারিখ' : 'Date Needed'}
+                    {locale === 'bn' ? 'বিকল্প নম্বর (ঐচ্ছিক)' : 'Alternate Phone'}
                   </Text>
                   <TextInput
-                    value={neededDate}
-                    onChangeText={setNeededDate}
-                    placeholder="YYYY-MM-DD"
+                    value={alternateContact}
+                    onChangeText={setAlternateContact}
+                    placeholder="018XXXXXXXX"
+                    keyboardType="phone-pad"
                     placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
                     className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
                   />
                 </View>
               </View>
 
+              {/* Needed Date & Time Picker */}
+              <View className="gap-1">
+                <DateTimePicker
+                  label={
+                    locale === 'bn'
+                      ? 'কখন রক্তের প্রয়োজন? (তারিখ ও সময়) *'
+                      : 'Needed Date & Time *'
+                  }
+                  value={neededDate}
+                  onChange={setNeededDate}
+                  required={true}
+                />
+              </View>
+
               {/* Problem / Reason */}
               <View className="gap-1">
                 <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {locale === 'bn' ? 'রোগের বিবরণ / সমস্যা' : 'Medical Reason / Problem'}
+                  {locale === 'bn' ? 'রোগের কারণ বা সমস্যা (ঐচ্ছিক)' : 'Medical Reason / Problem (Optional)'}
                 </Text>
                 <TextInput
                   value={problem}
@@ -863,6 +1480,24 @@ export function MobileComposerModal() {
                     locale === 'bn'
                       ? 'যেমন: ডেলিভারি রোগী, রক্তের হিমোগ্লোবিন কমে গেছে'
                       : 'e.g. Delivery patient, low hemoglobin'
+                  }
+                  placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
+                  className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
+                />
+              </View>
+
+              {/* Additional Note */}
+              <View className="gap-1">
+                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  {locale === 'bn' ? 'অতিরিক্ত তথ্য (ঐচ্ছিক)' : 'Additional Note (Optional)'}
+                </Text>
+                <TextInput
+                  value={bloodNote}
+                  onChangeText={setBloodNote}
+                  placeholder={
+                    locale === 'bn'
+                      ? 'যেমন: রোগীর অবস্থা আশঙ্কাজনক বা দ্রুত যোগাযোগ করুন'
+                      : 'e.g. Please call only if you can donate'
                   }
                   placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
                   className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"

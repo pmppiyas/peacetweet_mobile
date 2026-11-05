@@ -25,6 +25,7 @@ interface FeedContextType {
   error: string | null;
   refreshFeed: () => Promise<void>;
   createPost: (input: CreatePostInput) => Promise<FeedItem>;
+  updatePost: (postId: string, input: Partial<CreatePostInput>) => Promise<FeedItem | null>;
   toggleReaction: (postId: string, currentlyReacted: boolean) => Promise<void>;
   toggleSave: (postId: string, currentlySaved: boolean) => Promise<void>;
   updatePostTimeSlot: (postId: string, timeSlot: TimeSlot | null) => Promise<void>;
@@ -284,6 +285,31 @@ export function FeedProvider({ children }: { children: React.ReactNode }) {
     [isAuthenticated, fetchFeed]
   );
 
+  const updatePost = useCallback(
+    async (
+      postId: string,
+      input: Partial<CreatePostInput>
+    ): Promise<FeedItem | null> => {
+      try {
+        const res = await feedApi.updatePost(postId, input);
+        const updated = (res as any)?.data ?? res;
+        if (updated && updated.id) {
+          updateFeedState((prev) =>
+            prev.map((item) =>
+              item.id === postId ? { ...item, ...updated } : item
+            )
+          );
+          queryCache.set(`post:detail:${postId}`, updated);
+          return updated;
+        }
+        return null;
+      } catch (err) {
+        throw err;
+      }
+    },
+    [updateFeedState]
+  );
+
   const deletePost = useCallback(async (postId: string) => {
     setItems((prev) => prev.filter((item) => item.id !== postId));
     try {
@@ -318,6 +344,7 @@ export function FeedProvider({ children }: { children: React.ReactNode }) {
         error,
         refreshFeed,
         createPost,
+        updatePost,
         toggleReaction,
         toggleSave,
         updatePostTimeSlot,

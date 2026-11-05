@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -28,27 +28,51 @@ export function EditPostModal({
   post,
   onSuccess,
 }: EditPostModalProps) {
-  const { locale, theme } = useUi();
+  const { locale, theme, openComposer, setIsUploadingPost, triggerPostSuccess } = useUi();
   const isDark = theme === 'dark';
   const [content, setContent] = useState(post.content || '');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Redirect any post edit attempt to the full Mobile Composer in edit mode
+  useEffect(() => {
+    if (visible && post) {
+      onClose();
+      const mode =
+        post.type === 'BLOOD_REQUEST' ||
+        Boolean(post.bloodRequest) ||
+        Boolean(post.bloodRequestId)
+          ? 'BLOOD_REQUEST'
+          : post.type === 'DUA' ||
+            Boolean(post.dua) ||
+            Boolean(post.duaId)
+          ? 'DUA'
+          : 'TEXT';
+
+      openComposer({
+        mode,
+        editingPost: post,
+      });
+    }
+  }, [visible, post]);
+
   const handleSave = async () => {
     if (!content.trim()) return;
     setIsSaving(true);
     setError(null);
+    setIsUploadingPost(true, 'UPDATE');
+    onClose();
     try {
       const res = await feedApi.updatePost(post.id, { content: content.trim() });
       const payload = (res as any)?.data ?? res;
       if (payload && payload.id) {
         onSuccess(payload);
-        onClose();
       } else {
         onSuccess({ ...post, content: content.trim() });
-        onClose();
       }
+      triggerPostSuccess();
     } catch (err: any) {
+      setIsUploadingPost(false);
       setError(
         locale === 'bn'
           ? 'পোস্ট আপডেট করতে ব্যর্থ হয়েছে।'

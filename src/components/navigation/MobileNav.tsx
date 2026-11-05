@@ -157,6 +157,9 @@ export function MobileNav() {
           const label = locale === 'bn' ? item.labelBn : item.labelEn;
 
           if (item.isComposer) {
+            const isBloodContext = postUploadType === 'BLOOD';
+            const isUpdateContext = postUploadType === 'UPDATE';
+
             const activeBg = isPostUploadSuccess
               ? '#059669'
               : isBloodContext
@@ -206,11 +209,19 @@ export function MobileNav() {
                   style={{ color: activeTextColor }}
                   className="text-[10px] font-bold mt-0.5 select-none">
                   {isUploadingPost
-                    ? locale === 'bn'
+                    ? isUpdateContext
+                      ? locale === 'bn'
+                        ? 'আপডেট হচ্ছে...'
+                        : 'Updating...'
+                      : locale === 'bn'
                       ? 'পোস্ট হচ্ছে...'
                       : 'Posting...'
                     : isPostUploadSuccess
-                    ? locale === 'bn'
+                    ? isUpdateContext
+                      ? locale === 'bn'
+                        ? 'আপডেট সফল!'
+                        : 'Updated!'
+                      : locale === 'bn'
                       ? 'সফল!'
                       : 'Done!'
                     : label}

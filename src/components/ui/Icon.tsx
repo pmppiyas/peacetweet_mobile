@@ -36,7 +36,14 @@ export type AndroidSymbol =
   | 'chat'
   | 'report'
   | 'favorite_border'
-  | 'copy';
+  | 'copy'
+  | 'domain'
+  | 'building'
+  | 'local_hospital'
+  | 'calendar'
+  | 'calendar_today'
+  | 'event'
+  | 'check_circle';
 
 export interface AppIconProps {
   android: AndroidSymbol;
@@ -662,6 +669,43 @@ export function AppIcon({
             <Path d="M21 8V5a2 2 0 0 0-2-2h-3" />
             <Path d="M3 16v3a2 2 0 0 0 2 2h3" />
             <Path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+          </>
+        );
+
+      case 'domain':
+      case 'building':
+      case 'local_hospital':
+        return (
+          <>
+            <Path d="M3 21h18" />
+            <Path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
+            <Path d="M9 7h1" />
+            <Path d="M14 7h1" />
+            <Path d="M9 11h1" />
+            <Path d="M14 11h1" />
+            <Path d="M9 15h1" />
+            <Path d="M14 15h1" />
+            <Path d="M10 21v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3" />
+          </>
+        );
+
+      case 'calendar':
+      case 'calendar_today':
+      case 'event':
+        return (
+          <>
+            <Rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+            <Line x1="16" y1="2" x2="16" y2="6" />
+            <Line x1="8" y1="2" x2="8" y2="6" />
+            <Line x1="3" y1="10" x2="21" y2="10" />
+          </>
+        );
+
+      case 'check_circle':
+        return (
+          <>
+            <Circle cx="12" cy="12" r="10" />
+            <Polyline points="9 12 11 14 15 10" />
           </>
         );
 

@@ -16,7 +16,7 @@ import { AuthPromptCard } from '@/components/ui/AuthPromptCard';
 import { LocationSelector, LocationValue } from '@/components/ui/LocationSelector';
 import { matchUserLocationToGeo } from '@/constants/bangladeshGeo';
 import { DateTimePicker } from '@/components/ui/DateTimePicker';
-import { SELECTABLE_GROUPS, toBackendBloodGroup } from '../utils/blood.utils';
+import { SELECTABLE_GROUPS, toBackendBloodGroup, formatBloodGroup } from '../utils/blood.utils';
 import { BloodRequestItem } from '../types/blood.types';
 
 const webNoOutline = Platform.OS === 'web' ? ({
@@ -90,12 +90,18 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
     }
   }, [user]);
 
-  // Auto fill name & location if forMyself is checked
+  // Auto fill name, blood group & location if forMyself is checked
   useEffect(() => {
     if (forMyself && user) {
       if (user.name) {
         setFormPatientName(user.name);
         setFieldErrors((p) => ({ ...p, patientName: false }));
+      }
+      if (user.bloodGroup) {
+        const bgLabel = formatBloodGroup(user.bloodGroup);
+        if (bgLabel && SELECTABLE_GROUPS.includes(bgLabel as any)) {
+          setFormBloodGroup(bgLabel);
+        }
       }
       const userGeo = matchUserLocationToGeo(user);
       if (userGeo.location) {
@@ -321,9 +327,27 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
           />
           <Pressable
             onPress={() => {
-              setForMyself((prev) => !prev);
+              setForMyself((prev) => {
+                const next = !prev;
+                if (next && user) {
+                  if (user.name) {
+                    setFormPatientName(user.name);
+                  }
+                  if (user.bloodGroup) {
+                    const bgLabel = formatBloodGroup(user.bloodGroup);
+                    if (bgLabel && SELECTABLE_GROUPS.includes(bgLabel as any)) {
+                      setFormBloodGroup(bgLabel);
+                    }
+                  }
+                  const userGeo = matchUserLocationToGeo(user);
+                  if (userGeo.location) {
+                    setLocationValue(userGeo);
+                  }
+                }
+                return next;
+              });
               if (fieldErrors.patientName) {
-                setFieldErrors((prev) => ({ ...prev, patientName: false }));
+                setFieldErrors((prev) => ({ ...prev, patientName: false, location: false }));
               }
             }}
             style={[

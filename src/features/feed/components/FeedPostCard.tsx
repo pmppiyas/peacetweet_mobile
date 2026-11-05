@@ -7,7 +7,6 @@ import {
   Pressable,
   ActivityIndicator,
   TextInput,
-  LayoutChangeEvent,
   Modal,
   Share,
   Platform,
@@ -33,12 +32,10 @@ import { PostActionMenuModal } from './PostActionMenuModal';
 import { PostShareModal } from './PostShareModal';
 import { EditPostModal } from './EditPostModal';
 import { ReportPostModal } from './ReportPostModal';
-import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
 import { queryCache } from '@/lib/cache/queryCache';
-import {
-  imageRatioCache,
-  resolveImageAspectRatio,
-} from '@/lib/cache/imageRatioCache';
+import { TextPostCard } from './TextPostCard';
+import { DuaPostCard } from './DuaPostCard';
+import { BloodPostCard } from './BloodPostCard';
 
 const FEELING_MAP: Record<string, { label: string; emoji: string }> = {
   grateful: { label: 'grateful', emoji: '🤲' },
@@ -47,17 +44,6 @@ const FEELING_MAP: Record<string, { label: string; emoji: string }> = {
   hopeful: { label: 'hopeful', emoji: '🌙' },
   happy: { label: 'happy', emoji: '😊' },
   reflective: { label: 'reflective', emoji: '💭' },
-};
-
-const BLOOD_LABEL_MAP: Record<string, string> = {
-  A_POSITIVE: 'A+',
-  A_NEGATIVE: 'A-',
-  B_POSITIVE: 'B+',
-  B_NEGATIVE: 'B-',
-  AB_POSITIVE: 'AB+',
-  AB_NEGATIVE: 'AB-',
-  O_POSITIVE: 'O+',
-  O_NEGATIVE: 'O-',
 };
 
 export function formatRelativeDate(
@@ -88,207 +74,7 @@ export function formatRelativeDate(
 }
 
 /* -------------------------------------------------------------------------- */
-/* Single Post Image – adapts dynamically to natural aspect ratio (auto height */
-/* with max-height cap), avoiding horizontal or vertical photo crops in feed. */
-/* -------------------------------------------------------------------------- */
-function SingleFeedImage({
-  uri,
-  onPress,
-}: {
-  uri: string;
-  onPress: () => void;
-}) {
-  const [aspectRatio, setAspectRatio] = useState<number | null>(
-    () => imageRatioCache.get(uri) || null
-  );
-
-  useEffect(() => {
-    if (!uri) return;
-    resolveImageAspectRatio(uri, (r) => {
-      setAspectRatio(r);
-    });
-  }, [uri]);
-
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        width: '100%',
-        maxHeight: 560,
-        overflow: 'hidden',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-      className="w-full overflow-hidden active:opacity-95 bg-[#e4e6eb] dark:bg-[#3a3b3c]">
-      <Image
-        source={{ uri }}
-        resizeMode="cover"
-        onLoad={(e: any) => {
-          const src = e?.nativeEvent?.source || e?.target;
-          const nw = src?.width || src?.naturalWidth;
-          const nh = src?.height || src?.naturalHeight;
-          if (nw > 0 && nh > 0) {
-            const r = nw / nh;
-            imageRatioCache.set(uri, r);
-            setAspectRatio(r);
-          }
-        }}
-        style={
-          {
-            width: '100%',
-            aspectRatio: aspectRatio || undefined,
-            maxHeight: 560,
-            ...(Platform.OS === 'web' && !aspectRatio
-              ? { height: 'auto', display: 'block' }
-              : {}),
-          } as any
-        }
-        className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-      />
-    </Pressable>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Media gallery (COLLAGE / SWIPE) – shows every photo attached to the post    */
-/* -------------------------------------------------------------------------- */
-function PostMedia({
-  post,
-  urls,
-  layout,
-  onOpenPhoto,
-}: {
-  post?: FeedItem;
-  urls?: string[];
-  layout?: 'COLLAGE' | 'SWIPE';
-  onOpenPhoto?: (url: string) => void;
-}) {
-  const [width, setWidth] = useState(0);
-  const list = (urls || [])
-    .filter((u) => typeof u === 'string' && u.trim().length > 0)
-    .map((u) => normalizeMediaUrl(u));
-  if (list.length === 0) return null;
-
-  const onLayout = (e: LayoutChangeEvent) =>
-    setWidth(Math.round(e.nativeEvent.layout.width));
-
-  const handlePressPhoto = (uri: string) => {
-    if (onOpenPhoto) {
-      onOpenPhoto(uri);
-    } else if (post?.id) {
-      queryCache.set(`post:detail:${post.id}`, post);
-      router.push(`/post/${post.id}` as any);
-    }
-  };
-
-  const renderMedia = () => {
-    if (layout === 'SWIPE' && list.length > 1) {
-      return (
-        <View onLayout={onLayout} className="w-full overflow-hidden">
-          {width > 0 ? (
-            <ScrollView
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}>
-              {list.map((uri, i) => (
-                <Pressable key={`${uri}-${i}`} onPress={() => handlePressPhoto(uri)}>
-                  <Image
-                    source={{ uri }}
-                    resizeMode="cover"
-                    style={{ width, aspectRatio: 4 / 3 }}
-                    className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-                  />
-                </Pressable>
-              ))}
-            </ScrollView>
-          ) : null}
-          <View className="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5">
-            <Text className="text-[10px] font-bold text-white">
-              1 / {list.length}
-            </Text>
-          </View>
-        </View>
-      );
-    }
-
-    if (list.length === 1) {
-      return (
-        <SingleFeedImage
-          uri={list[0]}
-          onPress={() => handlePressPhoto(list[0])}
-        />
-      );
-    }
-
-    if (list.length === 2) {
-      return (
-        <View
-          style={{ width: '100%' }}
-          className="w-full flex-row gap-0.5 overflow-hidden">
-          {list.map((uri, i) => (
-            <Pressable
-              key={`${uri}-${i}`}
-              onPress={() => handlePressPhoto(uri)}
-              style={{ flex: 1 }}
-              className="active:opacity-95">
-              <Image
-                source={{ uri }}
-                resizeMode="cover"
-                style={{ width: '100%', aspectRatio: 1 }}
-                className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-              />
-            </Pressable>
-          ))}
-        </View>
-      );
-    }
-
-    const rest = list.slice(1, 4);
-    const extra = list.length - 4;
-    return (
-      <View
-        style={{ width: '100%' }}
-        className="w-full gap-0.5 overflow-hidden">
-        <Pressable
-          onPress={() => handlePressPhoto(list[0])}
-          className="active:opacity-95">
-          <Image
-            source={{ uri: list[0] }}
-            resizeMode="cover"
-            style={{ width: '100%', aspectRatio: 16 / 9 }}
-            className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-          />
-        </Pressable>
-        <View className="flex-row gap-0.5">
-          {rest.map((uri, i) => (
-            <Pressable
-              key={`${uri}-${i}`}
-              onPress={() => handlePressPhoto(uri)}
-              style={{ flex: 1 }}
-              className="relative active:opacity-95">
-              <Image
-                source={{ uri }}
-                resizeMode="cover"
-                style={{ width: '100%', aspectRatio: 1 }}
-                className="bg-[#e4e6eb] dark:bg-[#3a3b3c]"
-              />
-              {i === rest.length - 1 && extra > 0 ? (
-                <View className="absolute inset-0 items-center justify-center bg-black/50">
-                  <Text className="text-xl font-black text-white">+{extra}</Text>
-                </View>
-              ) : null}
-            </Pressable>
-          ))}
-        </View>
-      </View>
-    );
-  };
-
-  return renderMedia();
-}
-
-/* -------------------------------------------------------------------------- */
-/* Full post body – text, Dua (every field), blood request, media             */
+/* Full post body – delegates to dedicated Text, Dua, or Blood post card      */
 /* -------------------------------------------------------------------------- */
 export function PostBody({
   post,
@@ -299,207 +85,30 @@ export function PostBody({
   defaultShowArabic?: boolean;
   onOpenPhoto?: (url: string) => void;
 }) {
-  const { locale, theme } = useUi();
-  const [showArabic, setShowArabic] = useState(defaultShowArabic);
-  const blood = post.bloodRequest;
-  const dua = post.dua;
-
-  const neededDate = blood?.neededDate
-    ? new Date(blood.neededDate).toLocaleString(
-        locale === 'bn' ? 'bn-BD' : 'en-US',
-        {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        }
-      )
-    : null;
-
-  return (
-    <View style={{ width: '100%' }} className="w-full gap-3">
-      {/* Caption / editorial note */}
-      {post.content ? (
-        <Text
-          selectable={true}
-          className="px-3 text-[15px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
-          {post.content}
-        </Text>
-      ) : null}
-
-      {/* Dua details */}
-      {post.type === 'DUA' && dua && !(dua as any).isUnavailable ? (
-        <View className="px-3 gap-3">
-          {dua.title && (!post.content || post.content !== dua.title) ? (
-            <Text
-              selectable={true}
-              className="text-[16px] font-bold text-[#050505] dark:text-[#e4e6eb] select-text">
-              🌙 {dua.title}
-            </Text>
-          ) : null}
-          {dua.fadilah ? (
-            <View className="gap-1">
-              <Text
-                selectable={false}
-                className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
-                {locale === 'bn' ? 'ফযীলত:' : 'Virtue:'}
-              </Text>
-              <Text
-                selectable={true}
-                className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
-                {dua.fadilah}
-              </Text>
-            </View>
-          ) : null}
-
-          {dua.arabicText ? (
-            <View className="gap-2">
-              <Pressable
-                onPress={() => setShowArabic(!showArabic)}
-                className="flex-row items-center gap-1.5 py-1 self-start select-none">
-                <AppIcon
-                  android="translate"
-                  size={14}
-                  color={theme === 'dark' ? '#4a80f5' : '#1565d8'}
-                />
-                <Text
-                  selectable={false}
-                  className="text-xs font-semibold text-primary-600 dark:text-primary-400 select-none">
-                  {showArabic
-                    ? 'আরবি লুকান'
-                    : 'আরবি টেক্সট দেখুন (Arabic Text)'}
-                </Text>
-              </Pressable>
-
-              {showArabic ? (
-                <View className="py-2 px-3 rounded-xl bg-[#f8f9fa] dark:bg-[#18191a]">
-                  <Text
-                    selectable={true}
-                    className="text-right text-2xl text-[#050505] dark:text-[#e4e6eb] leading-10 select-text">
-                    {dua.arabicText}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
-
-          {dua.transliteration ? (
-            <View className="gap-1">
-              <Text
-                selectable={false}
-                className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
-                {locale === 'bn' ? 'উচ্চারণ:' : 'Pronunciation:'}
-              </Text>
-              <Text
-                selectable={true}
-                className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
-                {dua.transliteration}
-              </Text>
-            </View>
-          ) : null}
-
-          {dua.meaning || dua.meaningBangla ? (
-            <View className="gap-1">
-              <Text
-                selectable={false}
-                className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
-                {locale === 'bn' ? 'অর্থ:' : 'Meaning:'}
-              </Text>
-              <Text
-                selectable={true}
-                className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
-                {dua.meaning || dua.meaningBangla}
-              </Text>
-            </View>
-          ) : null}
-
-          {dua.references && dua.references.length > 0 ? (
-            <View className="pt-0.5">
-              <Text
-                selectable={true}
-                className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] select-text">
-                📖{' '}
-                {dua.references
-                  .map((r) =>
-                    r.source?.name
-                      ? `${r.source.name}: ${r.reference}`
-                      : r.reference
-                  )
-                  .join(' • ')}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-      ) : null}
-
-      {/* Blood request details */}
-      {post.type === 'BLOOD_REQUEST' && blood && !(blood as any).isUnavailable ? (
-        <View className="mx-3 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/20 p-3 gap-2">
-          <View className="flex-row items-center gap-2 select-none">
-            <View className="h-9 w-9 rounded-lg bg-rose-600 items-center justify-center select-none">
-              <Text
-                selectable={false}
-                className="text-white font-black text-xs select-none">
-                {BLOOD_LABEL_MAP[blood.bloodGroup] || blood.bloodGroup}
-              </Text>
-            </View>
-            <View className="flex-1">
-              <Text
-                selectable={true}
-                className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-text">
-                {blood.patientName}
-                {blood.patientAge ? ` (${blood.patientAge})` : ''}
-              </Text>
-              <Text
-                selectable={false}
-                className="text-xs text-rose-600 dark:text-rose-400 font-semibold select-none">
-                {blood.units}{' '}
-                {locale === 'bn' ? 'ব্যাগ' : 'Bag(s)'}
-                {typeof blood.unitsFulfilled === 'number'
-                  ? ` • ${blood.unitsFulfilled}/${blood.units}`
-                  : ''}
-              </Text>
-            </View>
-          </View>
-
-          {blood.problem ? (
-            <Text
-              selectable={true}
-              className="text-xs text-[#050505] dark:text-[#e4e6eb] select-text">
-              🩺 {blood.problem}
-            </Text>
-          ) : null}
-          <Text
-            selectable={true}
-            className="text-xs text-[#050505] dark:text-[#e4e6eb] select-text">
-            🏥 {blood.hospitalName} ({blood.location})
-          </Text>
-          {neededDate ? (
-            <Text
-              selectable={false}
-              className="text-xs text-[#050505] dark:text-[#e4e6eb] select-none">
-              📅 {neededDate}
-            </Text>
-          ) : null}
-          <Text
-            selectable={true}
-            className="text-xs font-bold text-primary-600 dark:text-primary-400 select-text">
-            📞 {blood.contactNumber}
-            {blood.alternateContact ? ` / ${blood.alternateContact}` : ''}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Photos (px-0 edge-to-edge inside card) */}
-      <PostMedia
+  if (post.type === 'DUA') {
+    return (
+      <DuaPostCard
         post={post}
-        urls={post.mediaUrls}
-        layout={post.mediaLayout}
+        defaultShowArabic={defaultShowArabic}
         onOpenPhoto={onOpenPhoto}
       />
-    </View>
+    );
+  }
+
+  if (post.type === 'BLOOD_REQUEST') {
+    return (
+      <BloodPostCard
+        post={post}
+        onOpenPhoto={onOpenPhoto}
+      />
+    );
+  }
+
+  return (
+    <TextPostCard
+      post={post}
+      onOpenPhoto={onOpenPhoto}
+    />
   );
 }
 
@@ -516,7 +125,7 @@ export function FeedPostCard({
   defaultShowArabic = false,
   defaultShowComments = false,
 }: FeedPostCardProps) {
-  const { locale, theme, openPhotoViewer } = useUi();
+  const { locale, theme, openPhotoViewer, openComposer } = useUi();
   const { user, isAuthenticated } = useAuth();
   const {
     toggleReaction,
@@ -1113,7 +722,32 @@ export function FeedPostCard({
         post={currentPost}
         isAuthor={isAuthor}
         hasSaved={hasSaved}
-        onEdit={() => setShowEditModal(true)}
+        onEdit={() => {
+          if (
+            currentPost.type === 'BLOOD_REQUEST' ||
+            Boolean(currentPost.bloodRequest) ||
+            Boolean(currentPost.bloodRequestId)
+          ) {
+            openComposer({
+              mode: 'BLOOD_REQUEST',
+              editingPost: currentPost,
+            });
+          } else if (
+            currentPost.type === 'DUA' ||
+            Boolean(currentPost.dua) ||
+            Boolean(currentPost.duaId)
+          ) {
+            openComposer({
+              mode: 'DUA',
+              editingPost: currentPost,
+            });
+          } else {
+            openComposer({
+              mode: 'TEXT',
+              editingPost: currentPost,
+            });
+          }
+        }}
         onDelete={() => setShowDeletePostConfirm(true)}
         onToggleSave={handleToggleSave}
         onCopyLink={handleCopyLink}

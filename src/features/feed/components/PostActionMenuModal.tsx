@@ -44,6 +44,16 @@ export function PostActionMenuModal({
   const isDark = theme === 'dark';
   const { height: windowHeight } = useWindowDimensions();
 
+  const isBloodPost =
+    post?.type === 'BLOOD_REQUEST' ||
+    Boolean(post?.bloodRequest) ||
+    Boolean(post?.bloodRequestId);
+
+  const isDuaPost =
+    post?.type === 'DUA' ||
+    Boolean(post?.dua) ||
+    Boolean(post?.duaId);
+
   const fullHeight = windowHeight || 500;
   const translateY = useRef(new Animated.Value(fullHeight)).current;
   const isClosingRef = useRef(false);
@@ -234,12 +244,30 @@ export function PostActionMenuModal({
                   </View>
                   <View className="flex-1">
                     <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
-                      {locale === 'bn' ? 'পোস্ট সম্পাদনা করুন' : 'Edit Post'}
+                      {isBloodPost
+                        ? locale === 'bn'
+                          ? 'রক্তের অনুরোধ সম্পাদনা করুন'
+                          : 'Edit Blood Request'
+                        : isDuaPost
+                        ? locale === 'bn'
+                          ? 'পবিত্র দু’আ সম্পাদনা করুন'
+                          : 'Edit Dua Post'
+                        : locale === 'bn'
+                          ? 'পোস্ট সম্পাদনা করুন'
+                          : 'Edit Post'}
                     </Text>
                     <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
-                      {locale === 'bn'
-                        ? 'পোস্টের বিবরণ ও অনুভূতি পরিবর্তন করুন'
-                        : 'Modify post text and feeling'}
+                      {isBloodPost
+                        ? locale === 'bn'
+                          ? 'রোগীর নাম, রক্তের গ্রুপ, হাসপাতাল ও যোগাযোগের বিবরণ পরিবর্তন করুন'
+                          : 'Modify patient, hospital, and blood request details'
+                        : isDuaPost
+                        ? locale === 'bn'
+                          ? 'দু’আর নাম, অর্থ, আরবি ও বিবরণ পরিবর্তন করুন'
+                          : 'Modify Dua content, meaning and text'
+                        : locale === 'bn'
+                          ? 'পোস্টের বিবরণ, ছবি ও অনুভূতি পরিবর্তন করুন'
+                          : 'Modify post text, photos and feeling'}
                     </Text>
                   </View>
                 </Pressable>

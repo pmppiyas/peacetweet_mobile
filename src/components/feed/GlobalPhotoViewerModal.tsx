@@ -133,11 +133,12 @@ function ShareArrowIcon({ size = 22, color = '#ffffff' }) {
 }
 
 export function GlobalPhotoViewerModal() {
-  const { activePhotoViewer, closePhotoViewer, locale, theme } = useUi();
+  const { activePhotoViewer, closePhotoViewer, locale, theme, openComposer } = useUi();
   const { toggleReaction, toggleSave, deletePost, updateCommentCount } =
     useFeed();
   const { user, isAuthenticated } = useAuth();
-  const { height } = useWindowDimensions();
+  const { width: windowWidth, height } = useWindowDimensions();
+  const screenWidth = windowWidth || 420;
 
   const isDark = theme === 'dark';
   // Blank background around photo: pure black in dark mode, darkish slate (#0b0e14) in light mode
@@ -172,6 +173,10 @@ export function GlobalPhotoViewerModal() {
 
   // All state and refs declared at the top of the component to prevent TDZ errors
   const [currentPost, setCurrentPost] = useState<FeedItem | null>(null);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const photoIndexRef = useRef(0);
+  const panX = useRef(new Animated.Value(0)).current;
+  const gestureModeRef = useRef<'none' | 'horizontal' | 'vertical'>('none');
   const [activeUrl, setActiveUrl] = useState('');
   const [aspectRatio, setAspectRatio] = useState(4 / 3);
   const [controlsVisible, setControlsVisible] = useState(true);
@@ -235,6 +240,38 @@ export function GlobalPhotoViewerModal() {
     return el;
   }, []);
 
+  const goToIndex = useCallback(
+    (targetIdx: number) => {
+      const list = (currentPost?.mediaUrls || [])
+        .map((u) => normalizeMediaUrl(u))
+        .filter(Boolean);
+      if (list.length === 0) return;
+      const clamped = Math.max(0, Math.min(list.length - 1, targetIdx));
+      const targetOffset = -clamped * screenWidth;
+
+      setPhotoIndex(clamped);
+      photoIndexRef.current = clamped;
+      const newUrl = list[clamped] || '';
+      setActiveUrl(newUrl);
+      const cached = imageRatioCache.get(newUrl);
+      if (cached) {
+        setAspectRatio(cached);
+      }
+
+      Animated.spring(panX, {
+        toValue: targetOffset,
+        bounciness: 0,
+        speed: 18,
+        useNativeDriver: true,
+      }).start();
+    },
+    [currentPost, panX, screenWidth]
+  );
+
+  useEffect(() => {
+    panX.setValue(-photoIndexRef.current * screenWidth);
+  }, [panX, screenWidth]);
+
   useEffect(() => {
     if (activePhotoViewer?.post) {
       const p = activePhotoViewer.post;
@@ -244,12 +281,21 @@ export function GlobalPhotoViewerModal() {
       setCommentCount(p.stats?.commentCount || 0);
       setHasSaved(Boolean(p.viewer?.hasSaved));
 
-      const list = (p.mediaUrls || []).map((u) => normalizeMediaUrl(u));
+      const list = (p.mediaUrls || []).map((u) => normalizeMediaUrl(u)).filter(Boolean);
       const target = activePhotoViewer.initialImageUrl
         ? normalizeMediaUrl(activePhotoViewer.initialImageUrl)
         : list[0] || '';
-      setActiveUrl(target);
-      const cachedRatio = imageRatioCache.get(target);
+      const initialIdx = target ? list.indexOf(target) : 0;
+      const safeIdx = initialIdx >= 0 ? initialIdx : 0;
+
+      setPhotoIndex(safeIdx);
+      photoIndexRef.current = safeIdx;
+      const selectedUrl = list[safeIdx] || target || '';
+      setActiveUrl(selectedUrl);
+
+      panX.setValue(-safeIdx * screenWidth);
+
+      const cachedRatio = imageRatioCache.get(selectedUrl);
       if (cachedRatio) {
         setAspectRatio(cachedRatio);
       }
@@ -262,13 +308,14 @@ export function GlobalPhotoViewerModal() {
       progressRef.current = 0;
       isClosingRef.current = false;
       setIsClosing(false);
+      gestureModeRef.current = 'none';
 
       // Capture initial feed scroll position to synchronize feed scroll with photo drag
       const scroller = getFeedScroller();
       feedScrollerRef.current = scroller;
       initialScrollTopRef.current = scroller ? scroller.scrollTop : 0;
     }
-  }, [activePhotoViewer, getFeedScroller]);
+  }, [activePhotoViewer, getFeedScroller, screenWidth, panX]);
 
   useEffect(() => {
     if (!activeUrl) return;
@@ -394,37 +441,66 @@ export function GlobalPhotoViewerModal() {
     onDismissDown: handleImmediateClose,
   });
 
-  // Escape closes the viewer
+  // Keyboard Navigation: Escape to close, Left/Right arrows to change photo
   useEffect(() => {
-    if (!activePhotoViewer) return;
+    if (!activePhotoViewer || !currentPost) return;
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     const onKey = (e: KeyboardEvent) => {
       if (
         showComments ||
         showActionMenu ||
         showShareModal ||
+        showEditModal ||
+        showReportModal ||
+        showDeleteConfirm ||
+        showUnsaveConfirm ||
         isClosingRef.current
       )
         return;
-      if (e.key === 'Escape') handleImmediateClose();
+      if (e.key === 'Escape') {
+        handleImmediateClose();
+        return;
+      }
+      const list = (currentPost.mediaUrls || [])
+        .map((u) => normalizeMediaUrl(u))
+        .filter(Boolean);
+      if (list.length > 1) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          if (photoIndexRef.current < list.length - 1) {
+            goToIndex(photoIndexRef.current + 1);
+          }
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          if (photoIndexRef.current > 0) {
+            goToIndex(photoIndexRef.current - 1);
+          }
+        }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [
     activePhotoViewer,
+    currentPost,
+    goToIndex,
     handleImmediateClose,
     showActionMenu,
     showComments,
+    showDeleteConfirm,
+    showEditModal,
+    showReportModal,
     showShareModal,
+    showUnsaveConfirm,
   ]);
 
-  // Native (iOS / Android) swipe-up to leave. PanResponder is created once, so
-  // it reads the latest handlers / modal state through this ref.
+  // Gesture handling: PanResponder handles horizontal photo swipe (one index per swipe)
+  // as well as vertical swipe-to-leave
   const latestRef = useRef({
     applyProgress,
     animateProgressTo,
     handleAnimatedClose,
     handleImmediateClose,
+    goToIndex,
+    getMediaList: () => [] as string[],
     blocked: false,
   });
   latestRef.current = {
@@ -432,7 +508,19 @@ export function GlobalPhotoViewerModal() {
     animateProgressTo,
     handleAnimatedClose,
     handleImmediateClose,
-    blocked: showComments || showActionMenu || showShareModal,
+    goToIndex,
+    getMediaList: () =>
+      (currentPost?.mediaUrls || [])
+        .map((u) => normalizeMediaUrl(u))
+        .filter(Boolean),
+    blocked:
+      showComments ||
+      showActionMenu ||
+      showShareModal ||
+      showEditModal ||
+      showReportModal ||
+      showDeleteConfirm ||
+      showUnsaveConfirm,
   };
 
   const panResponder = useRef(
@@ -441,32 +529,85 @@ export function GlobalPhotoViewerModal() {
       onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponder: (_, gs) => {
-        if (
-          Platform.OS === 'web' ||
-          latestRef.current.blocked ||
-          isClosingRef.current
-        )
-          return false;
-        return Math.abs(gs.dy) > 16 && Math.abs(gs.dy) > Math.abs(gs.dx) * 1.5;
+        if (latestRef.current.blocked || isClosingRef.current) return false;
+        const absX = Math.abs(gs.dx);
+        const absY = Math.abs(gs.dy);
+        const list = latestRef.current.getMediaList();
+
+        // Horizontal swipe when multiple photos exist:
+        if (list.length > 1 && absX > 8 && absX > absY * 1.2) {
+          gestureModeRef.current = 'horizontal';
+          return true;
+        }
+
+        // Vertical swipe to dismiss / scroll exit on native:
+        if (Platform.OS !== 'web' && absY > 16 && absY > absX * 1.5) {
+          gestureModeRef.current = 'vertical';
+          return true;
+        }
+
+        return false;
       },
       onPanResponderMove: (_, gs) => {
         if (isClosingRef.current) return;
-        latestRef.current.applyProgress(Math.max(0, -gs.dy));
+        if (gestureModeRef.current === 'horizontal') {
+          const list = latestRef.current.getMediaList();
+          if (list.length <= 1) return;
+          const currentK = photoIndexRef.current;
+          let effectiveDx = gs.dx;
+          if (
+            (currentK === 0 && gs.dx > 0) ||
+            (currentK === list.length - 1 && gs.dx < 0)
+          ) {
+            effectiveDx = gs.dx * 0.25;
+          }
+          panX.setValue(-currentK * screenWidth + effectiveDx);
+        } else if (gestureModeRef.current === 'vertical') {
+          latestRef.current.applyProgress(Math.max(0, -gs.dy));
+        }
       },
       onPanResponderRelease: (_, gs) => {
         if (isClosingRef.current) return;
-        if (gs.dy < -35 || gs.vy < -0.3) {
-          latestRef.current.handleAnimatedClose('up');
-        } else if (gs.dy > 40 || gs.vy > 0.35) {
-          latestRef.current.handleImmediateClose();
-        } else {
-          latestRef.current.animateProgressTo(0);
+        if (gestureModeRef.current === 'horizontal') {
+          const list = latestRef.current.getMediaList();
+          const currentK = photoIndexRef.current;
+          const threshold = Math.min(45, screenWidth * 0.12);
+          const isQuickFlick = Math.abs(gs.vx) > 0.25;
+
+          if (
+            (gs.dx < -threshold || (isQuickFlick && gs.vx < -0.2)) &&
+            currentK < list.length - 1
+          ) {
+            latestRef.current.goToIndex(currentK + 1);
+          } else if (
+            (gs.dx > threshold || (isQuickFlick && gs.vx > 0.2)) &&
+            currentK > 0
+          ) {
+            latestRef.current.goToIndex(currentK - 1);
+          } else {
+            latestRef.current.goToIndex(currentK);
+          }
+          gestureModeRef.current = 'none';
+        } else if (gestureModeRef.current === 'vertical') {
+          if (gs.dy < -35 || gs.vy < -0.3) {
+            latestRef.current.handleAnimatedClose('up');
+          } else if (gs.dy > 40 || gs.vy > 0.35) {
+            latestRef.current.handleImmediateClose();
+          } else {
+            latestRef.current.animateProgressTo(0);
+          }
+          gestureModeRef.current = 'none';
         }
       },
       onPanResponderTerminationRequest: () => false,
       onPanResponderTerminate: () => {
         if (isClosingRef.current) return;
-        latestRef.current.animateProgressTo(0);
+        if (gestureModeRef.current === 'horizontal') {
+          latestRef.current.goToIndex(photoIndexRef.current);
+        } else {
+          latestRef.current.animateProgressTo(0);
+        }
+        gestureModeRef.current = 'none';
       },
     })
   ).current;
@@ -587,6 +728,10 @@ export function GlobalPhotoViewerModal() {
 
   if (!activePhotoViewer || !currentPost) return null;
 
+  const mediaList = (currentPost.mediaUrls || [])
+    .map((u) => normalizeMediaUrl(u))
+    .filter(Boolean);
+
   const authorName = currentPost.author?.name || 'User';
   const authorAvatar = normalizeMediaUrl(
     currentPost.author?.avatar || (currentPost.author as any)?.avatarUrl
@@ -643,44 +788,102 @@ export function GlobalPhotoViewerModal() {
           pointerEvents: 'box-none',
         }}
       >
-        <Pressable
-          onPress={() => setControlsVisible((prev) => !prev)}
-          className="absolute inset-0 w-full h-full items-center justify-center overflow-hidden"
-        >
-          {activeUrl ? (
-            <Image
-              source={{ uri: activeUrl }}
-              onLoad={(e: any) => {
-                const src = e?.nativeEvent?.source || e?.target;
-                const nw = src?.width || src?.naturalWidth;
-                const nh = src?.height || src?.naturalHeight;
-                if (nw > 0 && nh > 0) {
-                  const r = nw / nh;
-                  if (activeUrl) imageRatioCache.set(activeUrl, r);
-                  setAspectRatio(r);
+        {mediaList.length > 1 ? (
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              left: 0,
+              width: screenWidth * mediaList.length,
+              flexDirection: 'row',
+              transform: [{ translateX: panX }],
+            }}
+          >
+            {mediaList.map((url, idx) => {
+              const cachedRatio = imageRatioCache.get(url);
+              return (
+                <Pressable
+                  key={`${url}-${idx}`}
+                  onPress={() => setControlsVisible((prev) => !prev)}
+                  style={{
+                    width: screenWidth,
+                    height: '100%',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Image
+                    source={{ uri: url }}
+                    onLoad={(e: any) => {
+                      const src = e?.nativeEvent?.source || e?.target;
+                      const nw = src?.width || src?.naturalWidth;
+                      const nh = src?.height || src?.naturalHeight;
+                      if (nw > 0 && nh > 0) {
+                        const r = nw / nh;
+                        imageRatioCache.set(url, r);
+                        if (idx === photoIndex) {
+                          setAspectRatio(r);
+                        }
+                      }
+                    }}
+                    style={
+                      {
+                        width: '100%',
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        aspectRatio: cachedRatio || undefined,
+                        objectFit: 'contain',
+                        pointerEvents: 'none',
+                      } as any
+                    }
+                    resizeMode="contain"
+                  />
+                </Pressable>
+              );
+            })}
+          </Animated.View>
+        ) : (
+          <Pressable
+            onPress={() => setControlsVisible((prev) => !prev)}
+            className="absolute inset-0 w-full h-full items-center justify-center overflow-hidden"
+          >
+            {activeUrl ? (
+              <Image
+                source={{ uri: activeUrl }}
+                onLoad={(e: any) => {
+                  const src = e?.nativeEvent?.source || e?.target;
+                  const nw = src?.width || src?.naturalWidth;
+                  const nh = src?.height || src?.naturalHeight;
+                  if (nw > 0 && nh > 0) {
+                    const r = nw / nh;
+                    if (activeUrl) imageRatioCache.set(activeUrl, r);
+                    setAspectRatio(r);
+                  }
+                }}
+                style={
+                  {
+                    width: '100%',
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    aspectRatio: aspectRatio || undefined,
+                    objectFit: 'contain',
+                    pointerEvents: 'none',
+                  } as any
                 }
-              }}
-              style={
-                {
-                  width: '100%',
-                  maxWidth: '100%',
-                  maxHeight: '100%',
-                  aspectRatio: aspectRatio || undefined,
-                  objectFit: 'contain',
-                  pointerEvents: 'none',
-                } as any
-              }
-              resizeMode="contain"
-            />
-          ) : (
-            <View className="items-center justify-center p-8">
-              <AppIcon android="photo" size={48} color={mutedColor} />
-              <Text className="text-xs mt-2" style={{ color: mutedColor }}>
-                {locale === 'bn' ? 'ছবি পাওয়া যায়নি' : 'Photo not available'}
-              </Text>
-            </View>
-          )}
-        </Pressable>
+                resizeMode="contain"
+              />
+            ) : (
+              <View className="items-center justify-center p-8">
+                <AppIcon android="photo" size={48} color={mutedColor} />
+                <Text className="text-xs mt-2" style={{ color: mutedColor }}>
+                  {locale === 'bn' ? 'ছবি পাওয়া যায়নি' : 'Photo not available'}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+        )}
       </Animated.View>
 
       {/* ────────────────── LAYER 3: CONTROLS (HEADER & BOTTOM BAR) ────────────────── */}
@@ -724,6 +927,21 @@ export function GlobalPhotoViewerModal() {
             >
               <AppIcon android="close" size={24} color={headerIconColor} />
             </Pressable>
+
+            {/* Center: Photo Counter Badge when multiple photos */}
+            {mediaList.length > 1 && (
+              <View
+                style={{
+                  backgroundColor: headerBtnBg,
+                  backdropFilter: 'blur(6px)',
+                  pointerEvents: 'auto',
+                } as any}
+                className="px-3.5 py-1 rounded-full items-center justify-center">
+                <Text className="text-xs font-bold text-white tracking-wider">
+                  {photoIndex + 1} / {mediaList.length}
+                </Text>
+              </View>
+            )}
 
             {/* Top Right: 3-Dot Post Action Menu Button */}
             <Pressable
@@ -916,7 +1134,33 @@ export function GlobalPhotoViewerModal() {
         post={currentPost}
         isAuthor={isAuthor}
         hasSaved={hasSaved}
-        onEdit={() => setShowEditModal(true)}
+        onEdit={() => {
+          closePhotoViewer();
+          if (
+            currentPost.type === 'BLOOD_REQUEST' ||
+            Boolean(currentPost.bloodRequest) ||
+            Boolean(currentPost.bloodRequestId)
+          ) {
+            openComposer({
+              mode: 'BLOOD_REQUEST',
+              editingPost: currentPost,
+            });
+          } else if (
+            currentPost.type === 'DUA' ||
+            Boolean(currentPost.dua) ||
+            Boolean(currentPost.duaId)
+          ) {
+            openComposer({
+              mode: 'DUA',
+              editingPost: currentPost,
+            });
+          } else {
+            openComposer({
+              mode: 'TEXT',
+              editingPost: currentPost,
+            });
+          }
+        }}
         onDelete={() => setShowDeleteConfirm(true)}
         onToggleSave={handleToggleSave}
         onCopyLink={handleCopyLink}

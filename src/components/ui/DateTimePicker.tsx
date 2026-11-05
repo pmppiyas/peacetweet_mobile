@@ -305,6 +305,7 @@ export function DateTimePicker({
             alignItems: 'center',
             justifyContent: 'center',
             padding: 16,
+            ...(Platform.OS === 'web' ? ({ zIndex: 99999 } as any) : {}),
           }}>
           <Pressable
             onPress={(e) => e.stopPropagation()}

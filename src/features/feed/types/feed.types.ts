@@ -60,6 +60,25 @@ export interface BloodRequestItem {
   alternateContact?: string | null;
   neededDate: string;
   status?: string;
+  urgency?: string;
+  requester?: {
+    id: string;
+    name: string;
+    username?: string;
+    avatarUrl?: string | null;
+  };
+  donations?: Array<{
+    id: string;
+    donorId: string;
+    status: string;
+    donor?: {
+      id: string;
+      name: string;
+      username?: string;
+      avatarUrl?: string | null;
+      bloodGroup?: string | null;
+    };
+  }>;
 }
 
 export interface FeedStats {
@@ -86,6 +105,7 @@ export interface FeedItem {
   visibility?: PostVisibility;
   status?: PostStatus;
   author: FeedAuthor;
+  duaId?: string | null;
   dua: FeedDua | null;
   bloodRequestId?: string | null;
   bloodRequest?: BloodRequestItem | null;
@@ -142,12 +162,18 @@ export interface CreatePostInput {
     problem?: string;
     bloodGroup: string;
     units?: number;
+    urgency?: string;
     hospitalName: string;
     location: string;
+    country?: string;
+    countryCode?: string;
+    state?: string;
+    city?: string;
     contactNumber: string;
     alternateContact?: string;
     neededDate: string;
     forMyself?: boolean;
+    note?: string;
   };
   visibility?: PostVisibility;
   status?: PostStatus;
