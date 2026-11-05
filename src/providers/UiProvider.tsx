@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useColorScheme } from 'nativewind';
 import { appStorage } from '@/lib/storage/secureStorage';
 import { FeedItem } from '@/features/feed/types/feed.types';
+import { GlobalToast, ToastItem } from '@/components/ui/GlobalToast';
 
 const LOCALE_STORAGE_KEY = 'peacetweet_locale';
 const THEME_STORAGE_KEY = 'peacetweet_theme';
@@ -19,6 +20,13 @@ export interface OpenComposerOptions {
 export interface PhotoViewerState {
   post: FeedItem;
   initialImageUrl?: string;
+}
+
+export interface ShowToastOptions {
+  message: string;
+  type?: 'error' | 'success' | 'warning' | 'info';
+  title?: string;
+  duration?: number;
 }
 
 interface UiContextType {
@@ -54,6 +62,9 @@ interface UiContextType {
   triggerPostSuccess: () => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
+  toast: ToastItem | null;
+  showToast: (options: ShowToastOptions) => void;
+  hideToast: () => void;
 }
 
 const UiContext = createContext<UiContextType | undefined>(undefined);
@@ -75,6 +86,21 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   const [isUploadingPost, setIsUploadingPostState] = useState(false);
   const [postUploadType, setPostUploadType] = useState<PostUploadType>('STANDARD');
   const [isPostUploadSuccess, setIsPostUploadSuccess] = useState(false);
+  const [toast, setToast] = useState<ToastItem | null>(null);
+
+  const showToast = useCallback((options: ShowToastOptions) => {
+    setToast({
+      id: Math.random().toString(36).substring(2, 9),
+      message: options.message,
+      type: options.type || 'info',
+      title: options.title,
+      duration: options.duration || 3500,
+    });
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast(null);
+  }, []);
 
   const setIsUploadingPost = (val: boolean, type: PostUploadType = 'STANDARD') => {
     setIsUploadingPostState(val);
@@ -181,8 +207,12 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         triggerPostSuccess,
         theme,
         toggleTheme,
+        toast,
+        showToast,
+        hideToast,
       }}>
       {children}
+      <GlobalToast toast={toast} onDismiss={hideToast} />
     </UiContext.Provider>
   );
 }

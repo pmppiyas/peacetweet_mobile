@@ -295,9 +295,28 @@ export function FeedProvider({ children }: { children: React.ReactNode }) {
         const updated = (res as any)?.data ?? res;
         if (updated && updated.id) {
           updateFeedState((prev) =>
-            prev.map((item) =>
-              item.id === postId ? { ...item, ...updated } : item
-            )
+            prev.map((item) => {
+              if (item.id !== postId) return item;
+              const hasValidBlood =
+                updated.bloodRequest &&
+                !(updated.bloodRequest as any).isUnavailable;
+              const mergedBlood = hasValidBlood
+                ? updated.bloodRequest
+                : item.bloodRequest
+                ? {
+                    ...item.bloodRequest,
+                    ...(input.bloodRequestData || {}),
+                  }
+                : updated.bloodRequest;
+
+              return {
+                ...item,
+                ...updated,
+                bloodRequest: mergedBlood,
+                dua: updated.dua || item.dua,
+                author: updated.author || item.author,
+              };
+            })
           );
           queryCache.set(`post:detail:${postId}`, updated);
           return updated;

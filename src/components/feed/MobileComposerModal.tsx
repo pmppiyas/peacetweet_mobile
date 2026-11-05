@@ -26,6 +26,7 @@ import {
   imageRatioCache,
   resolveImageAspectRatio,
 } from '@/lib/cache/imageRatioCache';
+import { formatUserFacingError } from '@/lib/utils/errorUtils';
 
 function ComposerSingleImage({
   uri,
@@ -132,6 +133,7 @@ export function MobileComposerModal() {
     theme,
     setIsUploadingPost,
     triggerPostSuccess,
+    showToast,
   } = useUi();
   const { user } = useAuth();
   const { createPost, updatePost } = useFeed();
@@ -212,7 +214,7 @@ export function MobileComposerModal() {
   const [forMyself, setForMyself] = useState(false);
   const [patientName, setPatientName] = useState('');
   const [bloodGroup, setBloodGroup] = useState('');
-  const [units, setUnits] = useState(1);
+  const [units, setUnits] = useState('1');
   const [hospitalName, setHospitalName] = useState('');
   const [locationValue, setLocationValue] = useState<LocationValue>(() =>
     matchUserLocationToGeo(user)
@@ -283,7 +285,7 @@ export function MobileComposerModal() {
             if (br.bloodGroup) {
               setBloodGroup(mapToBloodGroupValue(br.bloodGroup));
             }
-            setUnits(br.units || 1);
+            setUnits(String(br.units || 1));
             setHospitalName(br.hospitalName || '');
             setLocationValue({
               country: (br as any).country || 'Bangladesh',
@@ -373,7 +375,7 @@ export function MobileComposerModal() {
     setForMyself(false);
     setPatientName('');
     setBloodGroup('');
-    setUnits(1);
+    setUnits('1');
     setHospitalName('');
     setLocationValue(matchUserLocationToGeo(user));
     setContactNumber('');
@@ -420,7 +422,15 @@ export function MobileComposerModal() {
         );
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to upload photos');
+      setErrorMessage(
+        formatUserFacingError(
+          err,
+          locale === 'bn'
+            ? 'ছবি আপলোড করতে ব্যর্থ হয়েছে।'
+            : 'Failed to upload photos.',
+          locale
+        )
+      );
     } finally {
       setIsUploadingMedia(false);
     }
@@ -519,7 +529,7 @@ export function MobileComposerModal() {
                 patientName: pPatientName,
                 forMyself: pForMyself,
                 bloodGroup: pBloodGroup,
-                units: Number(pUnits) || 1,
+                units: Math.max(1, parseInt(pUnits, 10) || 1),
                 hospitalName: pHospitalName,
                 country: pLocationValue.country || 'Bangladesh',
                 countryCode: pLocationValue.countryCode || 'BD',
@@ -585,7 +595,7 @@ export function MobileComposerModal() {
               patientName: pPatientName,
               forMyself: pForMyself,
               bloodGroup: pBloodGroup,
-              units: Number(pUnits) || 1,
+              units: Math.max(1, parseInt(pUnits, 10) || 1),
               hospitalName: pHospitalName,
               country: pLocationValue.country || 'Bangladesh',
               countryCode: pLocationValue.countryCode || 'BD',
@@ -603,20 +613,35 @@ export function MobileComposerModal() {
 
         // Trigger success animation on bottom nav bar
         triggerPostSuccess();
+        showToast({
+          message:
+            locale === 'bn'
+              ? pIsEditing
+                ? 'পোস্টটি সফলভাবে আপডেট করা হয়েছে!'
+                : 'পোস্টটি সফলভাবে তৈরি হয়েছে!'
+              : pIsEditing
+              ? 'Post updated successfully!'
+              : 'Post created successfully!',
+          type: 'success',
+        });
       } catch (err: any) {
         setIsUploadingPost(false);
-        const msg =
-          err?.response?.data?.message ||
-          err?.message ||
-          (locale === 'bn'
-            ? 'পোস্ট করতে সমস্যা হয়েছে।'
-            : 'Failed to create post. Please try again.');
+        const msg = formatUserFacingError(
+          err,
+          locale === 'bn'
+            ? pIsEditing
+              ? 'পোস্টটি আপডেট করা সম্ভব হয়নি।'
+              : 'পোস্টটি প্রকাশ করা সম্ভব হয়নি।'
+            : pIsEditing
+            ? 'Failed to update post. Please try again.'
+            : 'Failed to create post. Please try again.',
+          locale
+        );
         console.error('Failed to create post in background:', err);
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          window.alert(msg);
-        } else {
-          Alert.alert(locale === 'bn' ? 'ত্রুটি' : 'Error', msg);
-        }
+        showToast({
+          message: msg,
+          type: 'error',
+        });
       } finally {
         setIsSubmitting(false);
       }
@@ -1377,11 +1402,17 @@ export function MobileComposerModal() {
                   {locale === 'bn' ? 'কত ব্যাগ রক্ত প্রয়োজন *' : 'Units (Bags) Needed *'}
                 </Text>
                 <TextInput
-                  value={String(units)}
-                  onChangeText={(val) =>
-                    setUnits(Math.max(1, parseInt(val) || 1))
-                  }
-                  keyboardType="numeric"
+                  value={units}
+                  onChangeText={(val) => {
+                    const cleaned = val.replace(/[^0-9]/g, '');
+                    setUnits(cleaned);
+                  }}
+                  onBlur={() => {
+                    if (!units || parseInt(units, 10) < 1) {
+                      setUnits('1');
+                    }
+                  }}
+                  keyboardType="number-pad"
                   placeholder="1"
                   placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
                   className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"

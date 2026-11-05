@@ -66,7 +66,16 @@ export function EditPostModal({
       const res = await feedApi.updatePost(post.id, { content: content.trim() });
       const payload = (res as any)?.data ?? res;
       if (payload && payload.id) {
-        onSuccess(payload);
+        const hasValidBlood =
+          payload.bloodRequest &&
+          !(payload.bloodRequest as any).isUnavailable;
+        onSuccess({
+          ...post,
+          ...payload,
+          bloodRequest: hasValidBlood
+            ? payload.bloodRequest
+            : post.bloodRequest,
+        });
       } else {
         onSuccess({ ...post, content: content.trim() });
       }

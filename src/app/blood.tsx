@@ -6,7 +6,6 @@ import {
   Pressable,
   Linking,
   RefreshControl,
-  Alert,
   Platform,
   useWindowDimensions,
 } from 'react-native';
@@ -18,6 +17,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { bloodApi } from '@/features/blood/api/blood.api';
 import { BloodRequestItem, BloodDonorItem } from '@/features/blood/types/blood.types';
 import { queryCache } from '@/lib/cache/queryCache';
+import { formatUserFacingError } from '@/lib/utils/errorUtils';
 
 // Modular Tab Components
 import { BloodRequestsTab } from '@/features/blood/components/BloodRequestsTab';
@@ -28,7 +28,7 @@ import { BloodDonateConfirmModal } from '@/features/blood/components/BloodDonate
 import { BLOOD_GROUPS, toBackendBloodGroup } from '@/features/blood/utils/blood.utils';
 
 export default function BloodScreen() {
-  const { locale, theme, setIsUploadingPost, triggerPostSuccess } = useUi();
+  const { locale, theme, setIsUploadingPost, triggerPostSuccess, showToast } = useUi();
   const { isAuthenticated, user } = useAuth();
   const { width } = useWindowDimensions();
 
@@ -384,18 +384,24 @@ export default function BloodScreen() {
 
   const handleCall = (phoneNumber?: string | null) => {
     if (!phoneNumber || !phoneNumber.trim()) {
-      Alert.alert(
-        locale === 'bn' ? 'বিজ্ঞপ্তি' : 'Notice',
-        locale === 'bn' ? 'কোনো যোগাযোগের নম্বর পাওয়া যায়নি।' : 'No contact phone number provided.'
-      );
+      showToast({
+        message:
+          locale === 'bn'
+            ? 'কোনো যোগাযোগের নম্বর পাওয়া যায়নি।'
+            : 'No contact phone number provided.',
+        type: 'warning',
+      });
       return;
     }
     const cleanNumber = phoneNumber.replace(/[^0-9+]/g, '');
     Linking.openURL(`tel:${cleanNumber}`).catch(() => {
-      Alert.alert(
-        locale === 'bn' ? 'ব্যর্থ' : 'Failed',
-        locale === 'bn' ? 'ফোন ডায়াল করা সম্ভব হয়নি।' : 'Could not launch phone dialer.'
-      );
+      showToast({
+        message:
+          locale === 'bn'
+            ? 'ফোন ডায়াল করা সম্ভব হয়নি।'
+            : 'Could not launch phone dialer.',
+        type: 'error',
+      });
     });
   };
 
@@ -406,10 +412,10 @@ export default function BloodScreen() {
     }
     const uid = targetUser?.id;
     if (!uid) {
-      Alert.alert(
-        locale === 'bn' ? 'বিজ্ঞপ্তি' : 'Notice',
-        locale === 'bn' ? 'ইউজার আইডি পাওয়া যায়নি।' : 'User ID not found.'
-      );
+      showToast({
+        message: locale === 'bn' ? 'ইউজার আইডি পাওয়া যায়নি।' : 'User ID not found.',
+        type: 'warning',
+      });
       return;
     }
     router.push({
@@ -566,13 +572,14 @@ export default function BloodScreen() {
           queryCache.invalidate('blood:requests');
         } catch (err: any) {
           fetchActivity(true);
-          const msg =
-            err?.response?.data?.message || err?.message || 'Failed to update request status';
-          if (Platform.OS === 'web' && typeof window !== 'undefined') {
-            window.alert(msg);
-          } else {
-            Alert.alert(locale === 'bn' ? 'ত্রুটি' : 'Error', msg);
-          }
+          const msg = formatUserFacingError(
+            err,
+            locale === 'bn'
+              ? 'স্ট্যাটাস আপডেট করা সম্ভব হয়নি।'
+              : 'Failed to update request status.',
+            locale
+          );
+          showToast({ message: msg, type: 'error' });
         } finally {
           setActionLoadingId(null);
         }
@@ -614,16 +621,24 @@ export default function BloodScreen() {
           // Permanent deletion from database
           await bloodApi.deleteBloodRequest(req.id);
           queryCache.invalidate('blood:requests');
+          showToast({
+            message:
+              locale === 'bn'
+                ? 'রক্তের আবেদনটি সফলভাবে মুছে ফেলা হয়েছে।'
+                : 'Blood request deleted successfully.',
+            type: 'success',
+          });
         } catch (err: any) {
           fetchActivity(true);
           fetchTabContent('requests', selectedGroupRef.current, false);
-          const msg =
-            err?.response?.data?.message || err?.message || 'Failed to delete blood request';
-          if (Platform.OS === 'web' && typeof window !== 'undefined') {
-            window.alert(msg);
-          } else {
-            Alert.alert(locale === 'bn' ? 'ত্রুটি' : 'Error', msg);
-          }
+          const msg = formatUserFacingError(
+            err,
+            locale === 'bn'
+              ? 'রক্তের আবেদনটি মুছে ফেলা সম্ভব হয়নি।'
+              : 'Failed to delete blood request.',
+            locale
+          );
+          showToast({ message: msg, type: 'error' });
         } finally {
           setActionLoadingId(null);
         }
@@ -660,15 +675,23 @@ export default function BloodScreen() {
           await bloodApi.cancelDonation(req.id);
           queryCache.invalidate('blood:requests');
           fetchTabContent('requests', selectedGroupRef.current, false);
+          showToast({
+            message:
+              locale === 'bn'
+                ? 'রক্তদানের অঙ্গীকার বাতিল করা হয়েছে।'
+                : 'Donation pledge has been cancelled.',
+            type: 'info',
+          });
         } catch (err: any) {
           fetchActivity(true);
-          const msg =
-            err?.response?.data?.message || err?.message || 'Failed to cancel donation';
-          if (Platform.OS === 'web' && typeof window !== 'undefined') {
-            window.alert(msg);
-          } else {
-            Alert.alert(locale === 'bn' ? 'ত্রুটি' : 'Error', msg);
-          }
+          const msg = formatUserFacingError(
+            err,
+            locale === 'bn'
+              ? 'অঙ্গীকার বাতিল করা সম্ভব হয়নি।'
+              : 'Failed to cancel donation pledge.',
+            locale
+          );
+          showToast({ message: msg, type: 'error' });
         } finally {
           setActionLoadingId(null);
         }
@@ -713,6 +736,13 @@ export default function BloodScreen() {
 
         // Trigger success animation on bottom nav "+ Post" button
         triggerPostSuccess();
+        showToast({
+          message:
+            locale === 'bn'
+              ? 'রক্তের আবেদনটি সফলভাবে প্রকাশিত হয়েছে!'
+              : 'Blood request posted successfully!',
+          type: 'success',
+        });
       } catch (err: any) {
         setIsUploadingPost(false);
         // Rollback optimistic item if failed
@@ -721,14 +751,17 @@ export default function BloodScreen() {
           queryCache.set('blood:activity:requests', updated);
           return updated;
         });
-        Alert.alert(
-          locale === 'bn' ? 'পোস্ট ব্যর্থ হয়েছে' : 'Post Failed',
-          err?.response?.data?.message ||
-            (locale === 'bn' ? 'রক্তের আবেদন প্রকাশ করা যায়নি।' : 'Failed to publish blood request.')
+        const msg = formatUserFacingError(
+          err,
+          locale === 'bn'
+            ? 'রক্তের আবেদন প্রকাশ করা সম্ভব হয়নি।'
+            : 'Failed to publish blood request.',
+          locale
         );
+        showToast({ message: msg, type: 'error' });
       }
     },
-    [locale, setIsUploadingPost, triggerPostSuccess]
+    [locale, setIsUploadingPost, triggerPostSuccess, showToast]
   );
 
   const [showScrollTop, setShowScrollTop] = useState(false);

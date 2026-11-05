@@ -175,7 +175,7 @@ export function ConversationSidebar({
   };
 
   return (
-    <View className="w-full flex-1 flex-col bg-white dark:bg-[#18191a] md:bg-transparent overflow-hidden py-2 sm:py-3 lg:py-4 pr-0 md:pr-1">
+    <View className="w-full flex-1 flex-col bg-white dark:bg-[#18191a] md:bg-transparent overflow-hidden pt-1.5 pb-0 sm:py-3 lg:py-4 pr-0 md:pr-1">
       {/* Top Header & Search Input Bar (Desktop only - Mobile has title & search in the top navbar) */}
       {isDesktop ? (
         <>
@@ -247,7 +247,8 @@ export function ConversationSidebar({
         showsVerticalScrollIndicator={false}
         scrollEnabled={!isInitialLoading}
         className="flex-1 px-1 no-scrollbar scrollbar-none"
-        contentContainerClassName={isInitialLoading ? 'pb-0' : 'pb-6 md:pb-2'}
+        contentContainerStyle={{ paddingBottom: 0 }}
+        contentContainerClassName={isInitialLoading ? 'pb-0' : 'pb-0 md:pb-2'}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
