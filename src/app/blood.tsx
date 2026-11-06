@@ -812,7 +812,7 @@ export default function BloodScreen() {
         stickyHeaderIndices={[0]}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingBottom: activeTab === 'create' ? 12 : 72 }}
+        contentContainerStyle={{ paddingBottom: 0 }}
         refreshControl={
           activeTab !== 'create' ? (
             <RefreshControl

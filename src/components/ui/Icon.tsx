@@ -43,7 +43,8 @@ export type AndroidSymbol =
   | 'calendar'
   | 'calendar_today'
   | 'event'
-  | 'check_circle';
+  | 'check_circle'
+  | 'calculate';
 
 export interface AppIconProps {
   android: AndroidSymbol;
@@ -76,6 +77,22 @@ export function AppIcon({
 
   const renderPaths = () => {
     switch (android) {
+      case 'calculate':
+        return (
+          <>
+            <Rect x="4" y="2" width="16" height="20" rx="2" />
+            <Line x1="8" y1="6" x2="16" y2="6" />
+            <Line x1="16" y1="14" x2="16" y2="18" />
+            <Line x1="8" y1="10" x2="8" y2="10.01" />
+            <Line x1="12" y1="10" x2="12" y2="10.01" />
+            <Line x1="16" y1="10" x2="16" y2="10.01" />
+            <Line x1="8" y1="14" x2="8" y2="14.01" />
+            <Line x1="12" y1="14" x2="12" y2="14.01" />
+            <Line x1="8" y1="18" x2="8" y2="18.01" />
+            <Line x1="12" y1="18" x2="12" y2="18.01" />
+          </>
+        );
+
       case 'home':
         return (
           <>

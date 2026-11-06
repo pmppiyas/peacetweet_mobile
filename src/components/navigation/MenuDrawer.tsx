@@ -73,6 +73,14 @@ const MENU_ITEMS: MenuItem[] = [
     iconBg: 'bg-rose-600',
   },
   {
+    id: 'menu-zakat',
+    labelBn: 'যাকাত ক্যালকুলেটর',
+    labelEn: 'Zakat Calculator',
+    href: '/zakat',
+    icon: 'calculate',
+    iconBg: 'bg-emerald-600',
+  },
+  {
     id: 'menu-bookmarks',
     labelBn: 'সংরক্ষিত আইটেম',
     labelEn: 'Saved',
