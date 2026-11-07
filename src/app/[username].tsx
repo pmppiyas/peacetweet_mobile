@@ -25,6 +25,7 @@ const RESERVED_ROUTES = new Set([
   'terms',
   'privacy',
   'blood',
+  'zakat',
   'messages',
   'message',
   'login',
@@ -50,6 +51,9 @@ export default function UserProfileScreen() {
     }
     if (lowerUsername === 'blood') {
       return <Redirect href="/blood" />;
+    }
+    if (lowerUsername === 'zakat') {
+      return <Redirect href="/zakat" />;
     }
     if (lowerUsername === 'friends') {
       return <Redirect href="/friends" />;

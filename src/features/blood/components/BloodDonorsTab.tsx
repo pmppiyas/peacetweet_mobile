@@ -67,22 +67,22 @@ export function BloodDonorsTab({
 
                 <View className="flex-1 min-w-0">
                   <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
-                    {donor.name}
+                    {donor?.name || 'Donor'}
                   </Text>
                   <Text
                     numberOfLines={1}
                     className="text-xs text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
-                    @{donor.username} • {donor.location || 'Bangladesh'}
+                    @{donor?.username || ''} • {donor?.location || 'Bangladesh'}
                   </Text>
 
                   {/* Donation count badge */}
                   <View className="flex-row items-center gap-1.5 mt-1">
                     <View className="h-2 w-2 rounded-full bg-emerald-500" />
                     <Text className="text-[11px] font-medium text-[#65676b] dark:text-[#b0b3b8]">
-                      {donor.donationCount > 0
+                      {(donor?.donationCount || 0) > 0
                         ? locale === 'bn'
-                          ? `${donor.donationCount} বার রক্তদান করেছেন`
-                          : `${donor.donationCount} donations completed`
+                          ? `${donor?.donationCount} বার রক্তদান করেছেন`
+                          : `${donor?.donationCount} donations completed`
                         : locale === 'bn'
                         ? 'নতুন রক্তদাতা'
                         : 'Ready to donate'}
