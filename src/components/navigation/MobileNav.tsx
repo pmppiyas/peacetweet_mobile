@@ -119,7 +119,7 @@ export function MobileNav() {
       labelBn: 'মেসেজ',
       labelEn: 'Messages',
       href: '/messages',
-      icon: 'chat_bubble',
+      icon: 'messenger',
       badge: unreadMessagesCount,
     },
     {

@@ -38,7 +38,7 @@ const MENU_ITEMS: MenuItem[] = [
     labelBn: 'মেসেজ',
     labelEn: 'Messages',
     href: '/messages',
-    icon: 'chat_bubble',
+    icon: 'messenger',
     iconBg: 'bg-sky-500',
   },
   {

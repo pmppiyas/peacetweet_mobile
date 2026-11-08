@@ -18,7 +18,6 @@ import { AppIcon } from '@/components/ui/Icon';
 
 export function Navbar() {
   const pathname = usePathname();
-  const { width } = useWindowDimensions();
   const {
     locale,
     setMenuDrawerOpen,
@@ -27,7 +26,6 @@ export function Navbar() {
     chatSearchQuery,
     setChatSearchQuery,
     activeConversationId,
-    unreadMessagesCount,
     setComposerModalOpen,
     postUploadType,
     theme,
@@ -302,23 +300,8 @@ export function Navbar() {
       ) : (
         /* Normal Facebook Mobile Top Bar */
         <>
-          {/* Left: Hamburger Menu (☰) + Bold Brand Logo */}
-          <View className="flex-row items-center gap-1.5 shrink-0">
-            <Pressable
-              onPress={() => setMenuDrawerOpen(true)}
-              hitSlop={6}
-              accessibilityLabel="Open menu drawer"
-              accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c] -ml-1"
-            >
-              <AppIcon
-                android="menu"
-                size={24}
-                weight="bold"
-                color={iconColor}
-              />
-            </Pressable>
-
+          {/* Left: Bold Brand Logo */}
+          <View className="flex-row items-center shrink-0">
             <Pressable
               onPress={() => {
                 if (pathname !== '/') {
@@ -343,7 +326,7 @@ export function Navbar() {
             </Pressable>
           </View>
 
-          {/* Right: 3 Iconic Action Buttons (Create [+] + Search [🔍] + Messenger [💬]) */}
+          {/* Right: 3 Circular Action Buttons (Create [+] + Search [🔍] + Menu [☰]) */}
           <View className="flex-row items-center justify-end gap-2">
             {/* 1. Create / Add Post Button */}
             <Pressable
@@ -378,27 +361,20 @@ export function Navbar() {
               />
             </Pressable>
 
-            {/* 3. Messenger / Messages Button with Red Badge */}
+            {/* 3. Menu Drawer Button (Far Right) */}
             <Pressable
-              onPress={() => router.push('/messages')}
+              onPress={() => setMenuDrawerOpen(true)}
               hitSlop={4}
-              accessibilityLabel="Messages"
+              accessibilityLabel="Open menu drawer"
               accessibilityRole="button"
-              className="relative h-10 w-10 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] active:bg-[#d9dde4] dark:active:bg-[#4e4f50]"
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] active:bg-[#d9dde4] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
-                android="messenger"
+                android="menu"
                 size={21}
                 weight="bold"
                 color={iconColor}
               />
-              {unreadMessagesCount > 0 && (
-                <View className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 rounded-full bg-[#e41e3f] items-center justify-center border-2 border-white dark:border-[#242526]">
-                  <Text className="text-[10px] font-black text-white leading-none text-center">
-                    {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
-                  </Text>
-                </View>
-              )}
             </Pressable>
           </View>
         </>
