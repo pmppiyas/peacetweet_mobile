@@ -206,7 +206,7 @@ function AppShell() {
     const duration = effectiveHidden ? 130 : 110;
     Animated.parallel([
       Animated.timing(topNavTranslateY, {
-        toValue: effectiveHidden ? -62 : 0,
+        toValue: 0,
         duration,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: useNative,
@@ -295,7 +295,7 @@ function AppShell() {
         ) : null}
 
         <Animated.View
-          pointerEvents={effectiveHidden ? 'none' : 'box-none'}
+          pointerEvents="box-none"
           style={{
             position: 'absolute',
             top: 0,
