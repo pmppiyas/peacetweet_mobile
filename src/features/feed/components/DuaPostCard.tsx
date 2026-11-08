@@ -28,12 +28,12 @@ export function DuaPostCard({
 
       {/* Dua Card Details */}
       {dua && !(dua as any).isUnavailable ? (
-        <View className="px-3 gap-3">
+        <View className="px-3 gap-3.5">
           {/* Dua Title */}
           {dua.title && (!post.content || post.content !== dua.title) ? (
             <Text
               selectable={true}
-              className="text-[16px] font-bold text-[#1e2329] dark:text-[#e4e6eb] select-text">
+              className="text-[18px] leading-7 font-bold text-[#1e2329] dark:text-[#e4e6eb] select-text">
               🌙 {dua.title}
             </Text>
           ) : null}
@@ -43,12 +43,12 @@ export function DuaPostCard({
             <View className="gap-1">
               <Text
                 selectable={false}
-                className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
+                className="text-[12px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
                 {locale === 'bn' ? 'ফযীলত:' : 'Virtue:'}
               </Text>
               <Text
                 selectable={true}
-                className="text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-6 select-text">
+                className="text-[16.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-[26px] select-text">
                 {dua.fadilah}
               </Text>
             </View>
@@ -62,12 +62,12 @@ export function DuaPostCard({
                 className="flex-row items-center gap-1.5 py-1 self-start select-none">
                 <AppIcon
                   android="translate"
-                  size={14}
+                  size={16}
                   color={theme === 'dark' ? '#4a80f5' : '#1565d8'}
                 />
                 <Text
                   selectable={false}
-                  className="text-xs font-semibold text-primary-600 dark:text-primary-400 select-none">
+                  className="text-[13.5px] font-semibold text-primary-600 dark:text-primary-400 select-none">
                   {showArabic
                     ? locale === 'bn'
                       ? 'আরবি লুকান'
@@ -79,10 +79,10 @@ export function DuaPostCard({
               </Pressable>
 
               {showArabic ? (
-                <View className="py-2 px-3 rounded-xl bg-[#eceff4] dark:bg-[#18191a]">
+                <View className="py-2.5 px-3.5 rounded-xl bg-[#eceff4] dark:bg-[#18191a]">
                   <Text
                     selectable={true}
-                    className="text-right text-2xl text-[#1e2329] dark:text-[#e4e6eb] leading-10 select-text">
+                    className="text-right text-[26px] text-[#1e2329] dark:text-[#e4e6eb] leading-[44px] select-text">
                     {dua.arabicText}
                   </Text>
                 </View>
@@ -95,12 +95,12 @@ export function DuaPostCard({
             <View className="gap-1">
               <Text
                 selectable={false}
-                className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
+                className="text-[12px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
                 {locale === 'bn' ? 'উচ্চারণ:' : 'Pronunciation:'}
               </Text>
               <Text
                 selectable={true}
-                className="text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-6 select-text">
+                className="text-[16.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-[26px] select-text">
                 {dua.transliteration}
               </Text>
             </View>
@@ -111,12 +111,12 @@ export function DuaPostCard({
             <View className="gap-1">
               <Text
                 selectable={false}
-                className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
+                className="text-[12px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 select-none">
                 {locale === 'bn' ? 'অর্থ:' : 'Meaning:'}
               </Text>
               <Text
                 selectable={true}
-                className="text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-6 select-text">
+                className="text-[16.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-[26px] select-text">
                 {dua.meaning || dua.meaningBangla}
               </Text>
             </View>
@@ -127,7 +127,7 @@ export function DuaPostCard({
             <View className="pt-0.5">
               <Text
                 selectable={true}
-                className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] select-text">
+                className="text-[13px] font-semibold text-[#65676b] dark:text-[#b0b3b8] select-text">
                 📖{' '}
                 {dua.references
                   .map((r) =>

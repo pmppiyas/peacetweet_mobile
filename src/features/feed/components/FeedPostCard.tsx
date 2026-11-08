@@ -367,20 +367,20 @@ export function FeedPostCard({
                   className="active:opacity-80">
                   <Text
                     selectable={false}
-                    className="font-bold text-[15px] text-[#1e2329] dark:text-[#e4e6eb] select-none">
+                    className="font-bold text-[16px] text-[#1e2329] dark:text-[#e4e6eb] select-none">
                     {authorName}
                   </Text>
                 </Pressable>
                 <AppIcon
                   android="verified"
                   ios="checkmark.seal.fill"
-                  size={14}
+                  size={15}
                   color="#1877f2"
                 />
                 {feelingItem && (
                   <Text
                     selectable={false}
-                    className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
+                    className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] select-none">
                     is feeling{' '}
                     <Text
                       selectable={false}
@@ -395,17 +395,17 @@ export function FeedPostCard({
               <View className="flex-row items-center gap-1.5 mt-0.5 select-none">
                 <Text
                   selectable={false}
-                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
+                  className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] select-none">
                   @{authorUsername}
                 </Text>
                 <Text
                   selectable={false}
-                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
+                  className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] select-none">
                   •
                 </Text>
                 <Text
                   selectable={false}
-                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
+                  className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] select-none">
                   {formatRelativeDate(post.createdAt, locale)}
                 </Text>
                 <Text

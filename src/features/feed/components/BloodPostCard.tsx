@@ -131,7 +131,7 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
                 <Text
                   selectable={true}
                   numberOfLines={1}
-                  className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-text">
+                  className="text-[15.5px] font-bold text-[#050505] dark:text-[#e4e6eb] select-text">
                   {blood.patientName}
                 </Text>
                 {blood.forMyself ? (
@@ -156,7 +156,7 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
                 <Text
                   selectable={true}
                   numberOfLines={1}
-                  className="text-[11px] font-medium text-rose-600 dark:text-rose-400 mt-0.5 select-text">
+                  className="text-[13px] font-medium text-rose-600 dark:text-rose-400 mt-0.5 select-text">
                   {blood.problem}
                 </Text>
               ) : null}

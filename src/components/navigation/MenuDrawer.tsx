@@ -153,22 +153,22 @@ export function MenuDrawer() {
         {/* Drawer Panel matching peacetweet_frontend MenuDrawer */}
         <View
           style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
-          className="w-80 max-w-[85%] h-full bg-white dark:bg-[#242526] border-l border-[#d9dde4] dark:border-[#393a3b] flex-col select-none">
+          className="w-[88%] sm:w-[380px] max-w-[90%] h-full bg-white dark:bg-[#242526] border-l border-[#d9dde4] dark:border-[#393a3b] flex-col select-none">
           {/* Drawer Header */}
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#d9dde4] dark:border-[#393a3b] select-none">
+          <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#d9dde4] dark:border-[#393a3b] select-none">
             <Text
               selectable={false}
-              className="text-lg font-bold text-[#1e2329] dark:text-[#e4e6eb] select-none">
+              className="text-[20px] font-bold text-[#1e2329] dark:text-[#e4e6eb] select-none">
               {locale === 'bn' ? 'মেনু ও সেটিংস' : 'Menu & Settings'}
             </Text>
 
             <Pressable
               onPress={() => setMenuDrawerOpen(false)}
-              className="h-8 w-8 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c]">
+              className="h-9 w-9 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c]">
               <AppIcon
                 android="close"
                 ios="xmark"
-                size={18}
+                size={20}
                 weight="bold"
                 color={theme === 'dark' ? '#e4e6eb' : '#1e2329'}
               />
@@ -176,13 +176,13 @@ export function MenuDrawer() {
           </View>
 
           {/* Scrollable Content */}
-          <ScrollView className="flex-1 p-3.5" contentContainerClassName="pb-4">
+          <ScrollView className="flex-1 p-4" contentContainerClassName="pb-5">
             {/* User Account / Auth Section matching peacetweet_frontend MenuDrawer.tsx */}
             {isAuthenticated && user ? (
-              <View className="mb-3">
+              <View className="mb-3.5">
                 <Pressable
                   onPress={() => closeAndNavigate('/profile')}
-                  className="flex-row items-center gap-3 p-3 rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c]">
+                  className="flex-row items-center gap-3.5 p-3.5 rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c]">
                   <UserAvatar
                     avatarUrl={user.avatarUrl || (user as any).avatar}
                     name={user.name}
@@ -191,60 +191,60 @@ export function MenuDrawer() {
                   <View className="flex-1">
                     <Text
                       numberOfLines={1}
-                      className="font-bold text-sm text-[#1e2329] dark:text-white">
+                      className="font-bold text-[16px] text-[#1e2329] dark:text-white">
                       {user.name}
                     </Text>
                     <Text
                       numberOfLines={1}
-                      className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                      className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                       {user.username ? `@${user.username}` : user.email}
                     </Text>
                   </View>
                   <AppIcon
                     android="chevron_right"
-                    size={18}
+                    size={20}
                     color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
                   />
                 </Pressable>
               </View>
             ) : (
-              <View className="p-3.5 rounded-2xl border border-[#d9dde4] bg-[#e6e9ef]/70 dark:border-[#393a3b] dark:bg-[#3a3b3c]/40 mb-3">
-                <Text className="font-bold text-sm text-[#1e2329] dark:text-white">
+              <View className="p-4 rounded-2xl border border-[#d9dde4] bg-[#e6e9ef]/70 dark:border-[#393a3b] dark:bg-[#3a3b3c]/40 mb-3.5">
+                <Text className="font-bold text-[16px] text-[#1e2329] dark:text-white">
                   {locale === 'bn'
                     ? 'PeaceTweet এ স্বাগতম'
                     : 'Welcome to PeaceTweet'}
                 </Text>
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5 mb-3">
+                <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-1 mb-3.5 leading-5">
                   {locale === 'bn'
                     ? 'দোয়া ও ইসলামিক চিন্তার প্ল্যাটফর্মে যুক্ত হন'
                     : 'Join the peaceful Dua & Islamic platform'}
                 </Text>
 
-                <View className="flex-row gap-2">
+                <View className="flex-row gap-2.5">
                   <Pressable
                     onPress={() => closeAndNavigate('/login')}
-                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-primary-500 py-2">
+                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-primary-500 py-2.5">
                     <AppIcon
                       android="login"
                       ios="arrow.right.square"
-                      size={14}
+                      size={16}
                       color="#ffffff"
                     />
-                    <Text className="text-xs font-bold text-white">
+                    <Text className="text-[14px] font-bold text-white">
                       {locale === 'bn' ? 'লগইন' : 'Log In'}
                     </Text>
                   </Pressable>
 
                   <Pressable
                     onPress={() => closeAndNavigate('/register')}
-                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-[#d9dde4] bg-white py-2 dark:border-[#393a3b] dark:bg-[#242526]">
+                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-[#d9dde4] bg-white py-2.5 dark:border-[#393a3b] dark:bg-[#242526]">
                     <AppIcon
                       android="person_add"
                       ios="person.badge.plus"
-                      size={14}
+                      size={16}
                       color={theme === 'dark' ? '#e4e6eb' : '#1e2329'}
                     />
-                    <Text className="text-xs font-bold text-[#1e2329] dark:text-[#e4e6eb]">
+                    <Text className="text-[14px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
                       {locale === 'bn' ? 'যোগ দিন' : 'Join'}
                     </Text>
                   </Pressable>
@@ -253,11 +253,11 @@ export function MenuDrawer() {
             )}
 
             {/* All Shortcuts */}
-            <Text className="px-2 pb-1.5 text-[11px] font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
+            <Text className="px-2 pb-2 text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
               {locale === 'bn' ? 'সকল মেনু' : 'All Shortcuts'}
             </Text>
 
-            <View className="gap-1 mb-3">
+            <View className="gap-1.5 mb-3.5">
               {MENU_ITEMS.map((item) => {
                 const isActive = item.exact
                   ? pathname === item.href
@@ -270,23 +270,23 @@ export function MenuDrawer() {
                   <Pressable
                     key={item.id}
                     onPress={() => closeAndNavigate(item.href)}
-                    className={`flex-row items-center justify-between rounded-xl px-2.5 py-2 ${
+                    className={`flex-row items-center justify-between rounded-xl px-3 py-2.5 ${
                       isActive
                         ? 'bg-[#dee2e8] dark:bg-[#3a3b3c]'
                         : 'active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]/60'
                     }`}>
-                    <View className="flex-row items-center gap-2.5">
+                    <View className="flex-row items-center gap-3.5 flex-1">
                       <View
-                        className={`h-8 w-8 items-center justify-center rounded-full ${item.iconBg}`}>
+                        className={`h-9 w-9 items-center justify-center rounded-full shrink-0 ${item.iconBg}`}>
                         <AppIcon
                           android={item.icon}
-                          size={17}
+                          size={19}
                           weight="bold"
                           color="#ffffff"
                         />
                       </View>
                       <Text
-                        className={`text-[14px] ${
+                        className={`text-[16px] leading-snug flex-1 ${
                           isActive
                             ? 'font-bold text-primary-700 dark:text-primary-400'
                             : 'font-semibold text-[#1e2329] dark:text-[#e4e6eb]'
@@ -300,21 +300,21 @@ export function MenuDrawer() {
             </View>
 
             {/* Preferences */}
-            <View className="pt-2 border-t border-[#d9dde4] dark:border-[#393a3b] gap-2">
-              <Text className="px-2 text-[11px] font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
+            <View className="pt-2.5 border-t border-[#d9dde4] dark:border-[#393a3b] gap-2.5">
+              <Text className="px-2 text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
                 {locale === 'bn' ? 'পছন্দ ও সেটিংস' : 'Preferences'}
               </Text>
 
               {/* Dark / Light Mode Toggle */}
-              <View className="flex-row items-center justify-between px-2.5 py-2 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50">
-                <View className="flex-row items-center gap-2">
+              <View className="flex-row items-center justify-between px-3 py-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50">
+                <View className="flex-row items-center gap-2.5">
                   <AppIcon
                     android={theme === 'dark' ? 'dark_mode' : 'light_mode'}
                     ios={theme === 'dark' ? 'moon.fill' : 'sun.max.fill'}
-                    size={16}
+                    size={18}
                     color={theme === 'dark' ? '#4a80f5' : '#f59e0b'}
                   />
-                  <Text className="text-xs font-semibold text-[#1e2329] dark:text-[#e4e6eb]">
+                  <Text className="text-[14.5px] font-semibold text-[#1e2329] dark:text-[#e4e6eb]">
                     {theme === 'dark'
                       ? locale === 'bn'
                         ? 'ডার্ক মোড'
@@ -327,37 +327,37 @@ export function MenuDrawer() {
 
                 <Pressable
                   onPress={toggleTheme}
-                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#242526]">
-                  <Text className="font-bold text-[11px] text-[#1e2329] dark:text-[#e4e6eb]">
+                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#242526]">
+                  <Text className="font-bold text-[12.5px] text-[#1e2329] dark:text-[#e4e6eb]">
                     {theme === 'dark' ? 'Switch Light' : 'Switch Dark'}
                   </Text>
                 </Pressable>
               </View>
 
               {/* Language Switcher */}
-              <View className="flex-row items-center justify-between px-2.5 py-2 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50">
-                <View className="flex-row items-center gap-2">
+              <View className="flex-row items-center justify-between px-3 py-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50">
+                <View className="flex-row items-center gap-2.5">
                   <AppIcon
                     android="language"
                     ios="globe"
-                    size={16}
+                    size={18}
                     color="#14b8a6"
                   />
-                  <Text className="text-xs font-semibold text-[#1e2329] dark:text-[#e4e6eb]">
+                  <Text className="text-[14.5px] font-semibold text-[#1e2329] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'ভাষা (Language)' : 'Language'}
                   </Text>
                 </View>
 
-                <View className="flex-row gap-1">
+                <View className="flex-row gap-1.5">
                   <Pressable
                     onPress={() => setLocale('bn')}
-                    className={`px-2 py-0.5 rounded-md ${
+                    className={`px-2.5 py-1 rounded-md ${
                       locale === 'bn'
                         ? 'bg-primary-500'
                         : 'bg-white dark:bg-[#242526]'
                     }`}>
                     <Text
-                      className={`font-bold text-[11px] ${
+                      className={`font-bold text-[12.5px] ${
                         locale === 'bn'
                           ? 'text-white'
                           : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -367,13 +367,13 @@ export function MenuDrawer() {
                   </Pressable>
                   <Pressable
                     onPress={() => setLocale('en')}
-                    className={`px-2 py-0.5 rounded-md ${
+                    className={`px-2.5 py-1 rounded-md ${
                       locale === 'en'
                         ? 'bg-primary-500'
                         : 'bg-white dark:bg-[#242526]'
                     }`}>
                     <Text
-                      className={`font-bold text-[11px] ${
+                      className={`font-bold text-[12.5px] ${
                         locale === 'en'
                           ? 'text-white'
                           : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -386,7 +386,7 @@ export function MenuDrawer() {
 
               {/* Footer Links */}
               <View className="pt-2 px-2 flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1">
-                <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                <Text className="text-[12px] text-[#65676b] dark:text-[#b0b3b8]">
                   {locale === 'bn' ? 'উদ্দেশ্য' : 'Purpose'} •{' '}
                   {locale === 'bn' ? 'ব্যবহারের শর্তাবলী' : 'Terms'} •{' '}
                   {locale === 'bn' ? 'গোপনীয়তা নীতি' : 'Privacy'} • PeaceTweet © 2026

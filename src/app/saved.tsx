@@ -161,9 +161,9 @@ function SavedContentCard({
       </View>
 
       {/* 2. Dua / Post Content Body */}
-      <View className="px-3 pt-2.5 pb-3.5 gap-3">
+      <View className="px-3 pt-2.5 pb-3.5 gap-3.5">
         {title && (
-          <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] leading-snug">
+          <Text className="text-[18px] font-bold text-[#050505] dark:text-[#e4e6eb] leading-7">
             🌙 {title}
           </Text>
         )}
@@ -171,10 +171,10 @@ function SavedContentCard({
         {/* Main Dua (Arabic Text) */}
         {arabicText && (
           <View className="gap-1">
-            <Text className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+            <Text className="text-[12px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">
               {locale === 'bn' ? 'মূল দোয়া:' : 'Main Dua:'}
             </Text>
-            <Text className="text-xl text-right text-[#050505] dark:text-primary-200 leading-9">
+            <Text className="text-[24px] text-right text-[#050505] dark:text-primary-200 leading-10">
               {arabicText}
             </Text>
           </View>
@@ -183,10 +183,10 @@ function SavedContentCard({
         {/* Transliteration (উচ্চারণ) */}
         {transliteration && (
           <View className="gap-1">
-            <Text className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+            <Text className="text-[12px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">
               Pronunciation:
             </Text>
-            <Text className="text-sm font-medium text-[#050505] dark:text-[#e4e6eb] leading-6">
+            <Text className="text-[16px] font-medium text-[#050505] dark:text-[#e4e6eb] leading-[26px]">
               {transliteration}
             </Text>
           </View>
@@ -195,10 +195,10 @@ function SavedContentCard({
         {/* Meaning (অর্থ) */}
         {meaning && (
           <View className="gap-1">
-            <Text className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+            <Text className="text-[12px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400">
               {dua ? 'Meaning:' : 'Post:'}
             </Text>
-            <Text className="text-sm font-medium text-[#050505] dark:text-[#e4e6eb] leading-6">
+            <Text className="text-[16px] font-medium text-[#050505] dark:text-[#e4e6eb] leading-[26px]">
               {meaning}
             </Text>
           </View>
@@ -206,7 +206,7 @@ function SavedContentCard({
 
         {/* Fadilah or References */}
         {dua?.fadilah && (
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] pt-0.5 leading-5">
+          <Text className="text-[14.5px] text-[#65676b] dark:text-[#b0b3b8] pt-0.5 leading-6">
             <Text className="font-semibold text-[#050505] dark:text-[#e4e6eb]">
               Benefit:{' '}
             </Text>

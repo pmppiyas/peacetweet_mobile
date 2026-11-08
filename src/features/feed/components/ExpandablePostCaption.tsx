@@ -17,8 +17,8 @@ function measureTextWidth(text: string, font: string): number {
       }
     } catch {}
   }
-  // Safe fallback for native / non-canvas environments: avg 9.5px per character
-  return text.length * 9.5;
+  // Safe fallback for native / non-canvas environments: avg 10.4px per character
+  return text.length * 10.4;
 }
 
 function fitWordsToWidth(
@@ -101,7 +101,7 @@ export function ExpandablePostCaption({
               setHasLayoutOverflow(true);
             }
           }}
-          className="text-[15px] text-[#1e2329] dark:text-[#e4e6eb] leading-6 select-text">
+          className="text-[16.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-[26px] select-text">
           {content}
         </Text>
         {exceedsTwoLines && isExpanded && (
@@ -110,7 +110,7 @@ export function ExpandablePostCaption({
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="mt-1 active:opacity-70 self-start"
             style={Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined}>
-            <Text className="text-[13px] font-semibold text-primary-600 dark:text-primary-400">
+            <Text className="text-[14px] font-semibold text-primary-600 dark:text-primary-400">
               {locale === 'bn' ? 'কম দেখুন' : 'See less'}
             </Text>
           </Pressable>
@@ -121,7 +121,7 @@ export function ExpandablePostCaption({
 
   // Collapsed state: Show only whole words on 1 line + "... See more"
   const font =
-    '15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+    '16.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
   const seeMoreLabel = locale === 'bn' ? '... আরও দেখুন' : '... See more';
   const seeMoreWidth = measureTextWidth(seeMoreLabel, `bold ${font}`);
 
@@ -141,9 +141,9 @@ export function ExpandablePostCaption({
       <Text
         selectable={false}
         numberOfLines={1}
-        className="text-[15px] text-[#1e2329] dark:text-[#e4e6eb] leading-6">
+        className="text-[16.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-[26px]">
         {fittedWords}{' '}
-        <Text className="text-[14px] font-bold text-primary-600 dark:text-primary-400">
+        <Text className="text-[15px] font-bold text-primary-600 dark:text-primary-400">
           {seeMoreLabel}
         </Text>
       </Text>
