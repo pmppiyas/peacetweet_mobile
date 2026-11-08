@@ -243,14 +243,14 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
           <View
             style={{
               width: '100%',
-              backgroundColor: isDark ? '#242526' : '#ffffff',
+              backgroundColor: isDark ? '#242526' : '#f5f6f8',
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               borderBottomLeftRadius: 0,
               borderBottomRightRadius: 0,
               overflow: 'hidden',
               borderTopWidth: 1,
-              borderColor: isDark ? '#393a3b' : '#e4e6eb',
+              borderColor: isDark ? '#393a3b' : '#d9dde4',
               paddingBottom: Platform.OS === 'ios' ? 32 : 16,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: -4 },
@@ -280,7 +280,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
               <View
                 style={{
                   borderBottomWidth: 1,
-                  borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
+                  borderBottomColor: isDark ? '#393a3b' : '#e6e9ef',
                 }}
                 className="px-5 py-2.5 flex-row items-center justify-between">
                 <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -288,7 +288,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
                 </Text>
                 <Pressable
                   onPress={closeWithSlideDown}
-                  className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
+                  className="h-8 w-8 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
                   <AppIcon
                     android="close"
                     size={18}
@@ -311,7 +311,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
                         ? '#10b981'
                         : isDark
                           ? '#3a3b3c'
-                          : '#f0f2f5',
+                          : '#e6e9ef',
                     }}
                     className="h-14 w-14 rounded-full items-center justify-center">
                     <AppIcon
@@ -401,7 +401,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
                   onPress={handleNativeShare}
                   className="items-center gap-1.5 active:opacity-75">
                   <View
-                    style={{ backgroundColor: isDark ? '#3a3b3c' : '#f0f2f5' }}
+                    style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
                     className="h-14 w-14 rounded-full items-center justify-center">
                     <AppIcon
                       android="share"

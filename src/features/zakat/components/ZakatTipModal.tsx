@@ -29,7 +29,7 @@ export function ZakatTipModal({
         className="flex-1 bg-black/60 items-center justify-center p-4">
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          style={{ backgroundColor: isDark ? '#242526' : '#ffffff' }}
+          style={{ backgroundColor: isDark ? '#242526' : '#f5f6f8' }}
           className="w-full max-w-md rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-xl">
           <View className="flex-row items-center justify-between mb-3 border-b border-gray-100 dark:border-gray-800 pb-2.5">
             <View className="flex-row items-center gap-2 flex-1 pr-2">

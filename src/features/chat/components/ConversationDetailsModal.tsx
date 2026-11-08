@@ -41,7 +41,7 @@ export function ConversationDetailsModal({
         </Text>
         <Pressable
           onPress={onClose}
-          className="p-1.5 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+          className="p-1.5 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
           <AppIcon
             android="close"
             ios="xmark"
@@ -93,7 +93,7 @@ export function ConversationDetailsModal({
                 onClose();
                 router.push(user?.username ? (`/${user.username}` as any) : '/profile');
               }}
-              className="flex-1 flex-row items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb]">
+              className="flex-1 flex-row items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c] active:bg-[#e4e6eb]">
               <AppIcon
                 android="person"
                 ios="person.fill"
@@ -133,7 +133,7 @@ export function ConversationDetailsModal({
           {/* Mute Notifications */}
           <Pressable
             onPress={() => setIsMuted((prev) => !prev)}
-            className="w-full flex-row items-center justify-between p-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#2a2b2c]">
+            className="w-full flex-row items-center justify-between p-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#2a2b2c]">
             <View className="flex-row items-center gap-3 flex-1 pr-2">
               <AppIcon
                 android={isMuted ? 'notifications_off' : 'notifications'}

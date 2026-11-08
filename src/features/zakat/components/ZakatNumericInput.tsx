@@ -75,7 +75,7 @@ export function ZakatNumericInput({
 
       <View
         style={{
-          backgroundColor: isDark ? '#3a3b3c' : '#f0f2f5',
+          backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef',
           borderColor: isDark ? '#4e4f50' : '#e4e6eb',
         }}
         className="flex-row items-center rounded-xl border px-3 py-1.5">

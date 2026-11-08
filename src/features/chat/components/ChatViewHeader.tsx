@@ -35,7 +35,7 @@ export function ChatViewHeader({
         {onBack ? (
           <Pressable
             onPress={onBack}
-            className="md:hidden p-2 -ml-1.5 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+            className="md:hidden p-2 -ml-1.5 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
             <AppIcon
               android="arrow_back"
               ios="chevron.left"
@@ -92,7 +92,7 @@ export function ChatViewHeader({
           className={`p-2 sm:p-2.5 rounded-full ${
             showDetails
               ? 'bg-primary-50 dark:bg-primary-950/60'
-              : 'active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]'
+              : 'active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]'
           }`}>
           <AppIcon
             android="info"

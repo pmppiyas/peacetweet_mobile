@@ -499,11 +499,11 @@ export function CommentsBottomSheetModal({
             style={{
               flex: 1,
               width: '100%',
-              backgroundColor: isDark ? '#242526' : '#ffffff',
+              backgroundColor: isDark ? '#242526' : '#f5f6f8',
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
               borderTopWidth: 1,
-              borderColor: isDark ? '#393a3b' : '#e4e6eb',
+              borderColor: isDark ? '#393a3b' : '#d9dde4',
               overflow: 'hidden',
             }}>
             {/* 1. Draggable Top Handle Bar + Header */}
@@ -511,8 +511,8 @@ export function CommentsBottomSheetModal({
               {...headerPanResponder.panHandlers}
               style={{
                 borderBottomWidth: 1,
-                borderBottomColor: isDark ? '#393a3b' : '#e4e6eb',
-                backgroundColor: isDark ? '#242526' : '#ffffff',
+                borderBottomColor: isDark ? '#393a3b' : '#d9dde4',
+                backgroundColor: isDark ? '#242526' : '#f5f6f8',
               }}
               className="w-full select-none">
               {/* Center Drag Bar Pill */}
@@ -604,14 +604,14 @@ export function CommentsBottomSheetModal({
             <View
               style={{
                 borderTopWidth: 1,
-                borderTopColor: isDark ? '#393a3b' : '#e4e6eb',
-                backgroundColor: isDark ? '#242526' : '#ffffff',
+                borderTopColor: isDark ? '#393a3b' : '#d9dde4',
+                backgroundColor: isDark ? '#242526' : '#f5f6f8',
               }}>
               {replyingTo && (
                 <View
                   style={{
                     borderBottomWidth: 1,
-                    borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
+                    borderBottomColor: isDark ? '#393a3b' : '#e6e9ef',
                   }}
                   className="px-4 py-1.5 flex-row items-center justify-between bg-[#f7f8fa] dark:bg-[#1e1f20]">
                   <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
@@ -648,7 +648,7 @@ export function CommentsBottomSheetModal({
                         : 'Write a comment...'
                   }
                   placeholderTextColor="#8e8e93"
-                  className="flex-1 h-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 text-xs text-[#050505] dark:text-[#e4e6eb]"
+                  className="flex-1 h-10 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] px-4 text-xs text-[#050505] dark:text-[#e4e6eb]"
                 />
                 <Pressable
                   disabled={!commentText.trim()}

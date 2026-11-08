@@ -112,17 +112,17 @@ export function EditPostModal({
           style={{
             width: '100%',
             maxWidth: 520,
-            backgroundColor: isDark ? '#242526' : '#ffffff',
+            backgroundColor: isDark ? '#242526' : '#f5f6f8',
             borderRadius: 20,
             overflow: 'hidden',
             borderWidth: 1,
-            borderColor: isDark ? '#393a3b' : '#e4e6eb',
+            borderColor: isDark ? '#393a3b' : '#d9dde4',
           }}>
           {/* Header */}
           <View
             style={{
               borderBottomWidth: 1,
-              borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
+              borderBottomColor: isDark ? '#393a3b' : '#e6e9ef',
             }}
             className="px-5 py-3.5 flex-row items-center justify-between">
             <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -130,7 +130,7 @@ export function EditPostModal({
             </Text>
             <Pressable
               onPress={onClose}
-              className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
+              className="h-8 w-8 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
               <AppIcon
                 android="close"
                 size={18}

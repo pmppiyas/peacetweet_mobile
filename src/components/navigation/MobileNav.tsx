@@ -151,7 +151,7 @@ export function MobileNav() {
   };
 
   return (
-    <View className="w-full border-t border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526] select-none">
+    <View className="w-full border-t border-[#d9dde4] bg-white dark:border-[#393a3b] dark:bg-[#242526] select-none">
       <View className="flex-row h-14 items-center select-none">
         {navItems.map((item) => {
           const label = locale === 'bn' ? item.labelBn : item.labelEn;
@@ -181,7 +181,7 @@ export function MobileNav() {
                 <View
                   style={{
                     backgroundColor: activeBg,
-                    borderColor: theme === 'dark' ? '#242526' : '#ffffff',
+                    borderColor: theme === 'dark' ? '#242526' : '#f5f6f8',
                   }}
                   className="h-11 w-11 items-center justify-center rounded-full shadow-lg border-2 select-none">
                   {isUploadingPost ? (

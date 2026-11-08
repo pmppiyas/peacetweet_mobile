@@ -42,7 +42,7 @@ export default function ProfileScreen() {
             : 'overview';
 
   return (
-    <View className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
+    <View className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]">
       <ProfileView
         targetUser={user}
         initialTab={initialTab}

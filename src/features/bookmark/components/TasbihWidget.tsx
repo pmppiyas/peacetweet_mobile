@@ -245,7 +245,7 @@ export function TasbihModal({
             <View className="flex-row items-center gap-1">
               <Pressable
                 onPress={handleReset}
-                className="p-1.5 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                className="p-1.5 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                 <AppIcon
                   android="refresh"
                   ios="arrow.counterclockwise"
@@ -255,7 +255,7 @@ export function TasbihModal({
               </Pressable>
               <Pressable
                 onPress={onClose}
-                className="p-1.5 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                className="p-1.5 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                 <AppIcon
                   android="close"
                   ios="xmark"
@@ -268,7 +268,7 @@ export function TasbihModal({
 
           {/* Pronunciation & Arabic Text recitation box */}
           {(currentItem.transliteration || currentItem.arabicText) && (
-            <View className="mt-3 rounded-2xl bg-[#f0f2f5]/80 dark:bg-[#3a3b3c]/50 p-3 items-center gap-1.5 border border-[#e4e6eb]/60 dark:border-[#393a3b]/60">
+            <View className="mt-3 rounded-2xl bg-[#e6e9ef]/80 dark:bg-[#3a3b3c]/50 p-3 items-center gap-1.5 border border-[#e4e6eb]/60 dark:border-[#393a3b]/60">
               {currentItem.arabicText && (
                 <Text className="text-xl text-[#050505] dark:text-primary-200 font-bold text-center leading-8">
                   {currentItem.arabicText}
@@ -302,7 +302,7 @@ export function TasbihModal({
                     className={`flex-1 py-1.5 rounded-xl items-center ${
                       isSelected
                         ? 'bg-primary-500'
-                        : 'bg-[#f0f2f5] dark:bg-[#3a3b3c]'
+                        : 'bg-[#e6e9ef] dark:bg-[#3a3b3c]'
                     }`}>
                     <Text
                       className={`text-xs font-bold ${

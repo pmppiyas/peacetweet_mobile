@@ -190,8 +190,8 @@ export default function GroupsScreen() {
         />
       }>
       {/* Index 0: Sticky Tab Switcher (No Header) */}
-      <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#f0f2f5] dark:border-[#242526] px-3 py-2">
-        <View className="w-full max-w-[768px] mx-auto flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
+      <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e6e9ef] dark:border-[#242526] px-3 py-2">
+        <View className="w-full max-w-[768px] mx-auto flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#242526] p-1">
           {[
             { key: 'my', bn: 'আমার গ্রুপসমূহ', en: 'My Groups' },
             { key: 'all', bn: 'সকল গ্রুপ', en: 'All Groups' },
@@ -265,7 +265,7 @@ export default function GroupsScreen() {
                   <View
                     key={group.id}
                     className={`py-3 flex-row items-center justify-between ${
-                      !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
+                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
                     }`}>
                     {/* Left Icon & Text Info */}
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
@@ -295,7 +295,7 @@ export default function GroupsScreen() {
                       disabled={isWorking}
                       className={`px-3.5 py-1.5 rounded-xl border ${
                         isMember
-                          ? 'border-[#ced0d4] dark:border-[#3e4042] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
+                          ? 'border-[#ced0d4] dark:border-[#3e4042] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
                           : isPending
                             ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/40'
                             : 'border-emerald-600 bg-emerald-600 active:bg-emerald-700'

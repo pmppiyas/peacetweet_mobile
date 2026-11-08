@@ -825,14 +825,14 @@ export default function BloodScreen() {
       {/* Index 0: Sticky Top Bar */}
       <View
         style={{ width: '100%' }}
-        className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#f0f2f5] dark:border-[#242526] px-3 pt-2 pb-2.5">
+        className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e6e9ef] dark:border-[#242526] px-3 pt-2 pb-2.5">
         <View
           style={{ width: '100%', maxWidth: 768, marginLeft: 'auto', marginRight: 'auto' }}
           className="w-full max-w-[768px] mx-auto">
           {/* 4 Tab Switcher */}
           <View
             style={{ width: '100%', flexDirection: 'row' }}
-            className="w-full flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
+            className="w-full flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#242526] p-1">
             {[
               { key: 'requests', bn: 'রক্তের আবেদন', shortBn: 'আবেদন', en: 'Requests', icon: 'water_drop' },
               { key: 'donors', bn: 'রক্তদাতা খুঁজুন', shortBn: 'রক্তদাতা', en: 'Donors', icon: 'groups' },
@@ -900,7 +900,7 @@ export default function BloodScreen() {
                       className={`px-3 py-1 rounded-full border ${
                         isSelected
                           ? 'bg-rose-600 border-rose-600 shadow-xs'
-                          : 'bg-[#f0f2f5] dark:bg-[#242526] border-[#ced0d4] dark:border-[#3a3b3c]'
+                          : 'bg-[#e6e9ef] dark:bg-[#242526] border-[#ced0d4] dark:border-[#3a3b3c]'
                       }`}>
                       <Text
                         className={`text-xs font-semibold ${

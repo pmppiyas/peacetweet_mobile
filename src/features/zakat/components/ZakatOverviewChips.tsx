@@ -26,7 +26,7 @@ export function ZakatOverviewChips({
 }: ZakatOverviewChipsProps) {
   return (
     <View
-      style={{ backgroundColor: isDark ? '#242526' : '#ffffff' }}
+      style={{ backgroundColor: isDark ? '#242526' : '#f5f6f8' }}
       className="p-3.5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs mb-3">
       <View className="flex-row items-center justify-between mb-2.5 flex-wrap gap-y-1.5">
         <Text className="text-xs font-bold uppercase tracking-wider text-gray-500">

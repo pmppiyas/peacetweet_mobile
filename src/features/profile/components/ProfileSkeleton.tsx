@@ -22,7 +22,7 @@ export function PostCardSkeleton() {
       </View>
 
       {/* Actions */}
-      <View className="pt-2 border-t border-[#f0f2f5] dark:border-[#393a3b] flex-row justify-around gap-2">
+      <View className="pt-2 border-t border-[#e6e9ef] dark:border-[#393a3b] flex-row justify-around gap-2">
         <Skeleton className="h-7 w-20 rounded-xl" />
         <Skeleton className="h-7 w-20 rounded-xl" />
         <Skeleton className="h-7 w-20 rounded-xl" />
@@ -34,7 +34,7 @@ export function PostCardSkeleton() {
 export function ProfileSkeleton() {
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       showsVerticalScrollIndicator={false}>
       {/* Cover Banner Skeleton */}
       <Skeleton className="w-full h-44 sm:h-52 rounded-none" />

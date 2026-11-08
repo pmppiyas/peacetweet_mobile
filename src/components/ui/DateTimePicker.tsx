@@ -257,7 +257,7 @@ export function DateTimePicker({
       <Pressable
         onPress={handleOpen}
         style={webNoOutline}
-        className={`bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2.5 flex-row items-center justify-between border ${
+        className={`bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2.5 flex-row items-center justify-between border ${
           isOpen
             ? 'border-orange-500 dark:border-orange-500'
             : 'border-[#e4e6eb] dark:border-[#393a3b]'
@@ -312,7 +312,7 @@ export function DateTimePicker({
             style={{
               width: 375,
               maxWidth: '96%',
-              backgroundColor: isDark ? '#242526' : '#ffffff',
+              backgroundColor: isDark ? '#242526' : '#f5f6f8',
               borderRadius: 16,
               borderWidth: 1,
               borderColor: isDark ? '#393a3b' : '#e4e6eb',
@@ -529,7 +529,7 @@ export function DateTimePicker({
                     style={{
                       width: 1,
                       height: '100%',
-                      backgroundColor: isDark ? '#393a3b' : '#f0f2f5',
+                      backgroundColor: isDark ? '#393a3b' : '#e6e9ef',
                     }}
                   />
 
@@ -583,7 +583,7 @@ export function DateTimePicker({
                     style={{
                       width: 1,
                       height: '100%',
-                      backgroundColor: isDark ? '#393a3b' : '#f0f2f5',
+                      backgroundColor: isDark ? '#393a3b' : '#e6e9ef',
                     }}
                   />
 

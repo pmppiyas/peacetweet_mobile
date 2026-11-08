@@ -306,7 +306,7 @@ export function PhotoEditorModal({
             <Pressable
               onPress={isSaving ? undefined : onClose}
               disabled={isSaving}
-              className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:scale-95">
+              className="h-8 w-8 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] items-center justify-center active:scale-95">
               <AppIcon
                 android="close"
                 size={18}
@@ -425,7 +425,7 @@ export function PhotoEditorModal({
           </View>
 
           {/* Zoom & Resize Toolbar */}
-          <View className="mt-3 p-3 rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 border border-[#e4e6eb] dark:border-[#393a3b] space-y-2.5">
+          <View className="mt-3 p-3 rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/60 border border-[#e4e6eb] dark:border-[#393a3b] space-y-2.5">
             <View className="flex-row items-center gap-2.5">
               <Pressable
                 onPress={() => handleZoomChange(zoom - 0.1)}
@@ -514,7 +514,7 @@ export function PhotoEditorModal({
             <Pressable
               onPress={isSaving ? undefined : onClose}
               disabled={isSaving}
-              className="px-4 py-2.5 rounded-xl border border-[#ced0d4] dark:border-[#4a4b4d] bg-[#f0f2f5] dark:bg-[#3a3b3c] active:scale-95">
+              className="px-4 py-2.5 rounded-xl border border-[#ced0d4] dark:border-[#4a4b4d] bg-[#e6e9ef] dark:bg-[#3a3b3c] active:scale-95">
               <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'বাতিল' : 'Cancel'}
               </Text>

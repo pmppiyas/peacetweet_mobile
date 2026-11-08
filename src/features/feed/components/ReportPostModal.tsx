@@ -207,14 +207,14 @@ export function ReportPostModal({ visible, onClose, post }: ReportPostModalProps
           <View
             style={{
               width: '100%',
-              backgroundColor: isDark ? '#242526' : '#ffffff',
+              backgroundColor: isDark ? '#242526' : '#f5f6f8',
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               borderBottomLeftRadius: 0,
               borderBottomRightRadius: 0,
               overflow: 'hidden',
               borderTopWidth: 1,
-              borderColor: isDark ? '#393a3b' : '#e4e6eb',
+              borderColor: isDark ? '#393a3b' : '#d9dde4',
               paddingBottom: Platform.OS === 'ios' ? 32 : 16,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: -4 },
@@ -244,7 +244,7 @@ export function ReportPostModal({ visible, onClose, post }: ReportPostModalProps
               <View
                 style={{
                   borderBottomWidth: 1,
-                  borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
+                  borderBottomColor: isDark ? '#393a3b' : '#e6e9ef',
                 }}
                 className="px-5 py-2.5 flex-row items-center justify-between">
                 <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -252,7 +252,7 @@ export function ReportPostModal({ visible, onClose, post }: ReportPostModalProps
                 </Text>
                 <Pressable
                   onPress={closeWithSlideDown}
-                  className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
+                  className="h-8 w-8 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
                   <AppIcon
                     android="close"
                     size={18}

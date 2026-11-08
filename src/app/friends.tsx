@@ -225,8 +225,8 @@ export default function FriendsScreen() {
         />
       }>
       {/* Index 0: Sticky Tab Switcher (No Header) */}
-      <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#f0f2f5] dark:border-[#242526] px-3 py-2">
-        <View className="w-full max-w-[768px] mx-auto flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
+      <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e6e9ef] dark:border-[#242526] px-3 py-2">
+        <View className="w-full max-w-[768px] mx-auto flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#242526] p-1">
           {[
             { key: 'all', bn: 'আমার ফ্রেন্ডস', en: 'My Friends' },
             { key: 'requests', bn: 'রিকোয়েস্ট', en: 'Requests' },
@@ -305,7 +305,7 @@ export default function FriendsScreen() {
                   <View
                     key={item.id || u.id}
                     className={`py-3 flex-row items-center justify-between ${
-                      !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
+                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
                     }`}>
                     <Pressable
                       onPress={() => router.push(`/${u.username}` as any)}
@@ -375,7 +375,7 @@ export default function FriendsScreen() {
                   <View
                     key={item.id}
                     className={`py-3 flex-row items-center justify-between ${
-                      !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
+                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
                     }`}>
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <UserAvatar
@@ -410,7 +410,7 @@ export default function FriendsScreen() {
                       <Pressable
                         onPress={() => handleRejectRequest(item)}
                         disabled={isWorking}
-                        className="px-3 py-1.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4a4b4d]">
+                        className="px-3 py-1.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4a4b4d]">
                         <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8]">
                           {locale === 'bn' ? 'মুছুন' : 'Delete'}
                         </Text>
@@ -442,7 +442,7 @@ export default function FriendsScreen() {
                   <View
                     key={u.id}
                     className={`py-3 flex-row items-center justify-between ${
-                      !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
+                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
                     }`}>
                     <Pressable
                       onPress={() => router.push(`/${u.username}` as any)}
@@ -467,7 +467,7 @@ export default function FriendsScreen() {
                       disabled={isSent || isWorking}
                       className={`px-3.5 py-1.5 rounded-xl border ${
                         isSent
-                          ? 'border-[#ced0d4] dark:border-[#3e4042] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
+                          ? 'border-[#ced0d4] dark:border-[#3e4042] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
                           : 'border-indigo-600 bg-indigo-600 active:bg-indigo-700'
                       }`}>
                       {isWorking ? (

@@ -73,7 +73,7 @@ export default function LoginScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       keyboardShouldPersistTaps="handled"
       contentContainerClassName="flex-grow items-center justify-center px-3 py-3">
       {/* Compact Brand Header */}
@@ -117,7 +117,7 @@ export default function LoginScreen() {
             className={`flex-row items-center rounded-lg border px-2.5 h-9 gap-2 ${
               focusedField === 'identifier'
                 ? 'border-[#1877f2] bg-white dark:bg-[#1f2021]'
-                : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
+                : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
             }`}>
             <AppIcon
               android="mail"
@@ -154,7 +154,7 @@ export default function LoginScreen() {
             className={`flex-row items-center rounded-lg border px-2.5 h-9 gap-2 ${
               focusedField === 'password'
                 ? 'border-[#1877f2] bg-white dark:bg-[#1f2021]'
-                : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
+                : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
             }`}>
             <AppIcon
               android="lock"

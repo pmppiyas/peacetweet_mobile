@@ -14,7 +14,7 @@ export function BloodSkeleton({ count = 6 }: BloodSkeletonProps) {
       {items.map((i) => (
         <View
           key={i}
-          className="py-3.5 flex-row items-center justify-between border-b border-[#f0f2f5] dark:border-[#242526]">
+          className="py-3.5 flex-row items-center justify-between border-b border-[#e6e9ef] dark:border-[#242526]">
           {/* Blood Group Badge & Info */}
           <View className="flex-row items-center gap-3 flex-1 pr-2">
             <Skeleton className="h-12 w-12 rounded-2xl shrink-0" />

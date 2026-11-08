@@ -319,7 +319,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
                 ? '#65676b'
                 : '#8a8d91'
             }
-            className={`flex-1 bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2.5 text-xs text-[#050505] dark:text-[#e4e6eb] border ${
+            className={`flex-1 bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2.5 text-xs text-[#050505] dark:text-[#e4e6eb] border ${
               fieldErrors.patientName
                 ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
                 : 'border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400'
@@ -359,7 +359,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
                   : theme === 'dark' ? '#393a3b' : '#ced0d4',
                 backgroundColor: forMyself
                   ? theme === 'dark' ? 'rgba(225, 29, 72, 0.15)' : '#fff1f2'
-                  : theme === 'dark' ? '#242526' : '#f0f2f5',
+                  : theme === 'dark' ? '#242526' : '#e6e9ef',
               },
             ]}
             className="flex-row items-center justify-center gap-1.5 px-3.5 py-2 rounded-2xl shrink-0">
@@ -394,7 +394,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
             style={webNoOutline}
             placeholder="e.g. 28"
             placeholderTextColor={theme === 'dark' ? '#65676b' : '#8a8d91'}
-            className="bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400"
+            className="bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400"
           />
         </View>
 
@@ -431,7 +431,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
                 ? '#65676b'
                 : '#8a8d91'
             }
-            className={`bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border ${
+            className={`bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border ${
               fieldErrors.units
                 ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
                 : 'border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400'
@@ -454,7 +454,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
               className={`px-3 py-1.5 rounded-xl border ${
                 formBloodGroup === bg
                   ? 'bg-rose-600 border-rose-600 shadow-xs'
-                  : 'bg-[#f0f2f5] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
+                  : 'bg-[#e6e9ef] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
               }`}>
               <Text
                 className={`text-xs font-bold ${
@@ -494,7 +494,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
               : 'e.g. Thalassemia, Surgery, Accident'
           }
           placeholderTextColor={theme === 'dark' ? '#65676b' : '#8a8d91'}
-          className="bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400"
+          className="bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400"
         />
       </View>
 
@@ -532,7 +532,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
               ? '#65676b'
               : '#8a8d91'
           }
-          className={`bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border ${
+          className={`bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border ${
             fieldErrors.hospital
               ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
               : 'border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400'
@@ -616,7 +616,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
                 ? '#65676b'
                 : '#8a8d91'
             }
-            className={`bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border ${
+            className={`bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border ${
               fieldErrors.contact
                 ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-950/20'
                 : 'border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400'
@@ -635,7 +635,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
             style={webNoOutline}
             placeholder="018XXXXXXXX"
             placeholderTextColor={theme === 'dark' ? '#65676b' : '#8a8d91'}
-            className="bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400"
+            className="bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400"
           />
         </View>
       </View>

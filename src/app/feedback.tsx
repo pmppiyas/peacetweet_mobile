@@ -52,7 +52,7 @@ export default function FeedbackScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}>
       <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Hero Card */}
@@ -96,7 +96,7 @@ export default function FeedbackScreen() {
                   className={`px-3 py-1.5 rounded-xl border ${
                     isSelected
                       ? 'bg-teal-600 border-teal-600'
-                      : 'bg-[#f0f2f5] dark:bg-[#3a3b3c] border-[#ced0d4] dark:border-[#4a4b4d]'
+                      : 'bg-[#e6e9ef] dark:bg-[#3a3b3c] border-[#ced0d4] dark:border-[#4a4b4d]'
                   }`}>
                   <Text
                     className={`text-xs font-bold ${
@@ -119,7 +119,7 @@ export default function FeedbackScreen() {
               onChangeText={setSubject}
               placeholder={locale === 'bn' ? 'বিষয় লিখুন...' : 'Brief subject...'}
               placeholderTextColor="#8a8d91"
-              className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5]/60 dark:bg-[#3a3b3c]/40 px-3.5 py-2.5 text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]"
+              className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#e6e9ef]/60 dark:bg-[#3a3b3c]/40 px-3.5 py-2.5 text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]"
             />
           </View>
 
@@ -140,7 +140,7 @@ export default function FeedbackScreen() {
               }
               placeholderTextColor="#8a8d91"
               textAlignVertical="top"
-              className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5]/60 dark:bg-[#3a3b3c]/40 p-3 text-xs font-medium text-[#050505] dark:text-[#e4e6eb] min-h-[90px]"
+              className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#e6e9ef]/60 dark:bg-[#3a3b3c]/40 p-3 text-xs font-medium text-[#050505] dark:text-[#e4e6eb] min-h-[90px]"
             />
           </View>
 
@@ -156,7 +156,7 @@ export default function FeedbackScreen() {
               autoCapitalize="none"
               placeholder="name@example.com"
               placeholderTextColor="#8a8d91"
-              className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5]/60 dark:bg-[#3a3b3c]/40 px-3.5 py-2 text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]"
+              className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#e6e9ef]/60 dark:bg-[#3a3b3c]/40 px-3.5 py-2 text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]"
             />
           </View>
 

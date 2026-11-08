@@ -15,7 +15,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}>
       <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Hero Card */}
@@ -65,7 +65,7 @@ export default function SettingsScreen() {
 
               <Pressable
                 onPress={() => router.push('/profile')}
-                className="px-3 py-1.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4a4b4d] active:scale-95">
+                className="px-3 py-1.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4a4b4d] active:scale-95">
                 <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
                   {locale === 'bn' ? 'প্রোফাইল' : 'Profile'}
                 </Text>
@@ -123,7 +123,7 @@ export default function SettingsScreen() {
           </Text>
 
           {/* Theme switch */}
-          <View className="flex-row items-center justify-between py-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+          <View className="flex-row items-center justify-between py-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
             <View className="flex-row items-center gap-3">
               <View className="h-9 w-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 items-center justify-center">
                 <AppIcon
@@ -171,7 +171,7 @@ export default function SettingsScreen() {
               </View>
             </View>
 
-            <View className="flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] p-1">
+            <View className="flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c] p-1">
               <Pressable
                 onPress={() => setLocale('bn')}
                 className={`px-3 py-1 rounded-lg ${
@@ -206,7 +206,7 @@ export default function SettingsScreen() {
             {locale === 'bn' ? 'নোটিফিকেশন ও অ্যালার্ট' : 'Notifications'}
           </Text>
 
-          <View className="flex-row items-center justify-between py-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+          <View className="flex-row items-center justify-between py-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
             <View>
               <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'পুশ নোটিফিকেশন' : 'Push Notifications'}

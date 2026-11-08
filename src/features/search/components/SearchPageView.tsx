@@ -300,7 +300,7 @@ export function SearchPageView() {
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            className="w-full bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-xl p-1 no-scrollbar scrollbar-none select-none"
+            className="w-full bg-[#e6e9ef] dark:bg-[#3a3b3c] rounded-xl p-1 no-scrollbar scrollbar-none select-none"
             contentContainerClassName="flex-row items-center gap-1.5"
           >
             {TABS.map((tab) => {
@@ -404,7 +404,7 @@ export function SearchPageView() {
                   <Pressable
                     key={item.id}
                     onPress={() => handleSelectHistoryItem(item)}
-                    className="flex-row items-center justify-between gap-3 py-2.5 px-2 rounded-xl hover:bg-[#f0f2f5] active:bg-[#e4e6eb] dark:hover:bg-[#3a3b3c] dark:active:bg-[#4e4f50] select-none"
+                    className="flex-row items-center justify-between gap-3 py-2.5 px-2 rounded-xl hover:bg-[#e6e9ef] active:bg-[#e4e6eb] dark:hover:bg-[#3a3b3c] dark:active:bg-[#4e4f50] select-none"
                   >
                     <View className="flex-row items-center gap-3 min-w-0 flex-1 select-none">
                       {item.entityType === 'USER' ? (
@@ -426,7 +426,7 @@ export function SearchPageView() {
                           <AppIcon android="groups" size={18} color="#2563eb" />
                         </View>
                       ) : (
-                        <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] select-none">
+                        <View className="h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] select-none">
                           <AppIcon
                             android="schedule"
                             ios="clock"
@@ -676,7 +676,7 @@ export function SearchPageView() {
                                 </View>
                               ) : null}
                             </View>
-                            <View className="rounded-lg bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1.5 shrink-0 select-none">
+                            <View className="rounded-lg bg-[#e6e9ef] dark:bg-[#3a3b3c] px-3 py-1.5 shrink-0 select-none">
                               <Text
                                 selectable={false}
                                 className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
@@ -787,7 +787,7 @@ export function SearchPageView() {
                       {results.posts.map((post, index) => (
                         <React.Fragment key={post.id}>
                           {index > 0 && (
-                            <View className="h-2 w-full bg-[#f0f2f5] dark:bg-[#18191a] border-y border-[#e4e6eb] dark:border-[#393a3b]" />
+                            <View className="h-2 w-full bg-[#e6e9ef] dark:bg-[#18191a] border-y border-[#e4e6eb] dark:border-[#393a3b]" />
                           )}
                           <FeedPostCard post={post} defaultShowArabic={true} />
                         </React.Fragment>

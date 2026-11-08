@@ -87,7 +87,7 @@ export function MessageComposerView({
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mb-2 bg-[#f0f2f5] dark:bg-[#18191a] rounded-xl px-2 py-2"
+          className="mb-2 bg-[#e6e9ef] dark:bg-[#18191a] rounded-xl px-2 py-2"
           contentContainerClassName="flex-row items-center gap-1.5">
           <Text className="text-[11px] font-bold text-[#65676b] dark:text-[#b0b3b8] px-1">
             {locale === 'bn' ? 'ইমোজি:' : 'Emojis:'}
@@ -124,7 +124,7 @@ export function MessageComposerView({
             {onCancelEdit ? (
               <Pressable
                 onPress={onCancelEdit}
-                className="p-1 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                className="p-1 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                 <AppIcon
                   android="close"
                   ios="xmark"
@@ -140,7 +140,7 @@ export function MessageComposerView({
               value={text}
               onChangeText={onChangeText}
               multiline
-              className="flex-1 max-h-32 min-h-[38px] rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2 text-sm text-[#050505] dark:text-[#e4e6eb]"
+              className="flex-1 max-h-32 min-h-[38px] rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c] px-3.5 py-2 text-sm text-[#050505] dark:text-[#e4e6eb]"
             />
             <Pressable
               disabled={!canSend}
@@ -163,7 +163,7 @@ export function MessageComposerView({
           {/* Attachment Button */}
           <Pressable
             onPress={handleAttachmentClick}
-            className="p-2 sm:p-2.5 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c] shrink-0">
+            className="p-2 sm:p-2.5 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c] shrink-0">
             <AppIcon
               android="attach_file"
               ios="paperclip"
@@ -178,7 +178,7 @@ export function MessageComposerView({
             className={`p-2 sm:p-2.5 rounded-full shrink-0 ${
               showEmojiPicker
                 ? 'bg-primary-50 dark:bg-primary-950/60'
-                : 'active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]'
+                : 'active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]'
             }`}>
             <AppIcon
               android="sentiment_satisfied"
@@ -214,7 +214,7 @@ export function MessageComposerView({
               onSubmitEditing={() => {
                 if (canSend) onSubmit();
               }}
-              className="w-full max-h-32 min-h-[40px] rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 py-2.5 text-sm text-[#050505] dark:text-[#e4e6eb]"
+              className="w-full max-h-32 min-h-[40px] rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c] px-4 py-2.5 text-sm text-[#050505] dark:text-[#e4e6eb]"
             />
           </View>
 

@@ -82,7 +82,7 @@ export function AuthPromptCard({
 export function AuthPromptScreen(props: AuthPromptCardProps) {
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       contentContainerStyle={{
         paddingHorizontal: 6,
         paddingTop: 16,

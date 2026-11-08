@@ -123,7 +123,7 @@ export function ConfirmDialog({
             <Pressable
               disabled={isLoading}
               onPress={onClose}
-              className="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+              className="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
               <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                 {cancelText || (locale === 'bn' ? 'বাতিল করুন' : 'Cancel')}
               </Text>

@@ -188,14 +188,14 @@ export function PostActionMenuModal({
           <View
             style={{
               width: '100%',
-              backgroundColor: isDark ? '#242526' : '#ffffff',
+              backgroundColor: isDark ? '#242526' : '#f5f6f8',
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               borderBottomLeftRadius: 0,
               borderBottomRightRadius: 0,
               overflow: 'hidden',
               borderTopWidth: 1,
-              borderColor: isDark ? '#393a3b' : '#e4e6eb',
+              borderColor: isDark ? '#393a3b' : '#d9dde4',
               paddingBottom: Platform.OS === 'ios' ? 32 : 16,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: -4 },
@@ -231,9 +231,9 @@ export function PostActionMenuModal({
                     onClose();
                     onEdit();
                   }}
-                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                   <View
-                    style={{ backgroundColor: isDark ? '#3a3b3c' : '#f0f2f5' }}
+                    style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
                     className="h-10 w-10 rounded-full items-center justify-center">
                     <AppIcon
                       android="edit"
@@ -279,14 +279,14 @@ export function PostActionMenuModal({
                   onClose();
                   onToggleSave();
                 }}
-                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                 <View
                   style={{
                     backgroundColor: hasSaved
                       ? '#1877f2'
                       : isDark
                         ? '#3a3b3c'
-                        : '#f0f2f5',
+                        : '#e6e9ef',
                   }}
                   className="h-10 w-10 rounded-full items-center justify-center">
                   <AppIcon
@@ -326,9 +326,9 @@ export function PostActionMenuModal({
                   onClose();
                   onCopyLink();
                 }}
-                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                 <View
-                  style={{ backgroundColor: isDark ? '#3a3b3c' : '#f0f2f5' }}
+                  style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
                   className="h-10 w-10 rounded-full items-center justify-center">
                   <AppIcon
                     android="link"
@@ -355,9 +355,9 @@ export function PostActionMenuModal({
                   onClose();
                   onOpenShare();
                 }}
-                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                 <View
-                  style={{ backgroundColor: isDark ? '#3a3b3c' : '#f0f2f5' }}
+                  style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
                   className="h-10 w-10 rounded-full items-center justify-center">
                   <AppIcon
                     android="share"

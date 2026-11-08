@@ -15,7 +15,7 @@ export function FriendsSkeleton({ count = 6, tab = 'all' }: FriendsSkeletonProps
       {items.map((i) => (
         <View
           key={i}
-          className="py-3 flex-row items-center justify-between border-b border-[#f0f2f5] dark:border-[#242526]">
+          className="py-3 flex-row items-center justify-between border-b border-[#e6e9ef] dark:border-[#242526]">
           {/* Avatar & text info */}
           <View className="flex-row items-center gap-3 flex-1 pr-2">
             <Skeleton className="h-11 w-11 rounded-full shrink-0" />

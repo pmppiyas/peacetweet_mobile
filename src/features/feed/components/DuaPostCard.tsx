@@ -33,7 +33,7 @@ export function DuaPostCard({
           {dua.title && (!post.content || post.content !== dua.title) ? (
             <Text
               selectable={true}
-              className="text-[16px] font-bold text-[#050505] dark:text-[#e4e6eb] select-text">
+              className="text-[16px] font-bold text-[#1e2329] dark:text-[#e4e6eb] select-text">
               🌙 {dua.title}
             </Text>
           ) : null}
@@ -48,7 +48,7 @@ export function DuaPostCard({
               </Text>
               <Text
                 selectable={true}
-                className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
+                className="text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-6 select-text">
                 {dua.fadilah}
               </Text>
             </View>
@@ -79,10 +79,10 @@ export function DuaPostCard({
               </Pressable>
 
               {showArabic ? (
-                <View className="py-2 px-3 rounded-xl bg-[#f8f9fa] dark:bg-[#18191a]">
+                <View className="py-2 px-3 rounded-xl bg-[#eceff4] dark:bg-[#18191a]">
                   <Text
                     selectable={true}
-                    className="text-right text-2xl text-[#050505] dark:text-[#e4e6eb] leading-10 select-text">
+                    className="text-right text-2xl text-[#1e2329] dark:text-[#e4e6eb] leading-10 select-text">
                     {dua.arabicText}
                   </Text>
                 </View>
@@ -100,7 +100,7 @@ export function DuaPostCard({
               </Text>
               <Text
                 selectable={true}
-                className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
+                className="text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-6 select-text">
                 {dua.transliteration}
               </Text>
             </View>
@@ -116,7 +116,7 @@ export function DuaPostCard({
               </Text>
               <Text
                 selectable={true}
-                className="text-[14.5px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
+                className="text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-6 select-text">
                 {dua.meaning || dua.meaningBangla}
               </Text>
             </View>

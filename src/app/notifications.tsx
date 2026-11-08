@@ -191,7 +191,7 @@ export default function NotificationsScreen() {
   const isInitialLoading = isLoading && notifications.length === 0;
 
   return (
-    <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a] sm:bg-[#f0f2f5] pt-1.5 pb-0 sm:py-3 lg:py-4">
+    <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a] sm:bg-[#e6e9ef] pt-1.5 pb-0 sm:py-3 lg:py-4">
       <ScrollView
         showsVerticalScrollIndicator={false}
         scrollEnabled={!isInitialLoading}

@@ -603,7 +603,7 @@ export function ProfileView({
 
   if (!displayUser) {
     return (
-      <View className="flex-1 items-center justify-center p-8 bg-[#f0f2f5] dark:bg-[#18191a]">
+      <View className="flex-1 items-center justify-center p-8 bg-[#e6e9ef] dark:bg-[#18191a]">
         <AppIcon android="person" size={40} color="#65676b" />
         <Text className="text-sm font-bold text-[#65676b] dark:text-[#b0b3b8] mt-3">
           {locale === 'bn' ? 'ব্যবহারকারী পাওয়া যায়নি' : 'User not found'}
@@ -618,7 +618,7 @@ export function ProfileView({
 
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       stickyHeaderIndices={[2]}
       refreshControl={
         <RefreshControl
@@ -690,7 +690,7 @@ export function ProfileView({
               <View className="absolute bottom-12 right-3 z-40 rounded-xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl overflow-hidden min-w-[190px]">
                 <Pressable
                   onPress={() => triggerPhotoPicker('cover')}
-                  className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#f0f2f5] dark:border-[#393a3b] active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b] active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon android="photo_camera" size={16} color="#1877f2" />
                   <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -699,7 +699,7 @@ export function ProfileView({
                 </Pressable>
                 <Pressable
                   onPress={() => openRepositionEditor('cover')}
-                  className="flex-row items-center gap-2.5 px-3.5 py-2.5 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-row items-center gap-2.5 px-3.5 py-2.5 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon android="open_with" size={16} color="#059669" />
                   <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -769,7 +769,7 @@ export function ProfileView({
             >
               <Pressable
                 onPress={() => triggerPhotoPicker('avatar')}
-                className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#f0f2f5] dark:border-[#393a3b] active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b] active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
               >
                 <AppIcon android="photo_camera" size={16} color="#1877f2" />
                 <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -778,7 +778,7 @@ export function ProfileView({
               </Pressable>
               <Pressable
                 onPress={() => openRepositionEditor('avatar')}
-                className="flex-row items-center gap-2.5 px-3.5 py-2.5 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                className="flex-row items-center gap-2.5 px-3.5 py-2.5 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
               >
                 <AppIcon android="open_with" size={16} color="#059669" />
                 <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -822,7 +822,7 @@ export function ProfileView({
               </Text>
             </View>
           ) : (
-            <View className="flex-row items-center gap-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-2.5 py-0.5 border border-[#e4e6eb] dark:border-[#4e4f50]">
+            <View className="flex-row items-center gap-1 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] px-2.5 py-0.5 border border-[#e4e6eb] dark:border-[#4e4f50]">
               <AppIcon android="verified_user" size={13} color="#65676b" />
               <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                 {locale === 'bn' ? 'নন-ভেরিফাইড' : 'Non-verified'}
@@ -870,7 +870,7 @@ export function ProfileView({
         {/* Bio Section */}
         <View className="w-full max-w-md mt-3 items-center">
           {isEditingBio && isOwner ? (
-            <View className="w-full rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 p-3 border border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="w-full rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/60 p-3 border border-[#e4e6eb] dark:border-[#393a3b]">
               <TextInput
                 value={bioInput}
                 onChangeText={setBioInput}
@@ -981,7 +981,7 @@ export function ProfileView({
                 <Pressable
                   onPress={handleCancelRequest}
                   disabled={isFriendActionLoading}
-                  className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 py-2 active:scale-95"
+                  className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c] px-4 py-2 active:scale-95"
                 >
                   {isFriendActionLoading ? (
                     <ActivityIndicator size="small" color="#65676b" />
@@ -1018,7 +1018,7 @@ export function ProfileView({
                   <Pressable
                     onPress={handleRejectRequest}
                     disabled={isFriendActionLoading}
-                    className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95"
+                    className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95"
                   >
                     <AppIcon android="close" size={15} color="#65676b" />
                     <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8]">
@@ -1251,7 +1251,7 @@ export function ProfileView({
               {isOwner && (
                 <Pressable
                   onPress={() => router.push('/settings/profile')}
-                  className="mt-3.5 pt-3 border-t border-[#f0f2f5] dark:border-[#393a3b] items-center justify-center active:scale-98"
+                  className="mt-3.5 pt-3 border-t border-[#e6e9ef] dark:border-[#393a3b] items-center justify-center active:scale-98"
                 >
                   <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
                     {locale === 'bn'
@@ -1264,7 +1264,7 @@ export function ProfileView({
 
             {/* Friends Preview (Grid of 6) */}
             <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-              <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+              <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
                 <View>
                   <Text className="text-base font-bold text-[#050505] dark:text-white">
                     {locale === 'bn' ? 'বন্ধুরা' : 'Friends'}
@@ -1344,7 +1344,7 @@ export function ProfileView({
 
             {/* Groups Preview */}
             <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-              <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+              <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
                 <View>
                   <Text className="text-base font-bold text-[#050505] dark:text-white">
                     {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'}
@@ -1372,14 +1372,14 @@ export function ProfileView({
 
               {isGroupsLoading ? (
                 <View className="space-y-2 gap-2 pt-1">
-                  <View className="flex-row items-center gap-3 p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50">
+                  <View className="flex-row items-center gap-3 p-2 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50">
                     <Skeleton className="h-10 w-10 rounded-xl" />
                     <View className="flex-1 space-y-1.5 gap-1.5">
                       <Skeleton className="h-3.5 w-32 rounded-md" />
                       <Skeleton className="h-2.5 w-20 rounded-md" />
                     </View>
                   </View>
-                  <View className="flex-row items-center gap-3 p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50">
+                  <View className="flex-row items-center gap-3 p-2 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50">
                     <Skeleton className="h-10 w-10 rounded-xl" />
                     <View className="flex-1 space-y-1.5 gap-1.5">
                       <Skeleton className="h-3.5 w-28 rounded-md" />
@@ -1402,7 +1402,7 @@ export function ProfileView({
                     <Pressable
                       key={group.id}
                       onPress={() => router.push('/groups')}
-                      className="flex-row items-center gap-3 p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80"
+                      className="flex-row items-center gap-3 p-2 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 active:opacity-80"
                     >
                       <View className="h-10 w-10 rounded-xl bg-teal-500 items-center justify-center overflow-hidden">
                         {group.avatarUrl ? (
@@ -1510,7 +1510,7 @@ export function ProfileView({
         {/* FRIENDS TAB */}
         {activeTab === 'friends' && (
           <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
               <Text className="text-base font-bold text-[#050505] dark:text-white">
                 {locale === 'bn' ? 'সকল বন্ধু' : 'All Friends'} ({totalFriends})
               </Text>
@@ -1521,7 +1521,7 @@ export function ProfileView({
                 {[1, 2, 3, 4, 5].map((i) => (
                   <View
                     key={i}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50"
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50"
                   >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <Skeleton className="h-11 w-11 rounded-full" />
@@ -1548,7 +1548,7 @@ export function ProfileView({
                   <Pressable
                     key={item.id}
                     onPress={() => router.push(`/${item.user.username}` as any)}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80"
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 active:opacity-80"
                   >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <UserAvatar
@@ -1586,7 +1586,7 @@ export function ProfileView({
         {/* GROUPS TAB */}
         {activeTab === 'groups' && (
           <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
               <Text className="text-base font-bold text-[#050505] dark:text-white">
                 {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} ({groups.length})
               </Text>
@@ -1597,7 +1597,7 @@ export function ProfileView({
                 {[1, 2, 3, 4].map((i) => (
                   <View
                     key={i}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50"
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50"
                   >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <Skeleton className="h-11 w-11 rounded-xl" />
@@ -1624,7 +1624,7 @@ export function ProfileView({
                   <Pressable
                     key={g.id}
                     onPress={() => router.push('/groups')}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 active:opacity-80"
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 active:opacity-80"
                   >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <View className="h-11 w-11 rounded-xl bg-teal-500 items-center justify-center overflow-hidden">
@@ -1675,7 +1675,7 @@ export function ProfileView({
         {/* SAVED TAB (Owner only) */}
         {activeTab === 'saved' && isOwner && (
           <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
               <Text className="text-base font-bold text-[#050505] dark:text-white">
                 {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} (
                 {savedItems.length})
@@ -1697,7 +1697,7 @@ export function ProfileView({
                 {[1, 2, 3].map((i) => (
                   <View
                     key={i}
-                    className="p-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b] space-y-2 gap-2"
+                    className="p-3 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b] space-y-2 gap-2"
                   >
                     <View className="flex-row items-center justify-between">
                       <Skeleton className="h-3.5 w-16 rounded-md" />
@@ -1722,7 +1722,7 @@ export function ProfileView({
                   <Pressable
                     key={item.id}
                     onPress={() => router.push('/saved')}
-                    className="p-3 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b]"
+                    className="p-3 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b]"
                   >
                     <View className="flex-row items-center justify-between mb-1">
                       <View className="flex-row items-center gap-1.5">

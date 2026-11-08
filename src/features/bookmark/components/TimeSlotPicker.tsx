@@ -68,7 +68,7 @@ export function TimeSlotPicker({
             </View>
             <Pressable
               onPress={onClose}
-              className="p-1.5 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+              className="p-1.5 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
               <AppIcon
                 android="close"
                 ios="xmark"

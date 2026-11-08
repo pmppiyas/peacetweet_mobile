@@ -93,9 +93,9 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
       {/* Compact Blood Request Card (Soft border, no black outline, space-efficient) */}
       <View
         style={{
-          backgroundColor: theme === 'dark' ? '#1f2022' : '#f8f9fa',
+          backgroundColor: theme === 'dark' ? '#1f2022' : '#eceff4',
           borderWidth: 1,
-          borderColor: theme === 'dark' ? '#2e2f31' : '#e5e7eb',
+          borderColor: theme === 'dark' ? '#2e2f31' : '#d9dde4',
           borderRadius: 14,
         }}
         className="mx-3 p-3 gap-2">

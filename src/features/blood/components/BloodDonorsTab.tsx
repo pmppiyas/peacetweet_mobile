@@ -55,7 +55,7 @@ export function BloodDonorsTab({
             <View
               key={donor.id}
               className={`py-3.5 flex-row items-center justify-between ${
-                !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
+                !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
               }`}>
               {/* Left: Blood Group Badge & Donor Info */}
               <View className="flex-row items-center gap-3 flex-1 pr-2">
@@ -120,7 +120,7 @@ export function BloodDonorsTab({
         <View className="pt-3 pb-2 items-center justify-center">
           <Pressable
             onPress={onScrollToTop}
-            className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
+            className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e6e9ef] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
             <View className="h-1.5 w-1.5 rounded-full bg-rose-500" />
             <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
               {locale === 'bn'

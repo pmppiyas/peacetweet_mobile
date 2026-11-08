@@ -96,7 +96,7 @@ export function NotificationItemRow({
       onPress={() => onPress(item)}
       className={`w-full relative flex-row items-center gap-2.5 px-2 py-2 rounded-xl ${
         !item.isRead
-          ? 'bg-[#f0f2f5] dark:bg-[#3a3b3c]/80 active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]'
+          ? 'bg-[#e6e9ef] dark:bg-[#3a3b3c]/80 active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]'
           : 'active:bg-[#e4e6eb]/70 dark:active:bg-[#3a3b3c]/60'
       }`}>
       {/* Avatar with badge */}

@@ -200,7 +200,7 @@ export default function CategoriesScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}
       refreshControl={
         <RefreshControl
@@ -229,7 +229,7 @@ export default function CategoriesScreen() {
           </View>
 
           {/* In-page Category Search Input */}
-          <View className="w-full flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1.5">
+          <View className="w-full flex-row items-center rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c] px-3 py-1.5">
             <AppIcon android="search" size={15} color="#65676b" />
             <TextInput
               value={searchQuery}
@@ -294,7 +294,7 @@ export default function CategoriesScreen() {
                 <Pressable
                   key={cat.id}
                   onPress={() => handleSelectCategory(cat)}
-                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 flex-row items-center justify-between active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]/60">
+                  className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 flex-row items-center justify-between active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]/60">
                   <View className="flex-row items-center gap-3.5 flex-1 pr-3">
                     <View
                       style={{ backgroundColor: `${cat.color || '#3b82f6'}18` }}

@@ -36,7 +36,7 @@ export function ZakatAccordionNisab({
 }: ZakatAccordionNisabProps) {
   return (
     <View
-      style={{ backgroundColor: isDark ? '#242526' : '#ffffff' }}
+      style={{ backgroundColor: isDark ? '#242526' : '#f5f6f8' }}
       className="rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs mb-3 overflow-hidden">
       <Pressable
         onPress={onToggle}

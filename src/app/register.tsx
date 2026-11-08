@@ -332,12 +332,12 @@ export default function RegisterScreen() {
     `flex-row items-center rounded-lg border px-2.5 h-9 gap-2 ${
       focusedField === field
         ? 'border-[#1877f2] bg-white dark:bg-[#1f2021]'
-        : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
+        : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
     }`;
 
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       keyboardShouldPersistTaps="handled"
       contentContainerClassName="flex-grow items-center justify-center px-3 py-3">
       {/* Compact Brand Header */}
@@ -377,7 +377,7 @@ export default function RegisterScreen() {
                     );
                   }}
                   hitSlop={6}
-                  className="p-1 -ml-1 rounded-md bg-[#f0f2f5] dark:bg-[#3a3b3c]">
+                  className="p-1 -ml-1 rounded-md bg-[#e6e9ef] dark:bg-[#3a3b3c]">
                   <AppIcon
                     android="arrow_back"
                     ios="arrow.left"
@@ -692,8 +692,8 @@ export default function RegisterScreen() {
                   }
                   className={`h-[68px] w-[68px] items-center justify-center rounded-full overflow-hidden active:scale-95 ${
                     selectedAvatarUrl
-                      ? 'border-2 border-[#1877f2] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
-                      : 'border-2 border-dashed border-[#1877f2]/60 hover:border-[#1877f2] dark:border-[#4a80f5]/60 bg-[#f0f2f5] dark:bg-[#3a3b3c]'
+                      ? 'border-2 border-[#1877f2] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
+                      : 'border-2 border-dashed border-[#1877f2]/60 hover:border-[#1877f2] dark:border-[#4a80f5]/60 bg-[#e6e9ef] dark:bg-[#3a3b3c]'
                   }`}>
                   {selectedAvatarUrl ? (
                     <Image
@@ -765,7 +765,7 @@ export default function RegisterScreen() {
                             className={`relative h-[58px] w-[58px] rounded-full p-[2px] ${
                               isSelected
                                 ? 'border-2 border-[#1877f2] bg-white dark:bg-[#242526]'
-                                : 'border border-[#dddfe2] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
+                                : 'border border-[#dddfe2] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
                             }`}>
                             <Image
                               source={{ uri: item.url }}
@@ -959,7 +959,7 @@ export default function RegisterScreen() {
                     className={`w-[23.5%] flex-row items-center justify-center gap-1 rounded-lg border h-9 ${
                       isSelected
                         ? 'border-red-500 bg-red-50 dark:bg-red-950/60'
-                        : 'border-[#dddfe2] bg-[#f0f2f5] dark:border-[#393a3b] dark:bg-[#3a3b3c]'
+                        : 'border-[#dddfe2] bg-[#e6e9ef] dark:border-[#393a3b] dark:bg-[#3a3b3c]'
                     }`}>
                     <AppIcon
                       android="water_drop"

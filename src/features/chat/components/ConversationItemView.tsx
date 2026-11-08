@@ -107,7 +107,7 @@ export function ConversationItemView({
             numberOfLines={1}
             className={`flex-1 text-[13px] leading-normal ${
               hasUnread
-                ? 'font-bold text-[#050505] dark:text-[#f0f2f5]'
+                ? 'font-bold text-[#050505] dark:text-[#e6e9ef]'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
             }`}>
             {conversation.lastMessageText ||

@@ -110,7 +110,7 @@ function SavedContentCard({
         <View className="flex-row items-center gap-1">
           <Pressable
             onPress={handleCopy}
-            className="p-1.5 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+            className="p-1.5 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
             <AppIcon
               android={isCopied ? 'check' : 'content_copy'}
               ios={isCopied ? 'checkmark' : 'doc.on.doc'}
@@ -127,7 +127,7 @@ function SavedContentCard({
 
           <Pressable
             onPress={() => setIsPickerOpen(true)}
-            className="p-1.5 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+            className="p-1.5 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
             <AppIcon
               android="schedule"
               ios="clock"
@@ -449,7 +449,7 @@ export default function SavedScreen() {
     : slotFilteredItems;
 
   return (
-    <View className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
+    <View className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]">
       <ScrollView
         className="flex-1"
         stickyHeaderIndices={[0]}
@@ -462,9 +462,9 @@ export default function SavedScreen() {
           />
         }>
         {/* Index 0: Sticky Routine Tab Switcher (Matching friends, groups, blood pages) */}
-        <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#f0f2f5] dark:border-[#242526] px-3 py-2">
+        <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e6e9ef] dark:border-[#242526] px-3 py-2">
           <View className="w-full max-w-[768px] mx-auto">
-            <View className="w-full flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
+            <View className="w-full flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#242526] p-1">
               {mobileTabs.map((tab) => {
                 const isActive = selectedSlot === tab.id;
                 return (
@@ -542,7 +542,7 @@ export default function SavedScreen() {
                         <Skeleton className="h-3.5 w-full rounded-md" />
                         <Skeleton className="h-3.5 w-2/3 rounded-md" />
                       </View>
-                      <View className="pt-2 border-t border-[#f0f2f5] dark:border-[#393a3b] flex-row items-center justify-between">
+                      <View className="pt-2 border-t border-[#e6e9ef] dark:border-[#393a3b] flex-row items-center justify-between">
                         <Skeleton className="h-7 w-20 rounded-xl" />
                         <Skeleton className="h-7 w-24 rounded-xl" />
                       </View>
@@ -580,7 +580,7 @@ export default function SavedScreen() {
                   {displayedItems.map((item, index) => (
                     <React.Fragment key={item.savedId || item.id}>
                       {index > 0 && (
-                        <View className="h-2 w-full bg-[#f0f2f5] dark:bg-[#18191a] border-y border-[#e4e6eb] dark:border-[#393a3b]" />
+                        <View className="h-2 w-full bg-[#e6e9ef] dark:bg-[#18191a] border-y border-[#e4e6eb] dark:border-[#393a3b]" />
                       )}
                       <SavedContentCard
                         item={item}

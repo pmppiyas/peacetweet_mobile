@@ -58,7 +58,7 @@ export function FullPageLoader({ className = '' }: FullPageLoaderProps) {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: isDark ? '#18191a' : '#ffffff',
+          backgroundColor: isDark ? '#18191a' : '#f5f6f8',
           overflow: 'hidden',
         },
       ]}

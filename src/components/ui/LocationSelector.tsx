@@ -185,7 +185,7 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('division');
             }}
-            className="flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2 border border-[#e4e6eb] dark:border-[#393a3b]">
+            className="flex-row items-center justify-between bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 border border-[#e4e6eb] dark:border-[#393a3b]">
             <Text
               numberOfLines={1}
               className={`text-xs flex-1 ${
@@ -219,8 +219,8 @@ export function LocationSelector({
             }}
             className={`flex-row items-center justify-between rounded-xl px-3 py-2 border ${
               !value?.divisionId
-                ? 'bg-[#f0f2f5]/50 dark:bg-[#242526]/50 border-dashed border-[#e4e6eb] dark:border-[#393a3b] opacity-60'
-                : 'bg-[#f0f2f5] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
+                ? 'bg-[#e6e9ef]/50 dark:bg-[#242526]/50 border-dashed border-[#e4e6eb] dark:border-[#393a3b] opacity-60'
+                : 'bg-[#e6e9ef] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
             }`}>
             <Text
               numberOfLines={1}
@@ -262,8 +262,8 @@ export function LocationSelector({
             }}
             className={`flex-row items-center justify-between rounded-xl px-3 py-2 border ${
               !value?.districtId
-                ? 'bg-[#f0f2f5]/50 dark:bg-[#242526]/50 border-dashed border-[#e4e6eb] dark:border-[#393a3b] opacity-60'
-                : 'bg-[#f0f2f5] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
+                ? 'bg-[#e6e9ef]/50 dark:bg-[#242526]/50 border-dashed border-[#e4e6eb] dark:border-[#393a3b] opacity-60'
+                : 'bg-[#e6e9ef] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
             }`}>
             <Text
               numberOfLines={1}
@@ -303,7 +303,7 @@ export function LocationSelector({
                 : 'Road 3, Mirpur'
             }
             placeholderTextColor={theme === 'dark' ? '#65676b' : '#8a8d91'}
-            className="bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400"
+            className="bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400"
           />
         </View>
       </View>
@@ -331,22 +331,22 @@ export function LocationSelector({
             backgroundColor: 'rgba(0,0,0,0.5)',
             ...(Platform.OS === 'web' ? ({ zIndex: 99999 } as any) : {}),
           }}>
-          <View className="bg-white dark:bg-[#18191a] rounded-t-3xl max-h-[75%] border-t border-[#f0f2f5] dark:border-[#242526]">
+          <View className="bg-white dark:bg-[#18191a] rounded-t-3xl max-h-[75%] border-t border-[#e6e9ef] dark:border-[#242526]">
             {/* Modal Top Header */}
-            <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#f0f2f5] dark:border-[#242526]">
+            <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#e6e9ef] dark:border-[#242526]">
               <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {getPickerTitle()}
               </Text>
               <Pressable
                 onPress={() => setActivePicker(null)}
-                className="p-1 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#242526]">
+                className="p-1 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#242526]">
                 <AppIcon android="close" size={20} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
               </Pressable>
             </View>
 
             {/* Search Input Bar inside Modal */}
-            <View className="px-4 py-2 border-b border-[#f0f2f5] dark:border-[#242526]">
-              <View className="flex-row items-center bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3 py-2">
+            <View className="px-4 py-2 border-b border-[#e6e9ef] dark:border-[#242526]">
+              <View className="flex-row items-center bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2">
                 <AppIcon android="search" size={16} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
                 <TextInput
                   value={searchQuery}
@@ -394,7 +394,7 @@ export function LocationSelector({
                       className={`flex-row items-center justify-between px-3 py-3 rounded-xl mx-1 my-0.5 ${
                         isSelected
                           ? 'bg-rose-50 dark:bg-rose-950/40'
-                          : 'active:bg-[#f0f2f5] dark:active:bg-[#242526]'
+                          : 'active:bg-[#e6e9ef] dark:active:bg-[#242526]'
                       }`}>
                       <View className="flex-row items-center gap-2">
                         <Text

@@ -9,6 +9,12 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
+      backgroundColor: {
+        white: '#f5f6f8',
+      },
+      borderColor: {
+        white: '#f5f6f8',
+      },
       colors: {
         brand: {
           50: '#ecfdf5',
@@ -37,15 +43,15 @@ module.exports = {
           950: '#052060',
         },
         fb: {
-          bg: '#f0f2f5',
-          card: '#ffffff',
+          bg: '#e6e9ef',
+          card: '#f5f6f8',
           darkBg: '#18191a',
           darkCard: '#242526',
-          border: '#e4e6eb',
+          border: '#d9dde4',
           darkBorder: '#393a3b',
-          hover: '#e4e6eb',
+          hover: '#dee2e8',
           darkHover: '#3a3b3c',
-          text: '#050505',
+          text: '#1e2329',
           secondary: '#65676b',
           darkText: '#e4e6eb',
           darkSecondary: '#b0b3b8',

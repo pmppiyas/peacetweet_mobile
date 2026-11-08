@@ -68,7 +68,7 @@ export function BloodActivityTab({
         {/* Pill Sub-tabs: My Requests vs My Accepted */}
         <View
           style={{ width: '100%', flexDirection: 'row' }}
-          className="w-full flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1 mb-3">
+          className="w-full flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#242526] p-1 mb-3">
           <Pressable
             onPress={() => setActivitySubTab('my_requests')}
             style={{ flex: 1, minWidth: 0 }}
@@ -154,7 +154,7 @@ export function BloodActivityTab({
                   <View
                     key={req.id}
                     className={`py-3.5 ${
-                      !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
+                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
                     }`}>
                     <View className="flex-row items-start justify-between gap-2">
                       {/* Left: Blood Group Badge & Patient Info */}
@@ -308,7 +308,7 @@ export function BloodActivityTab({
 
                     {/* Actions: Mark Completed or Cancel */}
                     {req.status !== 'COMPLETED' && req.status !== 'CANCELLED' && req.status !== 'POSTING' && (
-                      <View className="flex-row items-center gap-2 mt-2.5 pt-2 border-t border-[#f0f2f5] dark:border-[#242526]">
+                      <View className="flex-row items-center gap-2 mt-2.5 pt-2 border-t border-[#e6e9ef] dark:border-[#242526]">
                         <Pressable
                           onPress={() => onCompleteMyRequest(req)}
                           disabled={actionLoadingId === req.id}
@@ -348,7 +348,7 @@ export function BloodActivityTab({
               <View className="pt-3 pb-2 items-center justify-center">
                 <Pressable
                   onPress={onScrollToTop}
-                  className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
+                  className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e6e9ef] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
                   <View className="h-1.5 w-1.5 rounded-full bg-rose-500" />
                   <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn'
@@ -397,7 +397,7 @@ export function BloodActivityTab({
                   <View
                     key={req.id}
                     className={`py-3.5 ${
-                      !isLast ? 'border-b border-[#f0f2f5] dark:border-[#242526]' : ''
+                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
                     }`}>
                     <View className="flex-row items-start gap-3">
                       <View className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 items-center justify-center shrink-0 shadow-xs">
@@ -494,7 +494,7 @@ export function BloodActivityTab({
               <View className="pt-3 pb-2 items-center justify-center">
                 <Pressable
                   onPress={onScrollToTop}
-                  className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f0f2f5] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
+                  className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e6e9ef] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
                   <View className="h-1.5 w-1.5 rounded-full bg-rose-500" />
                   <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn'

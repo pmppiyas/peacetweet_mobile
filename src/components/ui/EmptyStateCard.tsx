@@ -22,7 +22,7 @@ export function EmptyState({
   iconIos,
   iconSize = 32,
   iconColor,
-  iconBgClassName = 'bg-[#f0f2f5] dark:bg-[#3a3b3c]',
+  iconBgClassName = 'bg-[#e6e9ef] dark:bg-[#3a3b3c]',
   title,
   description,
   actionLabel,

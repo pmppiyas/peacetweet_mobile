@@ -152,7 +152,7 @@ export function MessageFeedItem({
               <View className="absolute right-0 bottom-full mb-1.5 w-36 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] shadow-xl py-1.5 z-50">
                 <Pressable
                   onPress={handleCopy}
-                  className="w-full flex-row items-center gap-2.5 px-3 py-2 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  className="w-full flex-row items-center gap-2.5 px-3 py-2 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                   <AppIcon
                     android="content_copy"
                     ios="doc.on.doc"
@@ -170,7 +170,7 @@ export function MessageFeedItem({
                       setIsMenuOpen(false);
                       onStartEdit(message);
                     }}
-                    className="w-full flex-row items-center gap-2.5 px-3 py-2 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                    className="w-full flex-row items-center gap-2.5 px-3 py-2 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                     <AppIcon
                       android="edit"
                       ios="pencil"
@@ -218,7 +218,7 @@ export function MessageFeedItem({
               ? 'opacity-60 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl'
               : isMe
                 ? 'bg-primary-500 rounded-2xl rounded-br-xs'
-                : 'bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-2xl rounded-bl-xs'
+                : 'bg-[#e6e9ef] dark:bg-[#3a3b3c] rounded-2xl rounded-bl-xs'
           } ${isTemp ? 'opacity-95' : ''}`}>
           {isDeleted ? (
             <View className="flex-row items-center gap-1.5">

@@ -101,7 +101,7 @@ export function ExpandablePostCaption({
               setHasLayoutOverflow(true);
             }
           }}
-          className="text-[15px] text-[#050505] dark:text-[#e4e6eb] leading-6 select-text">
+          className="text-[15px] text-[#1e2329] dark:text-[#e4e6eb] leading-6 select-text">
           {content}
         </Text>
         {exceedsTwoLines && isExpanded && (
@@ -141,7 +141,7 @@ export function ExpandablePostCaption({
       <Text
         selectable={false}
         numberOfLines={1}
-        className="text-[15px] text-[#050505] dark:text-[#e4e6eb] leading-6">
+        className="text-[15px] text-[#1e2329] dark:text-[#e4e6eb] leading-6">
         {fittedWords}{' '}
         <Text className="text-[14px] font-bold text-primary-600 dark:text-primary-400">
           {seeMoreLabel}

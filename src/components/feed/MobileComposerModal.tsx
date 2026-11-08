@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUi, ComposerMode, ComposerAction } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
@@ -122,6 +123,7 @@ function mapToBloodGroupValue(bg?: string | null): string {
 }
 
 export function MobileComposerModal() {
+  const insets = useSafeAreaInsets();
   const {
     isComposerModalOpen,
     setComposerModalOpen,
@@ -659,19 +661,22 @@ export function MobileComposerModal() {
   return (
     <Modal
       visible={isComposerModalOpen}
+      statusBarTranslucent
       animationType="slide"
       onRequestClose={handleClose}>
-      <View className="flex-1 bg-white dark:bg-[#18191a]">
+      <View
+        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+        className="flex-1 bg-white dark:bg-[#18191a]">
         {/* ────────────────── 1. TOP HEADER ────────────────── */}
-        <View className="flex-row items-center justify-between px-3.5 h-14 border-b border-[#e4e6eb] dark:border-[#2d2e2f] bg-white dark:bg-[#18191a]">
+        <View className="flex-row items-center justify-between px-3.5 h-14 border-b border-[#d9dde4] dark:border-[#2d2e2f] bg-white dark:bg-[#18191a]">
           <Pressable
             onPress={handleClose}
-            className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#2d2e2f] active:scale-95">
+            className="h-9 w-9 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#2d2e2f] active:scale-95">
             <AppIcon
               android="close"
               ios="xmark"
               size={20}
-              color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+              color={theme === 'dark' ? '#e4e6eb' : '#1e2329'}
             />
           </Pressable>
 
@@ -690,7 +695,7 @@ export function MobileComposerModal() {
                   : '#1877f2'
               }
             />
-            <Text className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb]">
+            <Text className="font-bold text-sm text-[#1e2329] dark:text-[#e4e6eb]">
               {isEditing
                 ? postType === 'BLOOD_REQUEST'
                   ? locale === 'bn'
@@ -752,8 +757,8 @@ export function MobileComposerModal() {
 
         {/* ────────────────── 2. POST TYPE SEGMENTED ROW (Only when creating new post) ────────────────── */}
         {!isEditing && (
-          <View className="px-4 py-2.5 border-b border-[#e4e6eb]/60 dark:border-[#2d2e2f] bg-[#fbfbfb] dark:bg-[#1f2022]">
-            <View className="flex-row gap-1.5 p-1 rounded-2xl bg-[#f0f2f5] dark:bg-[#2a2b2d]">
+          <View className="px-4 py-2.5 border-b border-[#d9dde4]/60 dark:border-[#2d2e2f] bg-[#eef0f5] dark:bg-[#1f2022]">
+            <View className="flex-row gap-1.5 p-1 rounded-2xl bg-[#e6e9ef] dark:bg-[#2a2b2d]">
             <Pressable
               onPress={() => {
                 setPostType('TEXT');
@@ -940,7 +945,7 @@ export function MobileComposerModal() {
                   {/* Gallery Controls (Only when 2+ photos attached) */}
                   {mediaUrls.length > 1 && (
                     <View className="flex-row items-center justify-between px-0.5 pb-0.5">
-                      <View className="flex-row items-center gap-1 rounded-full bg-[#f0f2f5] dark:bg-[#2a2b2d] p-0.5">
+                      <View className="flex-row items-center gap-1 rounded-full bg-[#e6e9ef] dark:bg-[#2a2b2d] p-0.5">
                         <Pressable
                           onPress={() => setMediaLayout('COLLAGE')}
                           className={`flex-row items-center gap-1 rounded-full px-2.5 py-0.5 ${
@@ -1690,7 +1695,7 @@ export function MobileComposerModal() {
                 </View>
                 <Pressable
                   onPress={() => setShowFeelingPicker(false)}
-                  className="p-1 rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  className="p-1 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
                   <AppIcon
                     android="close"
                     ios="xmark"
