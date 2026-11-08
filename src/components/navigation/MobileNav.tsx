@@ -245,7 +245,8 @@ export function MobileNav() {
               key={item.id}
               onPress={() => {
                 setSearchOpen(false);
-                router.push(href as any);
+                if (pathname === href) return;
+                router.navigate(href as any);
               }}
               className="flex-1 flex-col items-center justify-center gap-0.5 h-full px-0.5 select-none">
               <View className="relative items-center justify-center select-none">

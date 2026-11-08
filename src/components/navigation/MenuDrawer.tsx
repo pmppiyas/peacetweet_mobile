@@ -132,7 +132,8 @@ export function MenuDrawer() {
 
   const closeAndNavigate = (href: string) => {
     setMenuDrawerOpen(false);
-    router.push(href as any);
+    if (pathname === href) return;
+    router.navigate(href as any);
   };
 
   return (

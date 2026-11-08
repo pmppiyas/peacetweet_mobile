@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, useWindowDimensions } from 'react-native';
+import { BackHandler, Platform, View, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
@@ -60,6 +60,18 @@ export default function MessagesScreen() {
       setActiveConversationId(null);
     };
   }, [selectedConversation?.id, setActiveConversationId]);
+
+  // Android back swipe inside an active mobile chat returns to conversation list
+  useEffect(() => {
+    if (Platform.OS !== 'android' || isDesktop || !selectedConversation) {
+      return;
+    }
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setSelectedConversation(null);
+      return true;
+    });
+    return () => sub.remove();
+  }, [isDesktop, selectedConversation]);
 
   // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
   if (!isAuthLoading && !isAuthenticated) {

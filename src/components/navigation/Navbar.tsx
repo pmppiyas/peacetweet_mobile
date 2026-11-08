@@ -322,7 +322,7 @@ export function Navbar() {
             <Pressable
               onPress={() => {
                 if (pathname !== '/') {
-                  router.push('/');
+                  router.navigate('/');
                 }
               }}
               className="flex-row items-center gap-1.5 select-none"

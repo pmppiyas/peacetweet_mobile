@@ -1,7 +1,7 @@
 import '../../global.css';
-import React, { useEffect } from 'react';
-import { Platform, View } from 'react-native';
-import { Slot, usePathname } from 'expo-router';
+import React, { useEffect, useRef } from 'react';
+import { BackHandler, Platform, ToastAndroid, View } from 'react-native';
+import { router, Slot, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
@@ -47,7 +47,116 @@ function MainContentSlot() {
 function AppShell() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  const { theme, activePhotoViewer } = useUi();
+  const {
+    theme,
+    locale,
+    activePhotoViewer,
+    closePhotoViewer,
+    isSearchOpen,
+    setSearchOpen,
+    isMenuDrawerOpen,
+    setMenuDrawerOpen,
+    isComposerModalOpen,
+    setComposerModalOpen,
+    activeConversationId,
+  } = useUi();
+
+  const lastBackPressRef = useRef<number>(0);
+
+  // Reset double-back timer whenever leaving Home
+  useEffect(() => {
+    if (pathname !== '/') {
+      lastBackPressRef.current = 0;
+    }
+  }, [pathname]);
+
+  const latestBackStateRef = useRef({
+    pathname,
+    locale,
+    activePhotoViewer,
+    closePhotoViewer,
+    isSearchOpen,
+    setSearchOpen,
+    isMenuDrawerOpen,
+    setMenuDrawerOpen,
+    isComposerModalOpen,
+    setComposerModalOpen,
+    activeConversationId,
+  });
+  latestBackStateRef.current = {
+    pathname,
+    locale,
+    activePhotoViewer,
+    closePhotoViewer,
+    isSearchOpen,
+    setSearchOpen,
+    isMenuDrawerOpen,
+    setMenuDrawerOpen,
+    isComposerModalOpen,
+    setComposerModalOpen,
+    activeConversationId,
+  };
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      const state = latestBackStateRef.current;
+
+      // 1. Close any open non-Modal or global overlays first
+      if (state.activePhotoViewer) {
+        state.closePhotoViewer();
+        return true;
+      }
+      if (state.isSearchOpen) {
+        state.setSearchOpen(false);
+        return true;
+      }
+      if (state.isMenuDrawerOpen) {
+        state.setMenuDrawerOpen(false);
+        return true;
+      }
+      if (state.isComposerModalOpen) {
+        state.setComposerModalOpen(false);
+        return true;
+      }
+
+      // 2. If inside an active mobile chat in /messages, let MessagesScreen close the chat
+      const isMessagesRoute =
+        state.pathname === '/messages' ||
+        state.pathname.startsWith('/messages/');
+      if (isMessagesRoute && state.activeConversationId) {
+        return false;
+      }
+
+      // 3. On Home page ('/'): require double back-swipe within 2 seconds to exit
+      if (state.pathname === '/') {
+        const now = Date.now();
+        if (now - lastBackPressRef.current <= 2000) {
+          lastBackPressRef.current = 0;
+          BackHandler.exitApp();
+          return true;
+        }
+        lastBackPressRef.current = now;
+        ToastAndroid.show(
+          state.locale === 'bn'
+            ? 'বের হতে আবার ব্যাক করুন'
+            : 'Swipe back again to exit',
+          ToastAndroid.SHORT
+        );
+        return true;
+      }
+
+      // 4. On any other route: go back in history if available, otherwise return to Home ('/')
+      if (router.canGoBack()) {
+        return false;
+      }
+      router.replace('/');
+      return true;
+    });
+
+    return () => sub.remove();
+  }, []);
 
   const isDark = theme === 'dark';
   const isAuthPage = pathname === '/login' || pathname === '/register';
