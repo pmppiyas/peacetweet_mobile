@@ -490,22 +490,16 @@ export default function SavedScreen() {
                 <Pressable
                   key={tab.id}
                   onPress={() => setSelectedSlot(tab.id)}
+                  accessibilityLabel={tab.label}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: isActive }}
                   style={{ flex: 1, minWidth: 0 }}
-                  className={`py-2 px-1 items-center justify-center flex-row gap-1 rounded-lg ${
+                  className={`py-2 items-center justify-center rounded-lg ${
                     isActive
                       ? 'bg-primary-600 shadow-xs'
                       : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
                   }`}>
-                  <Text className="text-xs shrink-0">{tab.icon}</Text>
-                  <Text
-                    numberOfLines={1}
-                    className={`text-[11px] sm:text-xs font-bold truncate ${
-                      isActive
-                        ? 'text-white'
-                        : 'text-[#65676b] dark:text-[#b0b3b8]'
-                    }`}>
-                    {tab.label}
-                  </Text>
+                  <Text className="text-base leading-none select-none">{tab.icon}</Text>
                 </Pressable>
               );
             })}
