@@ -4,7 +4,7 @@ import { useUi } from '@/providers/UiProvider';
 import { AppIcon } from '@/components/ui/Icon';
 
 export default function PurposeScreen() {
-  const { locale } = useUi();
+  const { locale, handleFeedScroll } = useUi();
 
   const handleEmailPress = () => {
     Linking.openURL('mailto:connect.peacetweet@gmail.com').catch(() => {});
@@ -60,7 +60,13 @@ export default function PurposeScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}>
+      onScroll={handleFeedScroll}
+      scrollEventThrottle={16}
+      contentContainerStyle={{
+        paddingHorizontal: 6,
+        paddingTop: 70,
+        paddingBottom: 76,
+      }}>
       <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Hero Card */}
         <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">

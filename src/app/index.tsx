@@ -17,7 +17,8 @@ import { FeedPostCard } from '@/features/feed/components/FeedPostCard';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function HomeScreen() {
-  const { locale, setComposerModalOpen, openComposer } = useUi();
+  const { locale, setComposerModalOpen, openComposer, handleFeedScroll } =
+    useUi();
   const { user, isAuthenticated } = useAuth();
   const { items, isLoading, isRefreshing, error, refreshFeed } = useFeed();
 
@@ -25,12 +26,15 @@ export default function HomeScreen() {
     <ScrollView
       testID="feed-scroll-view"
       className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingBottom: 0 }}
+      onScroll={handleFeedScroll}
+      scrollEventThrottle={16}
+      contentContainerStyle={{ paddingTop: 60, paddingBottom: 68 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={refreshFeed}
           tintColor="#1877f2"
+          progressViewOffset={60}
         />
       }
     >

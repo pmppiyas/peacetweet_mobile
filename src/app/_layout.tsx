@@ -1,6 +1,13 @@
 import '../../global.css';
 import React, { useEffect, useRef } from 'react';
-import { BackHandler, Platform, ToastAndroid, View } from 'react-native';
+import {
+  Animated,
+  BackHandler,
+  Easing,
+  Platform,
+  ToastAndroid,
+  View,
+} from 'react-native';
 import { router, Slot, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -25,21 +32,29 @@ import { SearchPageView } from '@/features/search/components/SearchPageView';
 
 SplashScreen.preventAutoHideAsync();
 
-function MainContentSlot() {
-  const pathname = usePathname();
-  const { isSearchOpen } = useUi();
-  const isMessagesActive =
-    pathname === '/messages' || pathname.startsWith('/messages/');
-  const showSearchOverlay = isSearchOpen && !isMessagesActive;
+const COLLAPSIBLE_NAV_ROUTES = new Set([
+  '/',
+  '/saved',
+  '/notifications',
+  '/categories',
+  '/explore',
+  '/zakat',
+  '/purpose',
+  '/feedback',
+]);
 
+function MainContentSlot({
+  topOffset,
+  bottomOffset,
+}: {
+  topOffset: number;
+  bottomOffset: number;
+}) {
   return (
-    <View className="flex-1 min-h-0 relative">
+    <View
+      style={{ paddingTop: topOffset, paddingBottom: bottomOffset }}
+      className="flex-1 min-h-0 relative">
       <Slot />
-      {showSearchOverlay ? (
-        <View className="absolute inset-0 z-40 bg-white dark:bg-[#242526]">
-          <SearchPageView />
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -59,16 +74,21 @@ function AppShell() {
     isComposerModalOpen,
     setComposerModalOpen,
     activeConversationId,
+    isNavHidden,
+    resetNavVisibility,
+    topNavTranslateY,
+    bottomNavTranslateY,
   } = useUi();
 
   const lastBackPressRef = useRef<number>(0);
 
-  // Reset double-back timer whenever leaving Home
+  // Reset double-back timer and reveal nav bars whenever route changes
   useEffect(() => {
     if (pathname !== '/') {
       lastBackPressRef.current = 0;
     }
-  }, [pathname]);
+    resetNavVisibility();
+  }, [pathname, resetNavVisibility]);
 
   const latestBackStateRef = useRef({
     pathname,
@@ -162,6 +182,42 @@ function AppShell() {
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isPostViewerPage = pathname.startsWith('/post/');
   const isPhotoViewerActive = isPostViewerPage || Boolean(activePhotoViewer);
+  const isMessagesActive =
+    pathname === '/messages' || pathname.startsWith('/messages/');
+  const isInsideActiveChat =
+    isMessagesActive && Boolean(activeConversationId);
+
+  const showTopNav =
+    !isAuthPage && !isPostViewerPage && !isInsideActiveChat;
+  const showBottomNav = showTopNav && !isSearchOpen;
+  const showSearchOverlay = isSearchOpen && !isMessagesActive;
+  const isFullBleedRoute = COLLAPSIBLE_NAV_ROUTES.has(pathname);
+
+  const effectiveHidden =
+    isFullBleedRoute &&
+    isNavHidden &&
+    !isSearchOpen &&
+    !isMenuDrawerOpen &&
+    !isComposerModalOpen &&
+    !activePhotoViewer;
+
+  useEffect(() => {
+    const useNative = Platform.OS !== 'web';
+    Animated.parallel([
+      Animated.timing(topNavTranslateY, {
+        toValue: effectiveHidden ? -62 : 0,
+        duration: 210,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: useNative,
+      }),
+      Animated.timing(bottomNavTranslateY, {
+        toValue: effectiveHidden ? 76 : 0,
+        duration: 210,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: useNative,
+      }),
+    ]).start();
+  }, [effectiveHidden, topNavTranslateY, bottomNavTranslateY]);
 
   // Soft eye-comfort off-white (#f5f6f8) in light mode, rich dark card (#242526) in dark mode
   const surfaceColor = isDark ? '#242526' : '#f5f6f8';
@@ -198,7 +254,13 @@ function AppShell() {
 
       {/* Top Safe Area Inset seamlessly matches Navbar / active screen surface */}
       {insets.top > 0 ? (
-        <View style={{ height: insets.top, backgroundColor: topSafeColor }} />
+        <View
+          style={{
+            height: insets.top,
+            backgroundColor: topSafeColor,
+            zIndex: 60,
+          }}
+        />
       ) : null}
 
       {/* Main App Viewport */}
@@ -208,11 +270,55 @@ function AppShell() {
           paddingLeft: insets.left,
           paddingRight: insets.right,
           backgroundColor: canvasColor,
+          overflow: 'hidden',
         }}
         className="flex-1 relative">
-        <Navbar />
-        <MainContentSlot />
-        <MobileNav />
+        <MainContentSlot
+          topOffset={isFullBleedRoute ? 0 : showTopNav ? 60 : 0}
+          bottomOffset={isFullBleedRoute ? 0 : showBottomNav ? 56 : 0}
+        />
+
+        {showSearchOverlay ? (
+          <View
+            style={{
+              position: 'absolute',
+              top: showTopNav ? 60 : 0,
+              left: insets.left,
+              right: insets.right,
+              bottom: 0,
+              zIndex: 45,
+            }}
+            className="bg-white dark:bg-[#242526]">
+            <SearchPageView />
+          </View>
+        ) : null}
+
+        <Animated.View
+          pointerEvents={effectiveHidden ? 'none' : 'box-none'}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: insets.left,
+            right: insets.right,
+            zIndex: 50,
+            transform: [{ translateY: topNavTranslateY }],
+          }}>
+          <Navbar />
+        </Animated.View>
+
+        <Animated.View
+          pointerEvents={effectiveHidden ? 'none' : 'box-none'}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: insets.left,
+            right: insets.right,
+            zIndex: 50,
+            transform: [{ translateY: bottomNavTranslateY }],
+          }}>
+          <MobileNav />
+        </Animated.View>
+
         <MenuDrawer />
         <MobileComposerModal />
         <GlobalPhotoViewerModal />
@@ -221,7 +327,11 @@ function AppShell() {
       {/* Bottom Safe Area Inset seamlessly matches MobileNav / active screen surface */}
       {insets.bottom > 0 ? (
         <View
-          style={{ height: insets.bottom, backgroundColor: bottomSafeColor }}
+          style={{
+            height: insets.bottom,
+            backgroundColor: bottomSafeColor,
+            zIndex: 60,
+          }}
         />
       ) : null}
     </View>

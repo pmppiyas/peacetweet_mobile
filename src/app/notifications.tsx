@@ -23,7 +23,8 @@ import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
 export default function NotificationsScreen() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 640;
-  const { locale, setUnreadNotificationsCount, theme } = useUi();
+  const { locale, setUnreadNotificationsCount, theme, handleFeedScroll } =
+    useUi();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const [notifications, setNotificationsState] = useState<NotificationItem[]>(
@@ -58,15 +59,17 @@ export default function NotificationsScreen() {
   // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
   if (!isAuthLoading && !isAuthenticated) {
     return (
-      <AuthPromptScreen
-        icon="notifications"
-        iconBgColor="bg-amber-50 dark:bg-amber-950/60"
-        iconColor="#d97706"
-        titleBn="বিজ্ঞপ্তি দেখতে লগইন করুন"
-        titleEn="Sign in to view Notifications"
-        descriptionBn="আপনার পোস্টের প্রতিক্রিয়া, কমেন্ট ও গুরুত্বপূর্ণ নোটিফিকেশন পেতে অ্যাকাউন্টে প্রবেশ করুন।"
-        descriptionEn="Log in to your account to view reactions, comments, mentions, and updates."
-      />
+      <View className="flex-1 pt-[60px] pb-[56px]">
+        <AuthPromptScreen
+          icon="notifications"
+          iconBgColor="bg-amber-50 dark:bg-amber-950/60"
+          iconColor="#d97706"
+          titleBn="বিজ্ঞপ্তি দেখতে লগইন করুন"
+          titleEn="Sign in to view Notifications"
+          descriptionBn="আপনার পোস্টের প্রতিক্রিয়া, কমেন্ট ও গুরুত্বপূর্ণ নোটিফিকেশন পেতে অ্যাকাউন্টে প্রবেশ করুন।"
+          descriptionEn="Log in to your account to view reactions, comments, mentions, and updates."
+        />
+      </View>
     );
   }
 
@@ -191,12 +194,17 @@ export default function NotificationsScreen() {
   const isInitialLoading = isLoading && notifications.length === 0;
 
   return (
-    <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a] sm:bg-[#e6e9ef] pt-1.5 pb-0 sm:py-3 lg:py-4">
+    <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a] sm:bg-[#e6e9ef]">
       <ScrollView
         showsVerticalScrollIndicator={false}
         scrollEnabled={!isInitialLoading}
+        onScroll={handleFeedScroll}
+        scrollEventThrottle={16}
         className="flex-1 px-1 sm:px-4 no-scrollbar scrollbar-none"
-        contentContainerStyle={{ paddingBottom: 0 }}
+        contentContainerStyle={{
+          paddingTop: isDesktop ? 72 : 66,
+          paddingBottom: 68,
+        }}
         contentContainerClassName={isInitialLoading ? 'pb-0' : 'pb-0'}
         refreshControl={
           <RefreshControl
@@ -207,6 +215,7 @@ export default function NotificationsScreen() {
             }}
             colors={['#1877f2']}
             tintColor="#1877f2"
+            progressViewOffset={60}
           />
         }>
         {/* Flat Content Display: Matching Message page layout & gap from Navbar */}

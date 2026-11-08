@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
+  Animated,
   ScrollView,
   View,
   Text,
@@ -282,7 +283,9 @@ function SavedContentCard({
 }
 
 export default function SavedScreen() {
-  const { locale } = useUi();
+  const { locale, handleFeedScroll, topNavTranslateY, bottomNavTranslateY } =
+    useUi();
+  const [routineBarHeight, setRoutineBarHeight] = useState(52);
   const { isAuthenticated } = useAuth();
   const {
     items: feedItems,
@@ -448,51 +451,84 @@ export default function SavedScreen() {
     ? allSavedItems
     : slotFilteredItems;
 
+  const stickySubHeaderTranslateY = topNavTranslateY.interpolate({
+    inputRange: [-62, 0],
+    outputRange: [-60, 0],
+    extrapolate: 'clamp',
+  });
+
+  const floatingTasbihTranslateY = bottomNavTranslateY.interpolate({
+    inputRange: [0, 76],
+    outputRange: [0, 52],
+    extrapolate: 'clamp',
+  });
+
   return (
-    <View className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]">
+    <View className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a] relative">
+      {/* Sticky Routine Tab Switcher synced with Navbar slide */}
+      <Animated.View
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          if (h > 0 && Math.abs(h - routineBarHeight) > 1) {
+            setRoutineBarHeight(h);
+          }
+        }}
+        style={{
+          position: 'absolute',
+          top: 60,
+          left: 0,
+          right: 0,
+          zIndex: 30,
+          transform: [{ translateY: stickySubHeaderTranslateY }],
+        }}
+        className="w-full bg-white dark:bg-[#18191a] border-b border-[#d9dde4] dark:border-[#242526] px-3 py-2">
+        <View className="w-full max-w-[768px] mx-auto">
+          <View className="w-full flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#242526] p-1">
+            {mobileTabs.map((tab) => {
+              const isActive = selectedSlot === tab.id;
+              return (
+                <Pressable
+                  key={tab.id}
+                  onPress={() => setSelectedSlot(tab.id)}
+                  style={{ flex: 1, minWidth: 0 }}
+                  className={`py-2 px-1 items-center justify-center flex-row gap-1 rounded-lg ${
+                    isActive
+                      ? 'bg-primary-600 shadow-xs'
+                      : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
+                  }`}>
+                  <Text className="text-xs shrink-0">{tab.icon}</Text>
+                  <Text
+                    numberOfLines={1}
+                    className={`text-[11px] sm:text-xs font-bold truncate ${
+                      isActive
+                        ? 'text-white'
+                        : 'text-[#65676b] dark:text-[#b0b3b8]'
+                    }`}>
+                    {tab.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </Animated.View>
+
       <ScrollView
         className="flex-1"
-        stickyHeaderIndices={[0]}
-        contentContainerStyle={{ paddingBottom: 0 }}
+        onScroll={handleFeedScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          paddingTop: 60 + routineBarHeight,
+          paddingBottom: 76,
+        }}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
             tintColor="#1877f2"
+            progressViewOffset={60 + routineBarHeight}
           />
         }>
-        {/* Index 0: Sticky Routine Tab Switcher (Matching friends, groups, blood pages) */}
-        <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e6e9ef] dark:border-[#242526] px-3 py-2">
-          <View className="w-full max-w-[768px] mx-auto">
-            <View className="w-full flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#242526] p-1">
-              {mobileTabs.map((tab) => {
-                const isActive = selectedSlot === tab.id;
-                return (
-                  <Pressable
-                    key={tab.id}
-                    onPress={() => setSelectedSlot(tab.id)}
-                    style={{ flex: 1, minWidth: 0 }}
-                    className={`py-2 px-1 items-center justify-center flex-row gap-1 rounded-lg ${
-                      isActive
-                        ? 'bg-primary-600 shadow-xs'
-                        : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
-                    }`}>
-                    <Text className="text-xs shrink-0">{tab.icon}</Text>
-                    <Text
-                      numberOfLines={1}
-                      className={`text-[11px] sm:text-xs font-bold truncate ${
-                        isActive
-                          ? 'text-white'
-                          : 'text-[#65676b] dark:text-[#b0b3b8]'
-                      }`}>
-                      {tab.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-        </View>
 
         {/* 2. Content Area */}
         <View className="w-full max-w-[768px] mx-auto">
@@ -598,7 +634,14 @@ export default function SavedScreen() {
       </ScrollView>
 
       {/* Floating Tasbih Button matching SavedLayout.tsx */}
-      <View className="absolute bottom-5 right-4 z-40">
+      <Animated.View
+        style={{
+          position: 'absolute',
+          bottom: 72,
+          right: 16,
+          zIndex: 40,
+          transform: [{ translateY: floatingTasbihTranslateY }],
+        }}>
         <Pressable
           onPress={() => setIsGlobalTasbihOpen(true)}
           className="flex-row items-center gap-2 rounded-full bg-primary-600 px-4 py-2.5 shadow-xl active:opacity-90">
@@ -607,7 +650,7 @@ export default function SavedScreen() {
             {locale === 'bn' ? 'তাসবীহ' : 'Tasbih'}
           </Text>
         </Pressable>
-      </View>
+      </Animated.View>
 
       {/* Global Digital Tasbih Modal */}
       <TasbihModal

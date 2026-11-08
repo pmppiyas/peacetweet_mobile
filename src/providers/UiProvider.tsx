@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from 'react';
+import { Animated } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import { appStorage } from '@/lib/storage/secureStorage';
 import { FeedItem } from '@/features/feed/types/feed.types';
@@ -65,6 +73,12 @@ interface UiContextType {
   toast: ToastItem | null;
   showToast: (options: ShowToastOptions) => void;
   hideToast: () => void;
+  isNavHidden: boolean;
+  setNavHidden: (hidden: boolean) => void;
+  handleFeedScroll: (event: any) => void;
+  resetNavVisibility: () => void;
+  topNavTranslateY: Animated.Value;
+  bottomNavTranslateY: Animated.Value;
 }
 
 const UiContext = createContext<UiContextType | undefined>(undefined);
@@ -172,6 +186,100 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
     appStorage.setItem(THEME_STORAGE_KEY, nextTheme);
   };
 
+  const [isNavHidden, setIsNavHiddenState] = useState(false);
+  const isNavHiddenRef = useRef(false);
+  const lastScrollYRef = useRef(0);
+  const scrollDeltaRef = useRef(0);
+  const topNavTranslateY = useRef(new Animated.Value(0)).current;
+  const bottomNavTranslateY = useRef(new Animated.Value(0)).current;
+
+  const setNavHidden = useCallback((hidden: boolean) => {
+    if (isNavHiddenRef.current === hidden) return;
+    isNavHiddenRef.current = hidden;
+    setIsNavHiddenState(hidden);
+  }, []);
+
+  const resetNavVisibility = useCallback(() => {
+    lastScrollYRef.current = 0;
+    scrollDeltaRef.current = 0;
+    if (isNavHiddenRef.current) {
+      isNavHiddenRef.current = false;
+      setIsNavHiddenState(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isSearchOpen || isMenuDrawerOpen || isComposerModalOpen) {
+      resetNavVisibility();
+    }
+  }, [isSearchOpen, isMenuDrawerOpen, isComposerModalOpen, resetNavVisibility]);
+
+  const handleFeedScroll = useCallback((event: any) => {
+    const ne = event?.nativeEvent;
+    if (!ne) return;
+
+    const rawY = ne.contentOffset?.y ?? 0;
+    const layoutH = ne.layoutMeasurement?.height ?? 0;
+    const contentH = ne.contentSize?.height ?? 0;
+
+    // Always show bars near the very top of the page
+    if (rawY <= 24) {
+      lastScrollYRef.current = Math.max(0, rawY);
+      scrollDeltaRef.current = 0;
+      if (isNavHiddenRef.current) {
+        isNavHiddenRef.current = false;
+        setIsNavHiddenState(false);
+      }
+      return;
+    }
+
+    if (contentH > 0 && layoutH > 0) {
+      // Do not hide bars if list content barely overflows the viewport
+      if (contentH - layoutH < 120) {
+        return;
+      }
+      // Ignore bottom rubber-band bounce
+      if (rawY >= contentH - layoutH - 8) {
+        lastScrollYRef.current = rawY;
+        return;
+      }
+    }
+
+    const dy = rawY - lastScrollYRef.current;
+    lastScrollYRef.current = rawY;
+
+    if (Math.abs(dy) < 1.5) return;
+
+    if (
+      (dy > 0 && scrollDeltaRef.current < 0) ||
+      (dy < 0 && scrollDeltaRef.current > 0)
+    ) {
+      scrollDeltaRef.current = 0;
+    }
+
+    scrollDeltaRef.current += dy;
+
+    // Swiping upward (scrolling down the feed): slide Navbar up & MobileNav down
+    if (
+      dy > 0 &&
+      rawY > 44 &&
+      scrollDeltaRef.current > 16 &&
+      !isNavHiddenRef.current
+    ) {
+      isNavHiddenRef.current = true;
+      scrollDeltaRef.current = 0;
+      setIsNavHiddenState(true);
+      return;
+    }
+
+    // Swiping downward (scrolling back toward top): slide Navbar & MobileNav back in
+    if (dy < 0 && scrollDeltaRef.current < -14 && isNavHiddenRef.current) {
+      isNavHiddenRef.current = false;
+      scrollDeltaRef.current = 0;
+      setIsNavHiddenState(false);
+    }
+  }, []);
+
   return (
     <UiContext.Provider
       value={{
@@ -210,6 +318,12 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         toast,
         showToast,
         hideToast,
+        isNavHidden,
+        setNavHidden,
+        handleFeedScroll,
+        resetNavVisibility,
+        topNavTranslateY,
+        bottomNavTranslateY,
       }}>
       {children}
       <GlobalToast toast={toast} onDismiss={hideToast} />

@@ -24,7 +24,7 @@ const ZAKAT_STORAGE_KEY = 'peacetweet_zakat_saved_state';
 type SectionKey = 'nisab' | 'cash' | 'gold' | 'business' | 'debts';
 
 export default function ZakatScreen() {
-  const { locale, theme, showToast, openComposer } = useUi();
+  const { locale, theme, showToast, openComposer, handleFeedScroll } = useUi();
   const isDark = theme === 'dark';
 
   // Dedicated page language state (switching it ONLY changes this page's language)
@@ -130,10 +130,12 @@ export default function ZakatScreen() {
       {/* Main Scrollable Body with Accordions (No Header Bar) */}
       <ScrollView
         className="flex-1"
+        onScroll={handleFeedScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={{
           paddingHorizontal: 12,
-          paddingTop: 12,
-          paddingBottom: 0,
+          paddingTop: 72,
+          paddingBottom: 76,
         }}
         showsVerticalScrollIndicator={false}
       >

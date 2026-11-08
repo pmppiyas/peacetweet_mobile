@@ -141,7 +141,7 @@ const DEFAULT_CATEGORIES: CategoryItem[] = [
 ];
 
 export default function CategoriesScreen() {
-  const { locale, theme, setSearchOpen, setChatSearchQuery } = useUi();
+  const { locale, theme, setSearchOpen, setChatSearchQuery, handleFeedScroll } = useUi();
   const [categories, setCategories] = useState<CategoryItem[]>(DEFAULT_CATEGORIES);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -201,12 +201,15 @@ export default function CategoriesScreen() {
   return (
     <ScrollView
       className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
-      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}
+      onScroll={handleFeedScroll}
+      scrollEventThrottle={16}
+      contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 70, paddingBottom: 76 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
           tintColor={theme === 'dark' ? '#ffffff' : '#1877f2'}
+          progressViewOffset={60}
         />
       }>
       <View className="w-full max-w-[768px] mx-auto space-y-3">
