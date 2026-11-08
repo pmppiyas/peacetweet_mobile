@@ -1,10 +1,3 @@
-/**
- * Central Environment Configuration & Validation for PeaceTweet Mobile
- *
- * All environment variables should be read and validated here first,
- * then imported throughout the application.
- */
-
 export interface EnvConfig {
   nodeEnv: string;
   isDevelopment: boolean;
@@ -19,10 +12,8 @@ function validateAndLoadEnv(): EnvConfig {
   const nodeEnv = process.env.NODE_ENV || 'development';
   const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL?.trim() || '';
   const socketUrl = process.env.EXPO_PUBLIC_SOCKET_URL?.trim() || '';
-  const googleClientId =
-    process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.trim() || '';
-  const googleRedirectUri =
-    process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI?.trim();
+  const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.trim() || '';
+  const googleRedirectUri = process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI?.trim();
 
   // Validate presence of critical variables during development
   if (__DEV__) {
