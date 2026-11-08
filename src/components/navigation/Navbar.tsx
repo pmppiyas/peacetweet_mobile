@@ -16,25 +16,6 @@ import { useAuth } from '@/providers/AuthProvider';
 import { searchApi } from '@/features/search/api/search.api';
 import { AppIcon } from '@/components/ui/Icon';
 
-function NineDotsIcon({ color }: { color: string }) {
-  const dots = [0, 1, 2];
-  return (
-    <View className="w-[19px] h-[19px] justify-between">
-      {dots.map((row) => (
-        <View key={row} className="flex-row justify-between">
-          {dots.map((col) => (
-            <View
-              key={col}
-              style={{ backgroundColor: color }}
-              className="w-[4.5px] h-[4.5px] rounded-full"
-            />
-          ))}
-        </View>
-      ))}
-    </View>
-  );
-}
-
 export function Navbar() {
   const pathname = usePathname();
   const { width } = useWindowDimensions();
@@ -46,6 +27,9 @@ export function Navbar() {
     chatSearchQuery,
     setChatSearchQuery,
     activeConversationId,
+    unreadMessagesCount,
+    setComposerModalOpen,
+    postUploadType,
     theme,
   } = useUi();
   const { isAuthenticated } = useAuth();
@@ -61,8 +45,6 @@ export function Navbar() {
     pathname === '/messages' || pathname.startsWith('/messages/');
   const isBloodRoute = pathname === '/blood' || pathname.startsWith('/blood');
   const isInsideActiveChat = isMessagesActive && Boolean(activeConversationId);
-
-  const targetSearchWidth = width >= 640 ? 220 : 180;
 
   const lastSavedQueryRef = useRef<string>('');
 
@@ -89,7 +71,7 @@ export function Navbar() {
     setSearchOpen(true);
     Animated.timing(expandAnim, {
       toValue: 1,
-      duration: 220,
+      duration: 200,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start(() => {
@@ -109,7 +91,7 @@ export function Navbar() {
     inputRef.current?.blur();
     Animated.timing(expandAnim, {
       toValue: 0,
-      duration: 180,
+      duration: 160,
       easing: Easing.inOut(Easing.cubic),
       useNativeDriver: false,
     }).start(({ finished }) => {
@@ -119,7 +101,7 @@ export function Navbar() {
     });
   };
 
-  // Sync collapse when isSearchOpen is set to false externally (e.g. selecting a search result or tab)
+  // Sync collapse when isSearchOpen is set to false externally
   useEffect(() => {
     if (!isSearchOpen && isSearchExpanded) {
       setIsInputFocused(false);
@@ -127,7 +109,7 @@ export function Navbar() {
       inputRef.current?.blur();
       Animated.timing(expandAnim, {
         toValue: 0,
-        duration: 180,
+        duration: 160,
         easing: Easing.inOut(Easing.cubic),
         useNativeDriver: false,
       }).start(({ finished }) => {
@@ -152,12 +134,24 @@ export function Navbar() {
   const iconColor = theme === 'dark' ? '#e4e6eb' : '#050505';
   const mutedIconColor = theme === 'dark' ? '#b0b3b8' : '#65676b';
 
-  const animatedWidth = expandAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [40, targetSearchWidth],
-  });
+  const isBloodContext =
+    postUploadType === 'BLOOD' ||
+    pathname === '/blood' ||
+    pathname.startsWith('/blood') ||
+    pathname.includes('blood');
 
-  // Frontend outline matching: ring-1 ring-primary-500/20 focus:ring-2 focus:ring-primary-500/50
+  const handleCreatePress = () => {
+    if (isBloodContext && (pathname === '/blood' || pathname.startsWith('/blood') || pathname.includes('blood'))) {
+      router.replace({ pathname: '/blood', params: { tab: 'create' } } as any);
+      return;
+    }
+    if (!isAuthenticated) {
+      router.push('/create');
+      return;
+    }
+    setComposerModalOpen(true);
+  };
+
   const searchContainerOutlineStyle = isInputFocused
     ? Platform.OS === 'web'
       ? ({
@@ -179,84 +173,54 @@ export function Navbar() {
         };
 
   return (
-    <View className="w-full h-14 border-b border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526] px-3 flex-row items-center justify-between select-none">
-      {/* Left: Brand Logo */}
-      <Pressable
-        onPress={() => {
-          if (isSearchExpanded) {
-            closeSearchBar();
-            return;
-          }
-          if (pathname !== '/') {
-            router.push('/');
-          }
-        }}
-        className="flex-row items-center gap-2 shrink-0 select-none"
-      >
-        {isBloodRoute ? (
-          <AppIcon android="water_drop" size={24} color="#e11d48" />
-        ) : null}
-        <Text
-          selectable={false}
-          className={`text-2xl sm:text-[27px] font-black tracking-tight select-none ${
-            isBloodRoute
-              ? 'text-rose-600 dark:text-rose-500'
-              : 'text-primary-700 dark:text-white'
-          }`}
-        >
-          PeaceTweet
-        </Text>
-      </Pressable>
+    <View className="w-full h-[60px] border-b border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526] px-3.5 flex-row items-center justify-between select-none">
+      {isSearchExpanded ? (
+        /* Full-Width Search Input View (Facebook mobile style) */
+        <View className="flex-1 flex-row items-center gap-2">
+          <Pressable
+            onPress={closeSearchBar}
+            hitSlop={8}
+            accessibilityLabel="Close search"
+            className="h-10 w-10 items-center justify-center rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+          >
+            <AppIcon android="arrow_back" ios="arrow.left" size={22} color={iconColor} />
+          </Pressable>
 
-      {/* Right: Animated Search (expands from right on click) + 9-Dots Menu */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          gap: 10,
-        }}
-      >
-        {isSearchExpanded ? (
-          <Animated.View
+          <View
             style={[
               {
-                position: 'relative',
-                width: animatedWidth,
-                height: 36,
+                flex: 1,
+                height: 40,
                 borderRadius: 9999,
                 backgroundColor: theme === 'dark' ? '#3a3b3c' : '#f0f2f5',
                 flexDirection: 'row',
                 alignItems: 'center',
                 overflow: 'hidden',
+                position: 'relative',
               },
               searchContainerOutlineStyle,
             ]}
           >
-            {/* Left Search Icon (clickable button to trigger search submission) */}
             <Pressable
               onPress={handleSearchSubmit}
               hitSlop={6}
               style={{
                 position: 'absolute',
-                left: 0,
+                left: 10,
                 top: 0,
                 bottom: 0,
-                width: 34,
                 justifyContent: 'center',
-                alignItems: 'center',
                 zIndex: 2,
               }}
             >
               <AppIcon
                 android="search"
                 ios="magnifyingglass"
-                size={15}
+                size={18}
                 color={mutedIconColor}
               />
             </Pressable>
 
-            {/* Input Field */}
             <TextInput
               ref={inputRef}
               value={chatSearchQuery}
@@ -284,8 +248,8 @@ export function Navbar() {
                     ? 'ফ্রেন্ড খুঁজুন...'
                     : 'Search friends...'
                   : locale === 'bn'
-                    ? 'অনুসন্ধান করুন...'
-                    : 'Search...'
+                    ? 'PeaceTweet-এ খুঁজুন...'
+                    : 'Search PeaceTweet...'
               }
               placeholderTextColor={mutedIconColor}
               style={[
@@ -293,12 +257,10 @@ export function Navbar() {
                   flex: 1,
                   width: '100%',
                   height: '100%',
-                  minWidth: 0,
-                  paddingLeft: 34,
-                  paddingRight: 30,
-                  paddingVertical: 0,
-                  fontSize: 13,
-                  fontWeight: '600',
+                  paddingLeft: 36,
+                  paddingRight: chatSearchQuery.length > 0 ? 36 : 14,
+                  fontSize: 14,
+                  fontWeight: '500',
                   color: theme === 'dark' ? '#e4e6eb' : '#050505',
                 },
                 Platform.OS === 'web'
@@ -310,59 +272,137 @@ export function Navbar() {
               ]}
             />
 
-            {/* Right Close (X) Button */}
-            <Pressable
-              onPress={() => {
-                if (chatSearchQuery.length > 0) {
+            {chatSearchQuery.length > 0 && (
+              <Pressable
+                onPress={() => {
                   setChatSearchQuery('');
                   lastSavedQueryRef.current = '';
                   inputRef.current?.focus();
-                } else {
-                  closeSearchBar();
-                }
-              }}
-              hitSlop={8}
-              style={{
-                position: 'absolute',
-                right: 8,
-                top: 0,
-                bottom: 0,
-                width: 22,
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 2,
-              }}
+                }}
+                hitSlop={8}
+                style={{
+                  position: 'absolute',
+                  right: 10,
+                  top: 0,
+                  bottom: 0,
+                  justifyContent: 'center',
+                  zIndex: 2,
+                }}
+              >
+                <AppIcon
+                  android="close"
+                  ios="xmark"
+                  size={18}
+                  color={mutedIconColor}
+                />
+              </Pressable>
+            )}
+          </View>
+        </View>
+      ) : (
+        /* Normal Facebook Mobile Top Bar */
+        <>
+          {/* Left: Hamburger Menu (☰) + Bold Brand Logo */}
+          <View className="flex-row items-center gap-1.5 shrink-0">
+            <Pressable
+              onPress={() => setMenuDrawerOpen(true)}
+              hitSlop={6}
+              accessibilityLabel="Open menu drawer"
+              accessibilityRole="button"
+              className="h-10 w-10 items-center justify-center rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c] -ml-1"
             >
               <AppIcon
-                android="close"
-                ios="xmark"
-                size={14}
-                color={mutedIconColor}
+                android="menu"
+                size={24}
+                weight="bold"
+                color={iconColor}
               />
             </Pressable>
-          </Animated.View>
-        ) : (
-          <Pressable
-            onPress={openSearchBar}
-            className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:opacity-80"
-          >
-            <AppIcon
-              android="search"
-              ios="magnifyingglass"
-              size={22}
-              weight="bold"
-              color={iconColor}
-            />
-          </Pressable>
-        )}
 
-        <Pressable
-          onPress={() => setMenuDrawerOpen(true)}
-          className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:opacity-80"
-        >
-          <NineDotsIcon color={iconColor} />
-        </Pressable>
-      </View>
+            <Pressable
+              onPress={() => {
+                if (pathname !== '/') {
+                  router.push('/');
+                }
+              }}
+              className="flex-row items-center gap-1.5 select-none"
+            >
+              {isBloodRoute ? (
+                <AppIcon android="water_drop" size={26} color="#e11d48" />
+              ) : null}
+              <Text
+                selectable={false}
+                className={`text-[28px] leading-none font-black tracking-[-0.7px] select-none ${
+                  isBloodRoute
+                    ? 'text-rose-600 dark:text-rose-500'
+                    : 'text-[#1877f2] dark:text-[#2d88ff]'
+                }`}
+              >
+                PeaceTweet
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Right: 3 Iconic Action Buttons (Create [+] + Search [🔍] + Messenger [💬]) */}
+          <View className="flex-row items-center justify-end gap-2">
+            {/* 1. Create / Add Post Button */}
+            <Pressable
+              onPress={handleCreatePress}
+              hitSlop={4}
+              accessibilityLabel="Create post"
+              accessibilityRole="button"
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+            >
+              <AppIcon
+                android="add_box"
+                size={22}
+                weight="bold"
+                color={iconColor}
+              />
+            </Pressable>
+
+            {/* 2. Search Button */}
+            <Pressable
+              onPress={openSearchBar}
+              hitSlop={4}
+              accessibilityLabel="Search"
+              accessibilityRole="button"
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+            >
+              <AppIcon
+                android="search"
+                ios="magnifyingglass"
+                size={21}
+                weight="bold"
+                color={iconColor}
+              />
+            </Pressable>
+
+            {/* 3. Messenger / Messages Button with Red Badge */}
+            <Pressable
+              onPress={() => router.push('/messages')}
+              hitSlop={4}
+              accessibilityLabel="Messages"
+              accessibilityRole="button"
+              className="relative h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+            >
+              <AppIcon
+                android="messenger"
+                size={21}
+                weight="bold"
+                color={iconColor}
+              />
+              {unreadMessagesCount > 0 && (
+                <View className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 rounded-full bg-[#e41e3f] items-center justify-center border-2 border-white dark:border-[#242526]">
+                  <Text className="text-[10px] font-black text-white leading-none text-center">
+                    {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+          </View>
+        </>
+      )}
     </View>
   );
 }

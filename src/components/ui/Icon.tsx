@@ -44,7 +44,10 @@ export type AndroidSymbol =
   | 'calendar_today'
   | 'event'
   | 'check_circle'
-  | 'calculate';
+  | 'calculate'
+  | 'menu'
+  | 'add_box'
+  | 'messenger';
 
 export interface AppIconProps {
   android: AndroidSymbol;
@@ -293,6 +296,36 @@ export function AppIcon({
           <>
             <Path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
             <Circle cx="12" cy="13" r="3" />
+          </>
+        );
+
+      case 'menu':
+        return (
+          <>
+            <Line x1="3" y1="6" x2="21" y2="6" />
+            <Line x1="3" y1="12" x2="21" y2="12" />
+            <Line x1="3" y1="18" x2="21" y2="18" />
+          </>
+        );
+
+      case 'add_box':
+        return (
+          <>
+            <Rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+            <Line x1="12" y1="8" x2="12" y2="16" />
+            <Line x1="8" y1="12" x2="16" y2="12" />
+          </>
+        );
+
+      case 'messenger':
+        return (
+          <>
+            <Path d="M12 3C6.8 3 2.5 6.9 2.5 11.8c0 2.7 1.3 5.2 3.4 6.8l-.8 3.4 3.7-1.5c1 .4 2.1.6 3.2.6 5.3 0 9.5-3.9 9.5-8.8S17.2 3 12 3z" />
+            <Polygon
+              points="13 7.5 7.5 13 11 13 10 16.5 15.5 11 12 11 13 7.5"
+              fill={color}
+              stroke="none"
+            />
           </>
         );
 
