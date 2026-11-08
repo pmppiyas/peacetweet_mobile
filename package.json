@@ -38,6 +38,9 @@
     "tailwindcss": "^3.4.17",
     "typescript": "~6.0.3"
   },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "1.27.0"
+  },
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
