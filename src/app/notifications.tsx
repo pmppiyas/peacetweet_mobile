@@ -199,7 +199,7 @@ export default function NotificationsScreen() {
         showsVerticalScrollIndicator={false}
         scrollEnabled={!isInitialLoading}
         onScroll={handleFeedScroll}
-        scrollEventThrottle={16}
+        scrollEventThrottle={8}
         className="flex-1 px-1 sm:px-4 no-scrollbar scrollbar-none"
         contentContainerStyle={{
           paddingTop: isDesktop ? 72 : 66,

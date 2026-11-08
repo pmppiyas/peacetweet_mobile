@@ -203,16 +203,17 @@ function AppShell() {
 
   useEffect(() => {
     const useNative = Platform.OS !== 'web';
+    const duration = effectiveHidden ? 130 : 110;
     Animated.parallel([
       Animated.timing(topNavTranslateY, {
         toValue: effectiveHidden ? -62 : 0,
-        duration: 210,
+        duration,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: useNative,
       }),
       Animated.timing(bottomNavTranslateY, {
         toValue: effectiveHidden ? 76 : 0,
-        duration: 210,
+        duration,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: useNative,
       }),

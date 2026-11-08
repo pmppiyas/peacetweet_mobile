@@ -188,20 +188,27 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
 
   const [isNavHidden, setIsNavHiddenState] = useState(false);
   const isNavHiddenRef = useRef(false);
-  const lastScrollYRef = useRef(0);
-  const scrollDeltaRef = useRef(0);
+  const lastClampedYRef = useRef(0);
+  const minYSinceVisibleRef = useRef(0);
+  const maxYSinceHiddenRef = useRef(0);
   const topNavTranslateY = useRef(new Animated.Value(0)).current;
   const bottomNavTranslateY = useRef(new Animated.Value(0)).current;
 
   const setNavHidden = useCallback((hidden: boolean) => {
     if (isNavHiddenRef.current === hidden) return;
     isNavHiddenRef.current = hidden;
+    if (hidden) {
+      maxYSinceHiddenRef.current = lastClampedYRef.current;
+    } else {
+      minYSinceVisibleRef.current = lastClampedYRef.current;
+    }
     setIsNavHiddenState(hidden);
   }, []);
 
   const resetNavVisibility = useCallback(() => {
-    lastScrollYRef.current = 0;
-    scrollDeltaRef.current = 0;
+    lastClampedYRef.current = 0;
+    minYSinceVisibleRef.current = 0;
+    maxYSinceHiddenRef.current = 0;
     if (isNavHiddenRef.current) {
       isNavHiddenRef.current = false;
       setIsNavHiddenState(false);
@@ -210,9 +217,14 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isSearchOpen || isMenuDrawerOpen || isComposerModalOpen) {
-      resetNavVisibility();
+      minYSinceVisibleRef.current = lastClampedYRef.current;
+      maxYSinceHiddenRef.current = lastClampedYRef.current;
+      if (isNavHiddenRef.current) {
+        isNavHiddenRef.current = false;
+        setIsNavHiddenState(false);
+      }
     }
-  }, [isSearchOpen, isMenuDrawerOpen, isComposerModalOpen, resetNavVisibility]);
+  }, [isSearchOpen, isMenuDrawerOpen, isComposerModalOpen]);
 
   const handleFeedScroll = useCallback((event: any) => {
     const ne = event?.nativeEvent;
@@ -223,9 +235,11 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
     const contentH = ne.contentSize?.height ?? 0;
 
     // Always show bars near the very top of the page
-    if (rawY <= 24) {
-      lastScrollYRef.current = Math.max(0, rawY);
-      scrollDeltaRef.current = 0;
+    if (rawY <= 20) {
+      const topY = Math.max(0, rawY);
+      lastClampedYRef.current = topY;
+      minYSinceVisibleRef.current = topY;
+      maxYSinceHiddenRef.current = topY;
       if (isNavHiddenRef.current) {
         isNavHiddenRef.current = false;
         setIsNavHiddenState(false);
@@ -233,50 +247,41 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    let clampedY = Math.max(0, rawY);
     if (contentH > 0 && layoutH > 0) {
+      const maxScrollY = contentH - layoutH;
       // Do not hide bars if list content barely overflows the viewport
-      if (contentH - layoutH < 120) {
+      if (maxScrollY < 100) {
         return;
       }
-      // Ignore bottom rubber-band bounce
-      if (rawY >= contentH - layoutH - 8) {
-        lastScrollYRef.current = rawY;
-        return;
+      // Clamp bottom rubber-band bounce so overscroll never skews anchors
+      clampedY = Math.min(clampedY, maxScrollY);
+    }
+
+    lastClampedYRef.current = clampedY;
+
+    if (!isNavHiddenRef.current) {
+      // Track highest point (smallest Y) reached while bars are visible
+      if (clampedY < minYSinceVisibleRef.current) {
+        minYSinceVisibleRef.current = clampedY;
       }
-    }
-
-    const dy = rawY - lastScrollYRef.current;
-    lastScrollYRef.current = rawY;
-
-    if (Math.abs(dy) < 1.5) return;
-
-    if (
-      (dy > 0 && scrollDeltaRef.current < 0) ||
-      (dy < 0 && scrollDeltaRef.current > 0)
-    ) {
-      scrollDeltaRef.current = 0;
-    }
-
-    scrollDeltaRef.current += dy;
-
-    // Swiping upward (scrolling down the feed): slide Navbar up & MobileNav down
-    if (
-      dy > 0 &&
-      rawY > 44 &&
-      scrollDeltaRef.current > 16 &&
-      !isNavHiddenRef.current
-    ) {
-      isNavHiddenRef.current = true;
-      scrollDeltaRef.current = 0;
-      setIsNavHiddenState(true);
-      return;
-    }
-
-    // Swiping downward (scrolling back toward top): slide Navbar & MobileNav back in
-    if (dy < 0 && scrollDeltaRef.current < -14 && isNavHiddenRef.current) {
-      isNavHiddenRef.current = false;
-      scrollDeltaRef.current = 0;
-      setIsNavHiddenState(false);
+      // Swiping upward (scrolling down the feed >= 10px): hide Navbar & MobileNav
+      if (clampedY > 28 && clampedY - minYSinceVisibleRef.current >= 10) {
+        isNavHiddenRef.current = true;
+        maxYSinceHiddenRef.current = clampedY;
+        setIsNavHiddenState(true);
+      }
+    } else {
+      // Track deepest point (largest Y) reached while bars are hidden
+      if (clampedY > maxYSinceHiddenRef.current) {
+        maxYSinceHiddenRef.current = clampedY;
+      }
+      // Swiping downward (scrolling toward top >= 4px, even slowly): reveal immediately
+      if (maxYSinceHiddenRef.current - clampedY >= 4) {
+        isNavHiddenRef.current = false;
+        minYSinceVisibleRef.current = clampedY;
+        setIsNavHiddenState(false);
+      }
     }
   }, []);
 

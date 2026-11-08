@@ -131,7 +131,7 @@ export default function ZakatScreen() {
       <ScrollView
         className="flex-1"
         onScroll={handleFeedScroll}
-        scrollEventThrottle={16}
+        scrollEventThrottle={8}
         contentContainerStyle={{
           paddingHorizontal: 12,
           paddingTop: 72,

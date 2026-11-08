@@ -27,7 +27,7 @@ export default function HomeScreen() {
       testID="feed-scroll-view"
       className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       onScroll={handleFeedScroll}
-      scrollEventThrottle={16}
+      scrollEventThrottle={8}
       contentContainerStyle={{ paddingTop: 60, paddingBottom: 68 }}
       refreshControl={
         <RefreshControl
