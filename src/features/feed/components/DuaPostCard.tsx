@@ -20,11 +20,12 @@ export function DuaPostCard({
   const { locale, theme } = useUi();
   const [showArabic, setShowArabic] = useState(defaultShowArabic);
   const dua = post.dua;
+  const hasMedia = Boolean(post.mediaUrls && post.mediaUrls.length > 0);
 
   return (
     <View style={{ width: '100%' }} className="w-full gap-3">
-      {/* Optional editorial / caption note (Expandable if > 2 lines) */}
-      <ExpandablePostCaption content={post.content} />
+      {/* Optional editorial / caption note (Expandable if > 10 lines for text-only, or > 3 lines for photo posts) */}
+      <ExpandablePostCaption content={post.content} hasMedia={hasMedia} />
 
       {/* Dua Card Details */}
       {dua && !(dua as any).isUnavailable ? (

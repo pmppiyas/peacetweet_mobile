@@ -83,11 +83,13 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
       post.content.trim().replace(/^🩸\s*/, '').toLowerCase() ===
         blood.problem.trim().toLowerCase());
 
+  const hasMedia = Boolean(post.mediaUrls && post.mediaUrls.length > 0);
+
   return (
     <View style={{ width: '100%' }} className="w-full gap-2.5">
-      {/* Optional Editorial / Caption Note (Expandable if > 2 lines) */}
+      {/* Optional Editorial / Caption Note (Expandable if > 10 lines for text-only, or > 3 lines for photo posts) */}
       {post.content && !isRedundantContent ? (
-        <ExpandablePostCaption content={post.content} />
+        <ExpandablePostCaption content={post.content} hasMedia={hasMedia} />
       ) : null}
 
       {/* Compact Blood Request Card (Soft border, no black outline, space-efficient) */}

@@ -452,7 +452,7 @@ export default function SavedScreen() {
     : slotFilteredItems;
 
   const stickySubHeaderTranslateY = topNavTranslateY.interpolate({
-    inputRange: [-62, 0],
+    inputRange: [-60, 0],
     outputRange: [-60, 0],
     extrapolate: 'clamp',
   });
@@ -516,7 +516,7 @@ export default function SavedScreen() {
       <ScrollView
         className="flex-1"
         onScroll={handleFeedScroll}
-        scrollEventThrottle={8}
+        scrollEventThrottle={16}
         contentContainerStyle={{
           paddingTop: 60 + routineBarHeight,
           paddingBottom: 76,

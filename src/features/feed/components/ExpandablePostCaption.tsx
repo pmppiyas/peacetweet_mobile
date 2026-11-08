@@ -64,24 +64,32 @@ function fitWordsToWidth(
 export interface ExpandablePostCaptionProps {
   content?: string | null;
   className?: string;
+  hasMedia?: boolean;
 }
 
 export function ExpandablePostCaption({
   content,
   className = '',
+  hasMedia = false,
 }: ExpandablePostCaptionProps) {
   const { locale } = useUi();
   const { width: winWidth } = useWindowDimensions();
   const [isExpanded, setIsExpanded] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [hasLayoutOverflow, setHasLayoutOverflow] = useState(false);
+  const [measuredLineCount, setMeasuredLineCount] = useState(1);
 
   if (!content || !content.trim()) return null;
 
   const rawLines = content.trim().split(/\r?\n/);
-  // Exceeds 2 lines if explicitly separated into > 2 lines or long continuous string
-  const exceedsTwoLines =
-    rawLines.length > 2 || content.length > 110 || hasLayoutOverflow;
+  // Without photo: ONLY collapse if strictly more than 10 lines or very long (> 700 chars)
+  // With photo: standard caption collapse (exceeds 3 lines or > 180 chars)
+  const maxLineThreshold = hasMedia ? 3 : 10;
+  const maxCharThreshold = hasMedia ? 180 : 700;
+
+  const shouldCollapse =
+    rawLines.length > maxLineThreshold ||
+    measuredLineCount > maxLineThreshold ||
+    content.length > maxCharThreshold;
 
   const onLayout = (e: any) => {
     const w = Math.round(e.nativeEvent?.layout?.width || 0);
@@ -90,21 +98,21 @@ export function ExpandablePostCaption({
     }
   };
 
-  if (!exceedsTwoLines || isExpanded) {
+  if (!shouldCollapse || isExpanded) {
     return (
       <View onLayout={onLayout} className={`px-3 ${className}`}>
         <Text
           selectable={true}
           onTextLayout={(e) => {
-            const lineCount = e.nativeEvent?.lines?.length || 0;
-            if (lineCount > 2) {
-              setHasLayoutOverflow(true);
+            const lines = e.nativeEvent?.lines?.length || 1;
+            if (lines !== measuredLineCount) {
+              setMeasuredLineCount(lines);
             }
           }}
           className="text-[16.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-[26px] select-text">
           {content}
         </Text>
-        {exceedsTwoLines && isExpanded && (
+        {shouldCollapse && isExpanded && (
           <Pressable
             onPress={() => setIsExpanded(false)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -119,15 +127,37 @@ export function ExpandablePostCaption({
     );
   }
 
-  // Collapsed state: Show only whole words on 1 line + "... See more"
+  // Collapsed state:
+  // If hasMedia: show first line + "... See more"
+  // If !hasMedia and > 10 lines: show first 9 lines + "... See more"
   const font =
     '16.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
   const seeMoreLabel = locale === 'bn' ? '... আরও দেখুন' : '... See more';
   const seeMoreWidth = measureTextWidth(seeMoreLabel, `bold ${font}`);
 
-  // Determine available row width: container width or screen width minus feed horizontal padding
   const effectiveWidth =
     containerWidth > 0 ? containerWidth : winWidth ? Math.min(winWidth, 680) - 24 : 360;
+
+  if (!hasMedia) {
+    const displayedText =
+      rawLines.length > 10
+        ? rawLines.slice(0, 9).join('\n')
+        : content.slice(0, 600).trim();
+    return (
+      <View onLayout={onLayout} className={`px-3 ${className}`}>
+        <Text
+          selectable={true}
+          className="text-[16.5px] text-[#1e2329] dark:text-[#e4e6eb] leading-[26px] select-text">
+          {displayedText}{' '}
+          <Text
+            onPress={() => setIsExpanded(true)}
+            className="text-[15px] font-bold text-primary-600 dark:text-primary-400">
+            {seeMoreLabel}
+          </Text>
+        </Text>
+      </View>
+    );
+  }
 
   const firstLine = (rawLines[0] || content).trim();
   const fittedWords = fitWordsToWidth(firstLine, effectiveWidth, seeMoreWidth, font);

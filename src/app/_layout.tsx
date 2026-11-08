@@ -74,7 +74,6 @@ function AppShell() {
     isComposerModalOpen,
     setComposerModalOpen,
     activeConversationId,
-    isNavHidden,
     resetNavVisibility,
     topNavTranslateY,
     bottomNavTranslateY,
@@ -193,14 +192,6 @@ function AppShell() {
   const showSearchOverlay = isSearchOpen && !isMessagesActive;
   const isFullBleedRoute = COLLAPSIBLE_NAV_ROUTES.has(pathname);
 
-  const effectiveHidden =
-    isFullBleedRoute &&
-    isNavHidden &&
-    !isSearchOpen &&
-    !isMenuDrawerOpen &&
-    !isComposerModalOpen &&
-    !activePhotoViewer;
-
   useEffect(() => {
     if (
       !isFullBleedRoute ||
@@ -308,7 +299,7 @@ function AppShell() {
         </Animated.View>
 
         <Animated.View
-          pointerEvents={effectiveHidden ? 'none' : 'box-none'}
+          pointerEvents="box-none"
           style={{
             position: 'absolute',
             bottom: 0,

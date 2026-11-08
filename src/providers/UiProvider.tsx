@@ -197,24 +197,27 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
     (hidden: boolean) => {
       if (isNavHiddenRef.current === hidden) return;
       isNavHiddenRef.current = hidden;
-      setIsNavHiddenState(hidden);
 
       const useNative = Platform.OS !== 'web';
-      const duration = hidden ? 120 : 100;
+      const duration = 220;
       Animated.parallel([
         Animated.timing(topNavTranslateY, {
-          toValue: hidden ? -62 : 0,
+          toValue: hidden ? -60 : 0,
           duration,
-          easing: Easing.out(Easing.cubic),
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
           useNativeDriver: useNative,
         }),
         Animated.timing(bottomNavTranslateY, {
           toValue: hidden ? 76 : 0,
           duration,
-          easing: Easing.out(Easing.cubic),
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
           useNativeDriver: useNative,
         }),
-      ]).start();
+      ]).start(({ finished }) => {
+        if (finished) {
+          setIsNavHiddenState(hidden);
+        }
+      });
     },
     [topNavTranslateY, bottomNavTranslateY]
   );
@@ -273,8 +276,8 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
       const dy = rawY - lastScrollYRef.current;
       lastScrollYRef.current = rawY;
 
-      // Ignore micro-tremors (< 1px)
-      if (Math.abs(dy) < 1) return;
+      // Ignore micro-tremors (< 1.5px)
+      if (Math.abs(dy) < 1.5) return;
 
       // Direction change resets accumulated delta immediately
       if (
@@ -286,17 +289,17 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
 
       accumulatedDeltaRef.current += dy;
 
-      // Scrolling DOWN the feed (finger moving UP):
-      // Triggers after just 4px of downward scrolling!
-      if (accumulatedDeltaRef.current >= 4 && !isNavHiddenRef.current) {
+      // Scrolling DOWN the feed:
+      // Require 16px of deliberate downward scroll to hide bars smoothly
+      if (accumulatedDeltaRef.current >= 16 && !isNavHiddenRef.current) {
         accumulatedDeltaRef.current = 0;
         animateNav(true);
         return;
       }
 
-      // Scrolling UP toward the top (finger moving DOWN):
-      // Triggers after just 3px of upward scrolling!
-      if (accumulatedDeltaRef.current <= -3 && isNavHiddenRef.current) {
+      // Scrolling UP toward the top:
+      // Require 10px of deliberate upward scroll to reveal bars smoothly
+      if (accumulatedDeltaRef.current <= -10 && isNavHiddenRef.current) {
         accumulatedDeltaRef.current = 0;
         animateNav(false);
       }

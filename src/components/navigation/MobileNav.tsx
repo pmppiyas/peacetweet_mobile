@@ -158,15 +158,8 @@ export function MobileNav() {
 
           if (item.isComposer) {
             const isBloodContext = postUploadType === 'BLOOD';
-            const isUpdateContext = postUploadType === 'UPDATE';
 
             const activeBg = isPostUploadSuccess
-              ? '#059669'
-              : isBloodContext
-              ? '#e11d48'
-              : '#1877f2';
-
-            const activeTextColor = isPostUploadSuccess
               ? '#059669'
               : isBloodContext
               ? '#e11d48'
@@ -177,20 +170,21 @@ export function MobileNav() {
                 key={item.id}
                 disabled={isUploadingPost}
                 onPress={handleComposerPress}
-                className="flex-1 flex-col items-center justify-center -top-2.5 z-20 h-full px-0.5 active:scale-95 select-none">
+                accessibilityLabel={label}
+                className="flex-1 flex-col items-center justify-center -top-3 z-20 h-full px-0.5 active:scale-95 select-none">
                 <View
                   style={{
                     backgroundColor: activeBg,
                     borderColor: theme === 'dark' ? '#242526' : '#f5f6f8',
                   }}
-                  className="h-11 w-11 items-center justify-center rounded-full shadow-lg border-2 select-none">
+                  className="h-12 w-12 items-center justify-center rounded-full shadow-lg border-2 select-none">
                   {isUploadingPost ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : isPostUploadSuccess ? (
                     <AppIcon
                       android="check"
                       ios="checkmark"
-                      size={22}
+                      size={24}
                       weight="bold"
                       color="#ffffff"
                     />
@@ -198,34 +192,12 @@ export function MobileNav() {
                     <AppIcon
                       android="add"
                       ios="plus"
-                      size={26}
+                      size={28}
                       weight="bold"
                       color="#ffffff"
                     />
                   )}
                 </View>
-                <Text
-                  selectable={false}
-                  style={{ color: activeTextColor }}
-                  className="text-[10px] font-bold mt-0.5 select-none">
-                  {isUploadingPost
-                    ? isUpdateContext
-                      ? locale === 'bn'
-                        ? 'আপডেট হচ্ছে...'
-                        : 'Updating...'
-                      : locale === 'bn'
-                      ? 'পোস্ট হচ্ছে...'
-                      : 'Posting...'
-                    : isPostUploadSuccess
-                    ? isUpdateContext
-                      ? locale === 'bn'
-                        ? 'আপডেট সফল!'
-                        : 'Updated!'
-                      : locale === 'bn'
-                      ? 'সফল!'
-                      : 'Done!'
-                    : label}
-                </Text>
               </Pressable>
             );
           }
@@ -237,8 +209,8 @@ export function MobileNav() {
           const iconColor = isActive
             ? '#1877f2'
             : theme === 'dark'
-              ? '#b0b3b8'
-              : '#65676b';
+              ? '#e4e6eb'
+              : '#1e2329';
 
           return (
             <Pressable
@@ -248,11 +220,12 @@ export function MobileNav() {
                 if (pathname === href) return;
                 router.navigate(href as any);
               }}
-              className="flex-1 flex-col items-center justify-center gap-0.5 h-full px-0.5 select-none">
+              accessibilityLabel={label}
+              className="flex-1 items-center justify-center h-full px-0.5 select-none">
               <View className="relative items-center justify-center select-none">
                 <AppIcon
                   android={item.icon}
-                  size={22}
+                  size={25}
                   weight="bold"
                   color={iconColor}
                 />
@@ -266,15 +239,6 @@ export function MobileNav() {
                   </View>
                 ) : null}
               </View>
-              <Text
-                selectable={false}
-                className={`text-[10px] leading-tight select-none ${
-                  isActive
-                    ? 'text-primary-500 dark:text-primary-400 font-bold'
-                    : 'text-[#65676b] dark:text-[#b0b3b8] font-semibold'
-                }`}>
-                {label}
-              </Text>
             </Pressable>
           );
         })}

@@ -202,7 +202,7 @@ export default function CategoriesScreen() {
     <ScrollView
       className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       onScroll={handleFeedScroll}
-      scrollEventThrottle={8}
+      scrollEventThrottle={16}
       contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 70, paddingBottom: 76 }}
       refreshControl={
         <RefreshControl

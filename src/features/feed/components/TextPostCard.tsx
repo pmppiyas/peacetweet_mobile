@@ -10,10 +10,12 @@ export interface TextPostCardProps {
 }
 
 export function TextPostCard({ post, onOpenPhoto }: TextPostCardProps) {
+  const hasMedia = Boolean(post.mediaUrls && post.mediaUrls.length > 0);
+
   return (
     <View style={{ width: '100%' }} className="w-full gap-3">
-      {/* Content text (Expandable if > 2 lines) */}
-      <ExpandablePostCaption content={post.content} />
+      {/* Content text (Expandable if > 10 lines for text-only, or > 3 lines for photo posts) */}
+      <ExpandablePostCaption content={post.content} hasMedia={hasMedia} />
 
       {/* Media Gallery */}
       <PostMediaGallery
