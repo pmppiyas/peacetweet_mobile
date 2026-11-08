@@ -138,11 +138,13 @@ export default function HomeScreen() {
 
         {/* 2. Feed List Card */}
         {isLoading && items.length === 0 ? (
-          <View className="w-full mt-2.5 space-y-2">
+          <View className="w-full">
             {Array.from({ length: 3 }).map((_, i) => (
               <View
                 key={i}
-                className="bg-white dark:bg-[#242526] border-y border-[#d9dde4] dark:border-[#393a3b] p-3 space-y-3"
+                className={`bg-white dark:bg-[#242526] border-b border-[#d9dde4] dark:border-[#393a3b] p-3 space-y-3 ${
+                  i > 0 ? 'mt-2 border-t' : ''
+                }`}
               >
                 <View className="flex-row items-center gap-2.5">
                   <Skeleton className="h-10 w-10 rounded-full shrink-0" />
@@ -179,7 +181,7 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         ) : (
-          <View className="w-full mt-2.5 bg-white dark:bg-[#242526] border-y border-[#d9dde4] dark:border-[#393a3b] overflow-hidden">
+          <View className="w-full bg-white dark:bg-[#242526] border-b border-[#d9dde4] dark:border-[#393a3b] overflow-hidden">
             {items.map((post, index) => (
               <React.Fragment key={post.id}>
                 {index > 0 && (
