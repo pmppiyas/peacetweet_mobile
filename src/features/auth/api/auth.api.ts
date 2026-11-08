@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from '@/constants/api';
 import { ApiResponse } from '@/types/api.types';
 import {
   AuthResponse,
+  GoogleLoginInput,
   LoginInput,
   RegisterInput,
   User,
@@ -20,6 +21,14 @@ export const authApi = {
   login: async (input: LoginInput): Promise<ApiResponse<AuthResponse>> => {
     const { data } = await apiClient.post<ApiResponse<AuthResponse>>(
       API_ENDPOINTS.AUTH.LOGIN,
+      input
+    );
+    return data;
+  },
+
+  googleLogin: async (input: GoogleLoginInput): Promise<ApiResponse<AuthResponse>> => {
+    const { data } = await apiClient.post<ApiResponse<AuthResponse>>(
+      API_ENDPOINTS.AUTH.GOOGLE,
       input
     );
     return data;

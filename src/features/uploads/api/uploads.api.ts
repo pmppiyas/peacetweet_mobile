@@ -7,6 +7,34 @@ export interface UploadImageResult {
   publicId?: string;
 }
 
+export interface NativeUploadFile {
+  uri: string;
+  name: string;
+  type: string;
+}
+
+export type UploadableImage = File | Blob | NativeUploadFile;
+
+function appendUploadFile(
+  formData: FormData,
+  fieldName: string,
+  file: UploadableImage,
+  fallbackFilename: string
+) {
+  const isNativeAsset =
+    typeof file === 'object' &&
+    file !== null &&
+    'uri' in file &&
+    typeof (file as NativeUploadFile).uri === 'string' &&
+    !(typeof Blob !== 'undefined' && file instanceof Blob);
+
+  if (isNativeAsset) {
+    formData.append(fieldName, file as any);
+  } else {
+    formData.append(fieldName, file as Blob, fallbackFilename);
+  }
+}
+
 export function normalizeMediaUrl(url?: string | null): string {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
@@ -18,9 +46,9 @@ export function normalizeMediaUrl(url?: string | null): string {
 }
 
 export const uploadsApi = {
-  uploadImage: async (file: File | Blob, filename = 'photo.jpg'): Promise<UploadImageResult> => {
+  uploadImage: async (file: UploadableImage, filename = 'photo.jpg'): Promise<UploadImageResult> => {
     const formData = new FormData();
-    formData.append('file', file, filename);
+    appendUploadFile(formData, 'file', file, filename);
 
     const res = await apiClient.post<any>(API_ENDPOINTS.UPLOADS.IMAGE, formData);
     const data = res?.data?.data || res?.data;
@@ -31,11 +59,13 @@ export const uploadsApi = {
     };
   },
 
-  uploadMultipleImages: async (files: (File | Blob)[]): Promise<string[]> => {
+  uploadMultipleImages: async (files: UploadableImage[]): Promise<string[]> => {
     if (files.length === 0) return [];
     try {
       const formData = new FormData();
-      files.forEach((file) => formData.append('files', file));
+      files.forEach((file, idx) =>
+        appendUploadFile(formData, 'files', file, `photo_${Date.now()}_${idx}.jpg`)
+      );
 
       const res = await apiClient.post<any>('/uploads/images', formData);
       const data = res?.data?.data || res?.data;

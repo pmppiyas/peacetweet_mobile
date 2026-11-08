@@ -1,10 +1,23 @@
 import { io, Socket } from 'socket.io-client';
 import { resolvePrimaryApiUrl } from '@/config/api';
 import { tokenStorage } from '@/lib/storage/secureStorage';
+import { envConfig } from '@/config/env.config';
 
 let socket: Socket | null = null;
 
 export function getSocketUrl(): string {
+  const envSocket = envConfig.socketUrl;
+  if (envSocket) {
+    if (!envSocket.includes('localhost') && !envSocket.includes('127.0.0.1')) {
+      return envSocket;
+    }
+    const apiUrl = resolvePrimaryApiUrl();
+    const hostMatch = apiUrl.match(/^https?:\/\/([^/:]+)/);
+    if (hostMatch && hostMatch[1] && hostMatch[1] !== 'localhost') {
+      return envSocket.replace(/localhost|127\.0\.0\.1/, hostMatch[1]);
+    }
+    return envSocket;
+  }
   const apiUrl = resolvePrimaryApiUrl();
   return apiUrl.replace(/\/api\/v1\/?$/, '');
 }

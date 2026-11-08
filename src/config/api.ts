@@ -1,17 +1,32 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-
-const PROD_BACKEND_URL =
-  process.env.EXPO_PUBLIC_PROD_BACKEND_URL ||
-  'https://peace-tweet-backend.onrender.com/api/v1';
+import { envConfig } from './env.config';
 
 export function resolvePrimaryApiUrl(): string {
-  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL?.trim();
+  const configuredUrl = envConfig.backendUrl;
 
-  if (Platform.OS === 'web') {
-    return envUrl || 'http://localhost:5000/api/v1';
+  if (!configuredUrl) {
+    if (__DEV__) {
+      console.warn(
+        '[API Config] EXPO_PUBLIC_BACKEND_URL is not set in your .env file.'
+      );
+    }
+    return '';
   }
 
+  if (
+    !configuredUrl.includes('localhost') &&
+    !configuredUrl.includes('127.0.0.1')
+  ) {
+    return configuredUrl;
+  }
+
+  // Web browsers access PC localhost directly
+  if (Platform.OS === 'web') {
+    return configuredUrl;
+  }
+
+  // Physical devices via Expo Go connect via host PC's LAN IP
   const debuggerHost =
     Constants.expoConfig?.hostUri ||
     (Constants as any).manifest2?.extra?.expoClient?.hostUri;
@@ -19,29 +34,19 @@ export function resolvePrimaryApiUrl(): string {
   if (debuggerHost) {
     const lanIp = debuggerHost.split(':')[0];
     if (lanIp && lanIp !== 'localhost' && lanIp !== '127.0.0.1') {
-      if (envUrl && envUrl.includes('localhost')) {
-        return envUrl.replace('localhost', lanIp);
-      }
-      return `http://${lanIp}:5000/api/v1`;
+      return configuredUrl.replace(/localhost|127\.0\.0\.1/, lanIp);
     }
   }
 
-  if (envUrl && !envUrl.includes('localhost')) {
-    return envUrl;
-  }
-
-  // Android Emulator loopback to host PC's localhost:5000
+  // Android Emulator loopback to host PC
   if (Platform.OS === 'android') {
-    return envUrl
-      ? envUrl.replace('localhost', '10.0.2.2')
-      : 'http://10.0.2.2:5000/api/v1';
+    return configuredUrl.replace(/localhost|127\.0\.0\.1/, '10.0.2.2');
   }
 
-  return envUrl || 'http://localhost:5000/api/v1';
+  return configuredUrl;
 }
 
 export const API_CONFIG = {
   primaryBaseUrl: resolvePrimaryApiUrl(),
-  fallbackBaseUrl: PROD_BACKEND_URL,
   timeout: 30000,
 };

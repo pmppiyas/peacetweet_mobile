@@ -65,3 +65,10 @@ export interface LoginInput {
   identifier: string;
   password: string;
 }
+
+export interface GoogleLoginInput {
+  code?: string;
+  redirectUri?: string;
+  idToken?: string;
+  accessToken?: string;
+}

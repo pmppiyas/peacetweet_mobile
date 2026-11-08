@@ -3,7 +3,10 @@ import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { Slot, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as WebBrowser from 'expo-web-browser';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+
+WebBrowser.maybeCompleteAuthSession();
 import { UiProvider, useUi } from '@/providers/UiProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { FeedProvider } from '@/providers/FeedProvider';

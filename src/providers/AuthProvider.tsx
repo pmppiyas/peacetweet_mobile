@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { authApi } from '@/features/auth/api/auth.api';
 import { queryCache } from '@/lib/cache/queryCache';
 import { tokenStorage, sessionStorage } from '@/lib/storage/secureStorage';
-import { LoginInput, RegisterInput, User } from '@/types/user.types';
+import { GoogleLoginInput, LoginInput, RegisterInput, User } from '@/types/user.types';
 
 interface AuthContextType {
   user: User | null;
@@ -11,8 +11,10 @@ interface AuthContextType {
   isAdmin: boolean;
   isLoading: boolean;
   isLoggingIn: boolean;
+  isGoogleLoggingIn: boolean;
   isRegistering: boolean;
   login: (input: LoginInput) => Promise<void>;
+  loginWithGoogle: (input: GoogleLoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -25,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isGoogleLoggingIn, setIsGoogleLoggingIn] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
 
   const setUser = (nextUser: User | null) => {
@@ -79,6 +82,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async (input: GoogleLoginInput) => {
+    setIsGoogleLoggingIn(true);
+    try {
+      const response = await authApi.googleLogin(input);
+      const payload = (response as any)?.data || response;
+      const { user: loggedInUser, accessToken, refreshToken } = payload;
+
+      if (accessToken) tokenStorage.setAccessToken(accessToken);
+      if (refreshToken) tokenStorage.setRefreshToken(refreshToken);
+      if (loggedInUser) setUser(loggedInUser);
+
+      router.replace('/');
+    } finally {
+      setIsGoogleLoggingIn(false);
+    }
+  };
+
   const register = async (input: RegisterInput) => {
     setIsRegistering(true);
     try {
@@ -115,8 +135,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin: user?.role === 'ADMIN',
         isLoading,
         isLoggingIn,
+        isGoogleLoggingIn,
         isRegistering,
         login,
+        loginWithGoogle,
         register,
         logout,
         refreshUser,
