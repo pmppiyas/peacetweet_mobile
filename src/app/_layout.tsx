@@ -23,6 +23,7 @@ import { UiProvider, useUi } from '@/providers/UiProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { FeedProvider } from '@/providers/FeedProvider';
 import { Navbar } from '@/components/navigation/Navbar';
+import { HomeSubNav } from '@/components/navigation/HomeSubNav';
 import { MobileNav } from '@/components/navigation/MobileNav';
 import { MenuDrawer } from '@/components/navigation/MenuDrawer';
 import { MobileComposerModal } from '@/components/feed/MobileComposerModal';
@@ -179,6 +180,7 @@ function AppShell() {
   }, []);
 
   const isDark = theme === 'dark';
+  const isHomeScreen = pathname === '/';
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isPostViewerPage = pathname.startsWith('/post/');
   const isPhotoViewerActive = isPostViewerPage || Boolean(activePhotoViewer);
@@ -206,7 +208,7 @@ function AppShell() {
     const duration = effectiveHidden ? 130 : 110;
     Animated.parallel([
       Animated.timing(topNavTranslateY, {
-        toValue: 0,
+        toValue: effectiveHidden ? -56 : 0,
         duration,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: useNative,
@@ -275,7 +277,15 @@ function AppShell() {
         }}
         className="flex-1 relative">
         <MainContentSlot
-          topOffset={isFullBleedRoute ? 0 : showTopNav ? 60 : 0}
+          topOffset={
+            isFullBleedRoute
+              ? 0
+              : showTopNav
+                ? isHomeScreen
+                  ? 100
+                  : 56
+                : 0
+          }
           bottomOffset={isFullBleedRoute ? 0 : showBottomNav ? 56 : 0}
         />
 
@@ -283,7 +293,7 @@ function AppShell() {
           <View
             style={{
               position: 'absolute',
-              top: showTopNav ? 60 : 0,
+              top: showTopNav ? (isHomeScreen ? 100 : 56) : 0,
               left: insets.left,
               right: insets.right,
               bottom: 0,
@@ -305,6 +315,7 @@ function AppShell() {
             transform: [{ translateY: topNavTranslateY }],
           }}>
           <Navbar />
+          {isHomeScreen ? <HomeSubNav /> : null}
         </Animated.View>
 
         <Animated.View
