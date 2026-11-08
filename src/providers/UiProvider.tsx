@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { Animated } from 'react-native';
+import { Animated, Easing, Platform } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import { appStorage } from '@/lib/storage/secureStorage';
 import { FeedItem } from '@/features/feed/types/feed.types';
@@ -188,102 +188,121 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
 
   const [isNavHidden, setIsNavHiddenState] = useState(false);
   const isNavHiddenRef = useRef(false);
-  const lastClampedYRef = useRef(0);
-  const minYSinceVisibleRef = useRef(0);
-  const maxYSinceHiddenRef = useRef(0);
+  const lastScrollYRef = useRef(0);
+  const accumulatedDeltaRef = useRef(0);
   const topNavTranslateY = useRef(new Animated.Value(0)).current;
   const bottomNavTranslateY = useRef(new Animated.Value(0)).current;
 
-  const setNavHidden = useCallback((hidden: boolean) => {
-    if (isNavHiddenRef.current === hidden) return;
-    isNavHiddenRef.current = hidden;
-    if (hidden) {
-      maxYSinceHiddenRef.current = lastClampedYRef.current;
-    } else {
-      minYSinceVisibleRef.current = lastClampedYRef.current;
-    }
-    setIsNavHiddenState(hidden);
-  }, []);
+  const animateNav = useCallback(
+    (hidden: boolean) => {
+      if (isNavHiddenRef.current === hidden) return;
+      isNavHiddenRef.current = hidden;
+      setIsNavHiddenState(hidden);
+
+      const useNative = Platform.OS !== 'web';
+      const duration = hidden ? 120 : 100;
+      Animated.parallel([
+        Animated.timing(topNavTranslateY, {
+          toValue: hidden ? -62 : 0,
+          duration,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: useNative,
+        }),
+        Animated.timing(bottomNavTranslateY, {
+          toValue: hidden ? 76 : 0,
+          duration,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: useNative,
+        }),
+      ]).start();
+    },
+    [topNavTranslateY, bottomNavTranslateY]
+  );
+
+  const setNavHidden = useCallback(
+    (hidden: boolean) => {
+      animateNav(hidden);
+    },
+    [animateNav]
+  );
 
   const resetNavVisibility = useCallback(() => {
-    lastClampedYRef.current = 0;
-    minYSinceVisibleRef.current = 0;
-    maxYSinceHiddenRef.current = 0;
+    lastScrollYRef.current = 0;
+    accumulatedDeltaRef.current = 0;
     if (isNavHiddenRef.current) {
-      isNavHiddenRef.current = false;
-      setIsNavHiddenState(false);
+      animateNav(false);
     }
-  }, []);
+  }, [animateNav]);
 
   useEffect(() => {
     if (isSearchOpen || isMenuDrawerOpen || isComposerModalOpen) {
-      minYSinceVisibleRef.current = lastClampedYRef.current;
-      maxYSinceHiddenRef.current = lastClampedYRef.current;
-      if (isNavHiddenRef.current) {
-        isNavHiddenRef.current = false;
-        setIsNavHiddenState(false);
-      }
+      resetNavVisibility();
     }
-  }, [isSearchOpen, isMenuDrawerOpen, isComposerModalOpen]);
+  }, [isSearchOpen, isMenuDrawerOpen, isComposerModalOpen, resetNavVisibility]);
 
-  const handleFeedScroll = useCallback((event: any) => {
-    const ne = event?.nativeEvent;
-    if (!ne) return;
+  const handleFeedScroll = useCallback(
+    (event: any) => {
+      const ne = event?.nativeEvent;
+      if (!ne) return;
 
-    const rawY = ne.contentOffset?.y ?? 0;
-    const layoutH = ne.layoutMeasurement?.height ?? 0;
-    const contentH = ne.contentSize?.height ?? 0;
+      const rawY = ne.contentOffset?.y ?? 0;
+      const layoutH = ne.layoutMeasurement?.height ?? 0;
+      const contentH = ne.contentSize?.height ?? 0;
 
-    // Always show bars near the very top of the page
-    if (rawY <= 20) {
-      const topY = Math.max(0, rawY);
-      lastClampedYRef.current = topY;
-      minYSinceVisibleRef.current = topY;
-      maxYSinceHiddenRef.current = topY;
-      if (isNavHiddenRef.current) {
-        isNavHiddenRef.current = false;
-        setIsNavHiddenState(false);
-      }
-      return;
-    }
-
-    let clampedY = Math.max(0, rawY);
-    if (contentH > 0 && layoutH > 0) {
-      const maxScrollY = contentH - layoutH;
-      // Do not hide bars if list content barely overflows the viewport
-      if (maxScrollY < 100) {
+      // When near the top of the feed (rawY <= 60):
+      // Keep bars always visible so that the 60px top padding is never exposed as an empty gap!
+      if (rawY <= 60) {
+        lastScrollYRef.current = Math.max(0, rawY);
+        accumulatedDeltaRef.current = 0;
+        if (isNavHiddenRef.current) {
+          animateNav(false);
+        }
         return;
       }
-      // Clamp bottom rubber-band bounce so overscroll never skews anchors
-      clampedY = Math.min(clampedY, maxScrollY);
-    }
 
-    lastClampedYRef.current = clampedY;
+      if (contentH > 0 && layoutH > 0) {
+        // Do not hide bars if list content barely overflows the viewport
+        if (contentH - layoutH < 100) return;
+        // Ignore bottom rubber-band bounce
+        if (rawY >= contentH - layoutH - 6) {
+          lastScrollYRef.current = rawY;
+          return;
+        }
+      }
 
-    if (!isNavHiddenRef.current) {
-      // Track highest point (smallest Y) reached while bars are visible
-      if (clampedY < minYSinceVisibleRef.current) {
-        minYSinceVisibleRef.current = clampedY;
+      const dy = rawY - lastScrollYRef.current;
+      lastScrollYRef.current = rawY;
+
+      // Ignore micro-tremors (< 1px)
+      if (Math.abs(dy) < 1) return;
+
+      // Direction change resets accumulated delta immediately
+      if (
+        (dy > 0 && accumulatedDeltaRef.current < 0) ||
+        (dy < 0 && accumulatedDeltaRef.current > 0)
+      ) {
+        accumulatedDeltaRef.current = 0;
       }
-      // Swiping upward (scrolling down the feed >= 10px): hide Navbar & MobileNav
-      if (clampedY > 28 && clampedY - minYSinceVisibleRef.current >= 10) {
-        isNavHiddenRef.current = true;
-        maxYSinceHiddenRef.current = clampedY;
-        setIsNavHiddenState(true);
+
+      accumulatedDeltaRef.current += dy;
+
+      // Scrolling DOWN the feed (finger moving UP):
+      // Triggers after just 4px of downward scrolling!
+      if (accumulatedDeltaRef.current >= 4 && !isNavHiddenRef.current) {
+        accumulatedDeltaRef.current = 0;
+        animateNav(true);
+        return;
       }
-    } else {
-      // Track deepest point (largest Y) reached while bars are hidden
-      if (clampedY > maxYSinceHiddenRef.current) {
-        maxYSinceHiddenRef.current = clampedY;
+
+      // Scrolling UP toward the top (finger moving DOWN):
+      // Triggers after just 3px of upward scrolling!
+      if (accumulatedDeltaRef.current <= -3 && isNavHiddenRef.current) {
+        accumulatedDeltaRef.current = 0;
+        animateNav(false);
       }
-      // Swiping downward (scrolling toward top >= 4px, even slowly): reveal immediately
-      if (maxYSinceHiddenRef.current - clampedY >= 4) {
-        isNavHiddenRef.current = false;
-        minYSinceVisibleRef.current = clampedY;
-        setIsNavHiddenState(false);
-      }
-    }
-  }, []);
+    },
+    [animateNav]
+  );
 
   return (
     <UiContext.Provider

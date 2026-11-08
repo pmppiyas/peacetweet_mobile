@@ -452,8 +452,8 @@ export default function SavedScreen() {
     : slotFilteredItems;
 
   const stickySubHeaderTranslateY = topNavTranslateY.interpolate({
-    inputRange: [-56, 0],
-    outputRange: [-56, 0],
+    inputRange: [-62, 0],
+    outputRange: [-60, 0],
     extrapolate: 'clamp',
   });
 
@@ -475,7 +475,7 @@ export default function SavedScreen() {
         }}
         style={{
           position: 'absolute',
-          top: 56,
+          top: 60,
           left: 0,
           right: 0,
           zIndex: 30,
@@ -518,7 +518,7 @@ export default function SavedScreen() {
         onScroll={handleFeedScroll}
         scrollEventThrottle={8}
         contentContainerStyle={{
-          paddingTop: 56 + routineBarHeight,
+          paddingTop: 60 + routineBarHeight,
           paddingBottom: 76,
         }}
         refreshControl={
@@ -526,7 +526,7 @@ export default function SavedScreen() {
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
             tintColor="#1877f2"
-            progressViewOffset={56 + routineBarHeight}
+            progressViewOffset={60 + routineBarHeight}
           />
         }>
 

@@ -28,13 +28,13 @@ export default function HomeScreen() {
       className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
       onScroll={handleFeedScroll}
       scrollEventThrottle={8}
-      contentContainerStyle={{ paddingTop: 100, paddingBottom: 68 }}
+      contentContainerStyle={{ paddingTop: 60, paddingBottom: 68 }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={refreshFeed}
           tintColor="#1877f2"
-          progressViewOffset={100}
+          progressViewOffset={60}
         />
       }
     >
