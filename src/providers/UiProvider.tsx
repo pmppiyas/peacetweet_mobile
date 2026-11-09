@@ -62,6 +62,10 @@ interface UiContextType {
   setUnreadMessagesCount: React.Dispatch<React.SetStateAction<number>>;
   unreadNotificationsCount: number;
   setUnreadNotificationsCount: React.Dispatch<React.SetStateAction<number>>;
+  onlineUserIds: Set<string>;
+  setOnlineUserIds: (ids: string[]) => void;
+  setUserOnlineStatus: (userId: string, isOnline: boolean) => void;
+  isUserOnline: (userId?: string) => boolean;
   isUploadingPost: boolean;
   postUploadType: PostUploadType;
   setIsUploadingPost: (val: boolean, type?: PostUploadType) => void;
@@ -163,6 +167,36 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   >(null);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [onlineUserIds, setOnlineUserIdsState] = useState<Set<string>>(
+    () => new Set()
+  );
+
+  const setOnlineUserIds = useCallback((ids: string[]) => {
+    setOnlineUserIdsState(new Set(ids));
+  }, []);
+
+  const setUserOnlineStatus = useCallback(
+    (userId: string, isOnline: boolean) => {
+      setOnlineUserIdsState((prev) => {
+        const next = new Set(prev);
+        if (isOnline) {
+          next.add(userId);
+        } else {
+          next.delete(userId);
+        }
+        return next;
+      });
+    },
+    []
+  );
+
+  const isUserOnline = useCallback(
+    (userId?: string) => {
+      if (!userId) return false;
+      return onlineUserIds.has(userId);
+    },
+    [onlineUserIds]
+  );
 
   const { colorScheme, setColorScheme } = useColorScheme();
 
@@ -334,6 +368,10 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         setUnreadMessagesCount,
         unreadNotificationsCount,
         setUnreadNotificationsCount,
+        onlineUserIds,
+        setOnlineUserIds,
+        setUserOnlineStatus,
+        isUserOnline,
         isUploadingPost,
         postUploadType,
         setIsUploadingPost,

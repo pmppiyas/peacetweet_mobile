@@ -53,12 +53,13 @@ export function ConversationItemView({
   isSelected,
   onSelect,
 }: ConversationItemViewProps) {
-  const { locale } = useUi();
+  const { locale, isUserOnline } = useUi();
   const participant = getOtherUserFromConversation(conversation);
   const unreadCount = conversation.unreadCount || 0;
   const hasUnread = unreadCount > 0;
   const displayName =
     participant?.name || (locale === 'bn' ? 'ইউজার' : 'User');
+  const isOnline = isUserOnline(participant?.id) || Boolean(participant?.isOnline);
 
   return (
     <Pressable
@@ -72,7 +73,7 @@ export function ConversationItemView({
         name={displayName}
         avatarUrl={participant?.avatarUrl}
         size="md"
-        isOnline={participant?.isOnline ?? false}
+        isOnline={isOnline}
         showOnlineBadge
       />
 

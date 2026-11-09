@@ -52,7 +52,7 @@ export function ConversationSidebar({
 }: ConversationSidebarProps) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
-  const { locale, chatSearchQuery, setChatSearchQuery, theme } = useUi();
+  const { locale, chatSearchQuery, setChatSearchQuery, theme, isUserOnline } = useUi();
   const [isSearching, setIsSearching] = useState(false);
   const [creatingForUserId, setCreatingForUserId] = useState<string | null>(
     null
@@ -131,7 +131,7 @@ export function ConversationSidebar({
           name={user.name}
           avatarUrl={user.avatarUrl}
           size="md"
-          isOnline={user.isOnline ?? false}
+          isOnline={isUserOnline(user.id) || Boolean(user.isOnline)}
         />
 
         <View className="flex-1 min-w-0">

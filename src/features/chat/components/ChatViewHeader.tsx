@@ -22,11 +22,11 @@ export function ChatViewHeader({
   showDetails,
   onToggleDetails,
 }: ChatViewHeaderProps) {
-  const { locale, theme } = useUi();
+  const { locale, theme, isUserOnline } = useUi();
   const user = getOtherUserFromConversation(conversation);
   const displayName =
     user?.name || (locale === 'bn' ? 'ব্যবহারকারী' : 'User');
-  const isOnline = user?.isOnline ?? false;
+  const isOnline = isUserOnline(user?.id) || Boolean(user?.isOnline);
 
   return (
     <View className="h-14 sm:h-16 px-3.5 sm:px-5 border-b border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] flex-row items-center justify-between gap-3 shrink-0 z-10">

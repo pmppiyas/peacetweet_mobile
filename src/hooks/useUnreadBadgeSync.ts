@@ -14,6 +14,8 @@ export function useUnreadBadgeSync() {
     activeConversationId,
     setUnreadNotificationsCount,
     setUnreadMessagesCount,
+    setOnlineUserIds,
+    setUserOnlineStatus,
   } = useUi();
 
   const activeConversationIdRef = useRef(activeConversationId);
@@ -65,6 +67,7 @@ export function useUnreadBadgeSync() {
     if (!isAuthenticated) {
       setUnreadNotificationsCount(0);
       setUnreadMessagesCount(0);
+      setOnlineUserIds([]);
       return;
     }
 
@@ -118,6 +121,21 @@ export function useUnreadBadgeSync() {
         }
       };
 
+      const handleOnlineList = (userIds: string[]) => {
+        if (Array.isArray(userIds)) {
+          setOnlineUserIds(userIds);
+        }
+      };
+
+      const handleUserStatus = (payload: {
+        userId: string;
+        status: 'online' | 'offline';
+      }) => {
+        if (payload?.userId) {
+          setUserOnlineStatus(payload.userId, payload.status === 'online');
+        }
+      };
+
       const handleMessageReceived = (msg: any) => {
         const senderId = msg?.senderId || msg?.sender?.id;
         const myId = currentUserIdRef.current || user?.id || sessionStorage.getUser()?.id;
@@ -167,6 +185,8 @@ export function useUnreadBadgeSync() {
       };
 
       s.on('connect', handleConnect);
+      s.on('users:online_list', handleOnlineList);
+      s.on('user:status', handleUserStatus);
       s.on('notification:received', handleNotifReceived);
       s.on('notification:new', handleNotifReceived);
       s.on('notification:unreadCount', handleNotifCount);
@@ -183,6 +203,8 @@ export function useUnreadBadgeSync() {
         }
         appStateSub.remove();
         s.off('connect', handleConnect);
+        s.off('users:online_list', handleOnlineList);
+        s.off('user:status', handleUserStatus);
         s.off('notification:received', handleNotifReceived);
         s.off('notification:new', handleNotifReceived);
         s.off('notification:unreadCount', handleNotifCount);
@@ -209,5 +231,7 @@ export function useUnreadBadgeSync() {
     scheduleFetchMessagesUnread,
     setUnreadNotificationsCount,
     setUnreadMessagesCount,
+    setOnlineUserIds,
+    setUserOnlineStatus,
   ]);
 }

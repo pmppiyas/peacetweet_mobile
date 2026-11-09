@@ -22,7 +22,7 @@ export function ConversationDetailsModal({
   onClose,
   onQuickSalam,
 }: ConversationDetailsModalProps) {
-  const { locale, theme } = useUi();
+  const { locale, theme, isUserOnline } = useUi();
   const [isMuted, setIsMuted] = useState(false);
 
   if (!visible || !conversation) return null;
@@ -30,7 +30,7 @@ export function ConversationDetailsModal({
   const user = getOtherUserFromConversation(conversation);
   const displayName =
     user?.name || (locale === 'bn' ? 'ব্যবহারকারী' : 'User');
-  const isOnline = user?.isOnline ?? false;
+  const isOnline = isUserOnline(user?.id) || Boolean(user?.isOnline);
 
   const content = (
     <View className="flex-1 flex-col bg-white dark:bg-[#1f2021]">
