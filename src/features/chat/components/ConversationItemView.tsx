@@ -13,6 +13,28 @@ export interface ConversationItemViewProps {
   onSelect: () => void;
 }
 
+export function formatConversationLastMessage(
+  text: string | null | undefined,
+  locale: 'bn' | 'en'
+): string {
+  if (!text) {
+    return locale === 'bn' ? 'মেসেজ পাঠান' : 'Send a message';
+  }
+  const isDeleted =
+    text === 'মেসেজটি মুছে ফেলা হয়েছে' ||
+    text === 'মেসেজ মুছে ফেলা হয়েছে' ||
+    text === 'This message was deleted' ||
+    text === 'Message was deleted';
+
+  if (isDeleted) {
+    return locale === 'bn'
+      ? 'মেসেজটি মুছে ফেলা হয়েছে'
+      : 'This message was deleted';
+  }
+
+  return text;
+}
+
 export function formatConversationTime(
   dateStr: string | null | undefined,
   locale: 'bn' | 'en'
@@ -111,8 +133,10 @@ export function ConversationItemView({
                 ? 'font-bold text-[#050505] dark:text-[#e6e9ef]'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
             }`}>
-            {conversation.lastMessageText ||
-              (locale === 'bn' ? 'মেসেজ পাঠান' : 'Send a message')}
+            {formatConversationLastMessage(
+              conversation.lastMessageText,
+              locale
+            )}
           </Text>
 
           {hasUnread ? (

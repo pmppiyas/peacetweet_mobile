@@ -83,7 +83,12 @@ export function MessageFeedItem({
     };
   }, [isMenuOpen]);
 
-  const isDeleted = Boolean(message.isDeleted);
+  const isDeleted =
+    Boolean(message.isDeleted) ||
+    message.text === 'মেসেজটি মুছে ফেলা হয়েছে' ||
+    message.text === 'মেসেজ মুছে ফেলা হয়েছে' ||
+    message.text === 'This message was deleted' ||
+    message.text === 'Message was deleted';
   const isTemp = message.id.startsWith('temp');
   const otherName = otherUser?.name || message.sender?.name || 'User';
 
