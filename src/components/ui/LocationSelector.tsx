@@ -176,7 +176,7 @@ export function LocationSelector({
       <View className="flex-row gap-2.5">
         {/* 1. Division Selector */}
         <View className="flex-1">
-          <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mb-1">
+          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
             {locale === 'bn' ? 'বিভাগ' : 'Division'} {required ? '*' : ''}
           </Text>
           <Pressable
@@ -185,7 +185,7 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('division');
             }}
-            className="flex-row items-center justify-between bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 border border-[#e4e6eb] dark:border-[#393a3b]">
+            className="h-11 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#18191a] rounded-2xl px-3.5 border border-transparent">
             <Text
               numberOfLines={1}
               className={`text-xs flex-1 ${
@@ -207,7 +207,7 @@ export function LocationSelector({
 
         {/* 2. District Selector (Enabled when Division is chosen) */}
         <View className="flex-1">
-          <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mb-1">
+          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
             {locale === 'bn' ? 'জেলা' : 'District'} {required ? '*' : ''}
           </Text>
           <Pressable
@@ -217,10 +217,10 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('district');
             }}
-            className={`flex-row items-center justify-between rounded-xl px-3 py-2 border ${
+            className={`h-11 flex-row items-center justify-between rounded-2xl px-3.5 border ${
               !value?.divisionId
-                ? 'bg-[#e6e9ef]/50 dark:bg-[#242526]/50 border-dashed border-[#e4e6eb] dark:border-[#393a3b] opacity-60'
-                : 'bg-[#e6e9ef] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
+                ? 'bg-[#f0f2f5]/50 dark:bg-[#18191a]/50 border-dashed border-gray-200 dark:border-gray-800 opacity-60'
+                : 'bg-[#f0f2f5] dark:bg-[#18191a] border-transparent'
             }`}>
             <Text
               numberOfLines={1}
@@ -250,7 +250,7 @@ export function LocationSelector({
       <View className="flex-row gap-2.5">
         {/* 3. Upazila / Area Selector (Enabled when District is chosen) */}
         <View className="flex-1">
-          <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mb-1">
+          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
             {locale === 'bn' ? 'উপজেলা / থানা' : 'Upazila / Area'}
           </Text>
           <Pressable
@@ -260,10 +260,10 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('upazila');
             }}
-            className={`flex-row items-center justify-between rounded-xl px-3 py-2 border ${
+            className={`h-11 flex-row items-center justify-between rounded-2xl px-3.5 border ${
               !value?.districtId
-                ? 'bg-[#e6e9ef]/50 dark:bg-[#242526]/50 border-dashed border-[#e4e6eb] dark:border-[#393a3b] opacity-60'
-                : 'bg-[#e6e9ef] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
+                ? 'bg-[#f0f2f5]/50 dark:bg-[#18191a]/50 border-dashed border-gray-200 dark:border-gray-800 opacity-60'
+                : 'bg-[#f0f2f5] dark:bg-[#18191a] border-transparent'
             }`}>
             <Text
               numberOfLines={1}
@@ -290,7 +290,7 @@ export function LocationSelector({
 
         {/* 4. Detailed Address / Landmark / Area */}
         <View className="flex-1">
-          <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mb-1">
+          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
             {locale === 'bn' ? 'রোড / এলাকা (ঐচ্ছিক)' : 'Area / Road (Opt.)'}
           </Text>
           <TextInput
@@ -303,18 +303,25 @@ export function LocationSelector({
                 : 'Road 3, Mirpur'
             }
             placeholderTextColor={theme === 'dark' ? '#65676b' : '#8a8d91'}
-            className="bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2 text-xs text-[#050505] dark:text-[#e4e6eb] border border-[#e4e6eb] dark:border-[#393a3b] focus:border-rose-400"
+            className="h-11 bg-[#f0f2f5] dark:bg-[#18191a] rounded-2xl px-3.5 text-xs text-[#050505] dark:text-[#e4e6eb] border border-transparent focus:border-rose-400"
           />
         </View>
       </View>
 
-      {/* Formatted Location Preview */}
+      {/* Formatted Location Preview Card */}
       {value?.location ? (
-        <View className="flex-row items-center gap-2 px-3 py-2.5 mt-1.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40">
-          <AppIcon android="location_on" size={16} color="#e11d48" />
-          <Text className="text-xs font-medium text-rose-700 dark:text-rose-300 flex-1">
-            {value.location}
-          </Text>
+        <View className="flex-row items-center gap-3 p-3 mt-1.5 rounded-2xl bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/40">
+          <View className="h-8 w-8 rounded-full bg-rose-500 items-center justify-center">
+            <AppIcon android="location_on" size={17} color="#ffffff" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+              {locale === 'bn' ? 'রক্তের প্রয়োজনস্থল' : 'Need Location'}
+            </Text>
+            <Text className="text-[13px] font-bold text-[#1c1e21] dark:text-[#e4e6eb] mt-0.5">
+              {value.location}
+            </Text>
+          </View>
         </View>
       ) : null}
 

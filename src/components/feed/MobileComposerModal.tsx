@@ -1335,153 +1335,215 @@ export function MobileComposerModal() {
             </View>
           )}
 
-          {/* ────────────── MODE 3: BLOOD REQUEST ────────────── */}
+          {/* ────────────── MODE 3: BLOOD REQUEST (PREMIUM MODERNIZED FORM) ────────────── */}
           {postType === 'BLOOD_REQUEST' && (
-            <View className="gap-4">
-              {/* Blood Group Chips */}
-              <View className="gap-1.5">
+            <View className="gap-3.5 pb-2">
+              {/* SECTION 1: BLOOD GROUP CHIPS CARD */}
+              <View className="p-3.5 rounded-2xl bg-white dark:bg-[#242526] border border-[#f0f2f5] dark:border-[#2e2f30] gap-2.5">
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {locale === 'bn'
-                      ? 'রক্তের গ্রুপ নির্বাচন করুন *'
-                      : 'Blood Group *'}
-                  </Text>
-                  <Text className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase">
-                    Emergency
-                  </Text>
+                  <View className="flex-row items-center gap-1.5">
+                    <AppIcon android="water_drop" size={17} color="#e11d48" />
+                    <Text className="text-xs font-bold text-[#1c1e21] dark:text-[#e4e6eb]">
+                      {locale === 'bn'
+                        ? 'রক্তের গ্রুপ নির্বাচন করুন *'
+                        : 'Blood Group Needed *'}
+                    </Text>
+                  </View>
+                  <View className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60">
+                    <Text className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+                      Emergency
+                    </Text>
+                  </View>
                 </View>
+
+                {/* 4x2 Clean Grid of Blood Groups */}
                 <View className="flex-row flex-wrap gap-2">
-                  {BLOOD_GROUPS.map((group) => (
-                    <Pressable
-                      key={group.value}
-                      onPress={() => setBloodGroup(group.value)}
-                      className={`w-[23%] py-2.5 rounded-2xl border items-center active:scale-95 ${
-                        bloodGroup === group.value
-                          ? 'bg-rose-600 border-rose-600'
-                          : 'bg-[#f8f9fa] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
-                      }`}>
-                      <Text
-                        className={`text-xs font-black ${
-                          bloodGroup === group.value
-                            ? 'text-white'
-                            : 'text-[#050505] dark:text-[#e4e6eb]'
+                  {BLOOD_GROUPS.map((group) => {
+                    const isSelected = bloodGroup === group.value;
+                    return (
+                      <Pressable
+                        key={group.value}
+                        onPress={() => setBloodGroup(group.value)}
+                        className={`w-[22.8%] h-11 rounded-2xl items-center justify-center active:scale-95 ${
+                          isSelected
+                            ? 'bg-rose-600 border border-rose-600 shadow-md shadow-rose-500/25'
+                            : 'bg-[#f0f2f5] dark:bg-[#18191a] border border-transparent'
                         }`}>
-                        {group.label}
-                      </Text>
-                    </Pressable>
-                  ))}
+                        <Text
+                          className={`text-[13px] ${
+                            isSelected
+                              ? 'font-black text-white'
+                              : 'font-bold text-[#1c1e21] dark:text-[#e4e6eb]'
+                          }`}>
+                          {group.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
+
                 {forMyself && !user?.bloodGroup && (
-                  <Text className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1">
-                    {locale === 'bn'
-                      ? '⚠️ প্রোফাইলে রক্তের গ্রুপ যুক্ত নেই, এখান থেকে বেছে নিন'
-                      : '⚠️ Blood group not set in your profile, please select here'}
-                  </Text>
+                  <View className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 mt-0.5">
+                    <AppIcon android="warning" size={14} color="#d97706" />
+                    <Text className="text-[11px] text-amber-700 dark:text-amber-400 font-medium flex-1">
+                      {locale === 'bn'
+                        ? 'প্রোফাইলে রক্তের গ্রুপ যুক্ত নেই, এখান থেকে বেছে নিন'
+                        : 'Blood group not set in profile, please select here'}
+                    </Text>
+                  </View>
                 )}
               </View>
 
-              {/* Patient Name with "For myself" button */}
-              <View className="gap-1">
-                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {locale === 'bn' ? 'রোগীর নাম *' : 'Patient Name *'}
-                </Text>
-                <View className="flex-row items-center gap-2">
-                  <TextInput
-                    value={forMyself ? user?.name || patientName : patientName}
-                    onChangeText={(val) => {
-                      if (forMyself) setForMyself(false);
-                      setPatientName(val);
-                    }}
-                    placeholder={
-                      locale === 'bn' ? 'রোগীর পূর্ণ নাম' : 'Patient Full Name'
-                    }
-                    placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                    className="flex-1 rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
-                  />
-                  <Pressable
-                    onPress={() => {
-                      setForMyself((prev) => {
-                        const next = !prev;
-                        if (next && user) {
-                          if (user.name) setPatientName(user.name);
-                          if (user.bloodGroup) {
-                            const bgVal = mapToBloodGroupValue(user.bloodGroup);
-                            if (bgVal) setBloodGroup(bgVal);
-                          }
-                          const userGeo = matchUserLocationToGeo(user);
-                          if (userGeo.location) setLocationValue(userGeo);
-                        }
-                        return next;
-                      });
-                    }}
-                    className={`flex-row items-center justify-center gap-1.5 px-3 py-2 rounded-xl border active:scale-95 ${
-                      forMyself
-                        ? 'border-rose-600 bg-rose-50 dark:bg-rose-950/60'
-                        : 'border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b]'
-                    }`}>
-                    <AppIcon
-                      android={forMyself ? 'check_box' : 'check_box_outline_blank'}
-                      size={16}
-                      color={forMyself ? '#e11d48' : '#65676b'}
+              {/* SECTION 2: PATIENT & HOSPITAL DETAILS CARD */}
+              <View className="p-3.5 rounded-2xl bg-white dark:bg-[#242526] border border-[#f0f2f5] dark:border-[#2e2f30] gap-3">
+                <View className="flex-row items-center gap-1.5">
+                  <AppIcon android="person" size={17} color="#e11d48" />
+                  <Text className="text-xs font-bold text-[#1c1e21] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'রোগী ও হাসপাতালের তথ্য' : 'Patient & Hospital Info'}
+                  </Text>
+                </View>
+
+                {/* Patient Name with "For Myself" Toggle */}
+                <View className="gap-1.5">
+                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'রোগীর নাম *' : 'Patient Name *'}
+                  </Text>
+                  <View className="flex-row items-center gap-2">
+                    <TextInput
+                      value={forMyself ? user?.name || patientName : patientName}
+                      onChangeText={(val) => {
+                        if (forMyself) setForMyself(false);
+                        setPatientName(val);
+                      }}
+                      placeholder={
+                        locale === 'bn' ? 'রোগীর পূর্ণ নাম' : 'Patient Full Name'
+                      }
+                      placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
+                      className="flex-1 h-11 rounded-2xl bg-[#f0f2f5] dark:bg-[#18191a] px-3.5 text-xs text-[#050505] dark:text-[#e4e6eb] border border-transparent focus:border-rose-400"
                     />
-                    <Text
-                      className={`text-xs font-bold ${
+
+                    {/* "For myself" Toggle Pill */}
+                    <Pressable
+                      onPress={() => {
+                        setForMyself((prev) => {
+                          const next = !prev;
+                          if (next && user) {
+                            if (user.name) setPatientName(user.name);
+                            if (user.bloodGroup) {
+                              const bgVal = mapToBloodGroupValue(user.bloodGroup);
+                              if (bgVal) setBloodGroup(bgVal);
+                            }
+                            const userGeo = matchUserLocationToGeo(user);
+                            if (userGeo.location) setLocationValue(userGeo);
+                          }
+                          return next;
+                        });
+                      }}
+                      className={`h-11 flex-row items-center justify-center gap-1.5 px-3.5 rounded-2xl border active:scale-95 ${
                         forMyself
-                          ? 'text-rose-600 dark:text-rose-400'
-                          : 'text-[#050505] dark:text-[#e4e6eb]'
+                          ? 'border-rose-600 bg-rose-50 dark:bg-rose-950/60 shadow-xs'
+                          : 'border-transparent bg-[#f0f2f5] dark:bg-[#18191a]'
                       }`}>
-                      {locale === 'bn' ? 'নিজের জন্য' : 'For myself'}
-                    </Text>
-                  </Pressable>
+                      <AppIcon
+                        android={forMyself ? 'check_circle' : 'account_circle'}
+                        size={16}
+                        color={forMyself ? '#e11d48' : theme === 'dark' ? '#b0b3b8' : '#65676b'}
+                      />
+                      <Text
+                        className={`text-xs font-bold ${
+                          forMyself
+                            ? 'text-rose-600 dark:text-rose-400'
+                            : 'text-[#65676b] dark:text-[#b0b3b8]'
+                        }`}>
+                        {locale === 'bn' ? 'নিজের জন্য' : 'For myself'}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+
+                {/* Units (Bags) Stepper + Quick Select */}
+                <View className="gap-1.5">
+                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'কত ব্যাগ রক্ত প্রয়োজন *' : 'Units (Bags) Needed *'}
+                  </Text>
+                  <View className="flex-row items-center gap-2">
+                    {/* Stepper Controls */}
+                    <View className="flex-row items-center rounded-2xl bg-[#f0f2f5] dark:bg-[#18191a] p-1 border border-transparent">
+                      <Pressable
+                        onPress={() => {
+                          const cur = parseInt(units, 10) || 1;
+                          if (cur > 1) setUnits((cur - 1).toString());
+                        }}
+                        className="h-9 w-9 rounded-xl items-center justify-center bg-white dark:bg-[#242526] active:scale-95 shadow-xs">
+                        <AppIcon android="remove" size={16} color="#e11d48" />
+                      </Pressable>
+                      <View className="px-3 min-w-[58px] items-center justify-center">
+                        <Text className="text-xs font-black text-[#050505] dark:text-[#e4e6eb]">
+                          {units || '1'} {locale === 'bn' ? 'ব্যাগ' : 'Bag'}
+                        </Text>
+                      </View>
+                      <Pressable
+                        onPress={() => {
+                          const cur = parseInt(units, 10) || 0;
+                          setUnits((cur + 1).toString());
+                        }}
+                        className="h-9 w-9 rounded-xl items-center justify-center bg-white dark:bg-[#242526] active:scale-95 shadow-xs">
+                        <AppIcon android="add" size={16} color="#e11d48" />
+                      </Pressable>
+                    </View>
+
+                    {/* Quick Select Chips */}
+                    {['1', '2', '3', '4'].map((num) => (
+                      <Pressable
+                        key={num}
+                        onPress={() => setUnits(num)}
+                        className={`h-11 flex-1 rounded-2xl items-center justify-center active:scale-95 border ${
+                          units === num
+                            ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800'
+                            : 'bg-[#f0f2f5] dark:bg-[#18191a] border-transparent'
+                        }`}>
+                        <Text
+                          className={`text-xs font-bold ${
+                            units === num
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-[#65676b] dark:text-[#b0b3b8]'
+                          }`}>
+                          {num} {locale === 'bn' ? 'ব্যাগ' : 'B'}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Hospital Name */}
+                <View className="gap-1.5">
+                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'হাসপাতালের নাম *' : 'Hospital Name *'}
+                  </Text>
+                  <View className="relative justify-center">
+                    <TextInput
+                      value={hospitalName}
+                      onChangeText={setHospitalName}
+                      placeholder={
+                        locale === 'bn'
+                          ? 'উদা: ঢাকা মেডিকেল কলেজ হাসপাতাল'
+                          : 'e.g. Dhaka Medical College Hospital'
+                      }
+                      placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
+                      className="w-full h-11 rounded-2xl border border-transparent bg-[#f0f2f5] dark:bg-[#18191a] px-3.5 pr-10 text-xs text-[#050505] dark:text-[#e4e6eb] focus:border-rose-400"
+                    />
+                    <View className="absolute right-3.5">
+                      <AppIcon android="local_hospital" size={17} color="#e11d48" />
+                    </View>
+                  </View>
                 </View>
               </View>
 
-              {/* Units (Bags) */}
-              <View className="gap-1">
-                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {locale === 'bn' ? 'কত ব্যাগ রক্ত প্রয়োজন *' : 'Units (Bags) Needed *'}
-                </Text>
-                <TextInput
-                  value={units}
-                  onChangeText={(val) => {
-                    const cleaned = val.replace(/[^0-9]/g, '');
-                    setUnits(cleaned);
-                  }}
-                  onBlur={() => {
-                    if (!units || parseInt(units, 10) < 1) {
-                      setUnits('1');
-                    }
-                  }}
-                  keyboardType="number-pad"
-                  placeholder="1"
-                  placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                  className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
-                />
-              </View>
-
-              {/* Hospital Name */}
-              <View className="gap-1">
-                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {locale === 'bn' ? 'হাসপাতালের নাম *' : 'Hospital Name *'}
-                </Text>
-                <TextInput
-                  value={hospitalName}
-                  onChangeText={setHospitalName}
-                  placeholder={
-                    locale === 'bn'
-                      ? 'উদা: ঢাকা মেডিকেল কলেজ হাসপাতাল'
-                      : 'e.g. Dhaka Medical College Hospital'
-                  }
-                  placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                  className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
-                />
-              </View>
-
-              {/* Cascading Location Selector (Division, District, Upazila, Area) */}
-              <View className="gap-1.5">
+              {/* SECTION 3: LOCATION OF NEED CARD */}
+              <View className="p-3.5 rounded-2xl bg-white dark:bg-[#242526] border border-[#f0f2f5] dark:border-[#2e2f30] gap-2.5">
                 <View className="flex-row items-center gap-1.5">
-                  <AppIcon android="pin_drop" size={15} color="#e11d48" />
-                  <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  <AppIcon android="pin_drop" size={17} color="#e11d48" />
+                  <Text className="text-xs font-bold text-[#1c1e21] dark:text-[#e4e6eb]">
                     {locale === 'bn'
                       ? 'রক্তের প্রয়োজনস্থল (লোকেশন) *'
                       : 'Location of Blood Need *'}
@@ -1494,85 +1556,115 @@ export function MobileComposerModal() {
                 />
               </View>
 
-              {/* Contact Numbers (Row) */}
-              <View className="flex-row gap-2.5 mt-1">
-                <View className="flex-1 gap-1">
-                  <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {locale === 'bn' ? 'মোবাইল নম্বর *' : 'Contact Phone *'}
+              {/* SECTION 4: CONTACT & DATE/TIME CARD */}
+              <View className="p-3.5 rounded-2xl bg-white dark:bg-[#242526] border border-[#f0f2f5] dark:border-[#2e2f30] gap-3">
+                <View className="flex-row items-center gap-1.5">
+                  <AppIcon android="contact_phone" size={17} color="#e11d48" />
+                  <Text className="text-xs font-bold text-[#1c1e21] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'যোগাযোগ ও প্রয়োজনীয় সময়' : 'Contact & Needed Date/Time'}
+                  </Text>
+                </View>
+
+                {/* Contact Numbers (Row) */}
+                <View className="flex-row gap-2.5">
+                  <View className="flex-1 gap-1.5">
+                    <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                      {locale === 'bn' ? 'মোবাইল নম্বর *' : 'Contact Phone *'}
+                    </Text>
+                    <View className="relative justify-center">
+                      <TextInput
+                        value={contactNumber}
+                        onChangeText={setContactNumber}
+                        placeholder="017XXXXXXXX"
+                        keyboardType="phone-pad"
+                        placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
+                        className="w-full h-11 rounded-2xl border border-transparent bg-[#f0f2f5] dark:bg-[#18191a] px-3.5 pr-9 text-xs text-[#050505] dark:text-[#e4e6eb] focus:border-rose-400"
+                      />
+                      <View className="absolute right-3">
+                        <AppIcon android="phone" size={15} color="#e11d48" />
+                      </View>
+                    </View>
+                  </View>
+
+                  <View className="flex-1 gap-1.5">
+                    <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                      {locale === 'bn' ? 'বিকল্প নম্বর (ঐচ্ছিক)' : 'Alternate Phone'}
+                    </Text>
+                    <View className="relative justify-center">
+                      <TextInput
+                        value={alternateContact}
+                        onChangeText={setAlternateContact}
+                        placeholder="018XXXXXXXX"
+                        keyboardType="phone-pad"
+                        placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
+                        className="w-full h-11 rounded-2xl border border-transparent bg-[#f0f2f5] dark:bg-[#18191a] px-3.5 pr-9 text-xs text-[#050505] dark:text-[#e4e6eb] focus:border-rose-400"
+                      />
+                      <View className="absolute right-3">
+                        <AppIcon android="phone_iphone" size={15} color={theme === 'dark' ? '#6e6e73' : '#8e8e93'} />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Needed Date & Time Picker */}
+                <View className="gap-1.5">
+                  <DateTimePicker
+                    label={
+                      locale === 'bn'
+                        ? 'কখন রক্তের প্রয়োজন? (তারিখ ও সময়)'
+                        : 'Needed Date & Time'
+                    }
+                    value={neededDate}
+                    onChange={setNeededDate}
+                    required={true}
+                  />
+                </View>
+              </View>
+
+              {/* SECTION 5: ADDITIONAL NOTES (OPTIONAL) CARD */}
+              <View className="p-3.5 rounded-2xl bg-white dark:bg-[#242526] border border-[#f0f2f5] dark:border-[#2e2f30] gap-3">
+                <View className="flex-row items-center gap-1.5">
+                  <AppIcon android="notes" size={17} color="#65676b" />
+                  <Text className="text-xs font-bold text-[#1c1e21] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'অতিরিক্ত তথ্য (ঐচ্ছিক)' : 'Additional Notes (Optional)'}
+                  </Text>
+                </View>
+
+                {/* Problem / Reason */}
+                <View className="gap-1.5">
+                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'রোগের কারণ বা সমস্যা' : 'Medical Reason / Problem'}
                   </Text>
                   <TextInput
-                    value={contactNumber}
-                    onChangeText={setContactNumber}
-                    placeholder="017XXXXXXXX"
-                    keyboardType="phone-pad"
+                    value={problem}
+                    onChangeText={setProblem}
+                    placeholder={
+                      locale === 'bn'
+                        ? 'যেমন: ডেলিভারি রোগী, রক্তের হিমোগ্লোবিন কমে গেছে'
+                        : 'e.g. Delivery patient, low hemoglobin'
+                    }
                     placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                    className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
+                    className="w-full h-11 rounded-2xl border border-transparent bg-[#f0f2f5] dark:bg-[#18191a] px-3.5 text-xs text-[#050505] dark:text-[#e4e6eb] focus:border-rose-400"
                   />
                 </View>
 
-                <View className="flex-1 gap-1">
-                  <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {locale === 'bn' ? 'বিকল্প নম্বর (ঐচ্ছিক)' : 'Alternate Phone'}
+                {/* Additional Note */}
+                <View className="gap-1.5">
+                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'জরুরি নির্দেশনা বা নোট' : 'Emergency Note'}
                   </Text>
                   <TextInput
-                    value={alternateContact}
-                    onChangeText={setAlternateContact}
-                    placeholder="018XXXXXXXX"
-                    keyboardType="phone-pad"
+                    value={bloodNote}
+                    onChangeText={setBloodNote}
+                    placeholder={
+                      locale === 'bn'
+                        ? 'যেমন: রোগীর অবস্থা আশঙ্কাজনক বা দ্রুত যোগাযোগ করুন'
+                        : 'e.g. Please call only if you can donate'
+                    }
                     placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                    className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
+                    className="w-full h-11 rounded-2xl border border-transparent bg-[#f0f2f5] dark:bg-[#18191a] px-3.5 text-xs text-[#050505] dark:text-[#e4e6eb] focus:border-rose-400"
                   />
                 </View>
-              </View>
-
-              {/* Needed Date & Time Picker */}
-              <View className="gap-1">
-                <DateTimePicker
-                  label={
-                    locale === 'bn'
-                      ? 'কখন রক্তের প্রয়োজন? (তারিখ ও সময়)'
-                      : 'Needed Date & Time'
-                  }
-                  value={neededDate}
-                  onChange={setNeededDate}
-                  required={true}
-                />
-              </View>
-
-              {/* Problem / Reason */}
-              <View className="gap-1">
-                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {locale === 'bn' ? 'রোগের কারণ বা সমস্যা (ঐচ্ছিক)' : 'Medical Reason / Problem (Optional)'}
-                </Text>
-                <TextInput
-                  value={problem}
-                  onChangeText={setProblem}
-                  placeholder={
-                    locale === 'bn'
-                      ? 'যেমন: ডেলিভারি রোগী, রক্তের হিমোগ্লোবিন কমে গেছে'
-                      : 'e.g. Delivery patient, low hemoglobin'
-                  }
-                  placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                  className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
-                />
-              </View>
-
-              {/* Additional Note */}
-              <View className="gap-1">
-                <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {locale === 'bn' ? 'অতিরিক্ত তথ্য (ঐচ্ছিক)' : 'Additional Note (Optional)'}
-                </Text>
-                <TextInput
-                  value={bloodNote}
-                  onChangeText={setBloodNote}
-                  placeholder={
-                    locale === 'bn'
-                      ? 'যেমন: রোগীর অবস্থা আশঙ্কাজনক বা দ্রুত যোগাযোগ করুন'
-                      : 'e.g. Please call only if you can donate'
-                  }
-                  placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-                  className="w-full rounded-xl border border-[#e4e6eb] bg-[#f8f9fa] dark:bg-[#242526] dark:border-[#393a3b] px-3.5 py-2 text-xs text-[#050505] dark:text-[#e4e6eb]"
-                />
               </View>
             </View>
           )}

@@ -266,7 +266,7 @@ export function DateTimePicker({
   return (
     <View className="w-full">
       {label && (
-        <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mb-1">
+        <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
           {label} {required && <Text className="text-rose-500">*</Text>}
         </Text>
       )}
@@ -275,22 +275,22 @@ export function DateTimePicker({
       <Pressable
         onPress={handleOpen}
         style={webNoOutline}
-        className={`bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3.5 py-2.5 flex-row items-center justify-between border ${
+        className={`h-11 bg-[#f0f2f5] dark:bg-[#18191a] rounded-2xl px-3.5 flex-row items-center justify-between border ${
           isOpen
-            ? 'border-[#0866FF] dark:border-[#0866FF]'
+            ? 'border-rose-400 dark:border-rose-500'
             : 'border-transparent'
         }`}
       >
         <View className="flex-row items-center gap-2 flex-1">
           <AppIcon
             android="schedule"
-            size={16}
-            color={isOpen ? '#0866FF' : '#65676b'}
+            size={17}
+            color="#e11d48"
           />
           <Text
             className={`text-xs ${
               displayValue
-                ? 'text-[#050505] dark:text-[#e4e6eb] font-medium'
+                ? 'text-[#050505] dark:text-[#e4e6eb] font-semibold'
                 : 'text-[#8a8d91] dark:text-[#65676b]'
             }`}
           >
