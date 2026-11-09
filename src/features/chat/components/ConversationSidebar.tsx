@@ -7,7 +7,6 @@ import {
   RefreshControl,
   ActivityIndicator,
   TextInput,
-  useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
@@ -50,8 +49,6 @@ export function ConversationSidebar({
   currentUserId,
   totalUnreadCount = 0,
 }: ConversationSidebarProps) {
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= 768;
   const { locale, chatSearchQuery, setChatSearchQuery, theme, isUserOnline } = useUi();
   const [isSearching, setIsSearching] = useState(false);
   const [creatingForUserId, setCreatingForUserId] = useState<string | null>(
@@ -175,73 +172,7 @@ export function ConversationSidebar({
   };
 
   return (
-    <View className="w-full flex-1 flex-col bg-white dark:bg-[#18191a] md:bg-transparent overflow-hidden pt-1.5 pb-0 sm:py-3 lg:py-4 pr-0 md:pr-1">
-      {/* Top Header & Search Input Bar (Desktop only - Mobile has title & search in the top navbar) */}
-      {isDesktop ? (
-        <>
-          <View className="px-2 pb-2.5 flex-row items-center justify-between gap-2 shrink-0">
-            <View className="flex-row items-center gap-2 min-w-0">
-              <Pressable
-                onPress={() => router.push('/')}
-                className="h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e4e6eb]/70 dark:bg-[#3a3b3c]">
-                <AppIcon
-                  android="arrow_back"
-                  ios="chevron.left"
-                  size={18}
-                  color={theme === 'dark' ? '#e4e6eb' : '#050505'}
-                />
-              </Pressable>
-              <Text
-                numberOfLines={1}
-                className="text-xl font-bold tracking-tight text-[#050505] dark:text-white">
-                {locale === 'bn' ? 'মেসেজ' : 'Messages'}
-              </Text>
-              {totalUnreadCount > 0 ? (
-                <View className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary-600 items-center justify-center">
-                  <Text className="text-[11px] font-bold text-white">
-                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
-
-          <View className="px-2 pb-2 shrink-0">
-            <View className="relative flex-row items-center rounded-xl bg-[#e4e6eb]/70 dark:bg-[#3a3b3c] px-3 py-2">
-              <AppIcon
-                android="search"
-                ios="magnifyingglass"
-                size={16}
-                color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
-              />
-              <TextInput
-                value={chatSearchQuery}
-                onChangeText={setChatSearchQuery}
-                placeholder={
-                  locale === 'bn'
-                    ? 'ফ্রেন্ড বা ইউজার খুঁজুন...'
-                    : 'Search friends or users...'
-                }
-                placeholderTextColor={theme === 'dark' ? '#b0b3b8' : '#65676b'}
-                className="flex-1 ml-2 text-sm text-[#050505] dark:text-[#e4e6eb] py-0"
-              />
-              {chatSearchQuery.length > 0 ? (
-                <Pressable
-                  onPress={() => setChatSearchQuery('')}
-                  className="p-1 rounded-full">
-                  <AppIcon
-                    android="close"
-                    ios="xmark"
-                    size={14}
-                    color="#65676b"
-                  />
-                </Pressable>
-              ) : null}
-            </View>
-          </View>
-        </>
-      ) : null}
-
+    <View className="w-full flex-1 flex-col bg-white dark:bg-[#18191a] overflow-hidden">
       {/* Content Area: Conversations or Friends Search Results */}
       <ScrollView
         showsVerticalScrollIndicator={false}

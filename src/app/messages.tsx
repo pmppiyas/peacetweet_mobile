@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { BackHandler, Platform, View, useWindowDimensions } from 'react-native';
+import { BackHandler, Platform, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
@@ -13,12 +13,9 @@ import {
 } from '@/features/chat/types/chat.types';
 import { ConversationSidebar } from '@/features/chat/components/ConversationSidebar';
 import { ChatView } from '@/features/chat/components/ChatView';
-import { EmptyChatPlaceholder } from '@/features/chat/components/EmptyChatPlaceholder';
 import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
 
 export default function MessagesScreen() {
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= 768;
   const { setActiveConversationId, setUnreadMessagesCount } = useUi();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const params = useLocalSearchParams<{
@@ -75,7 +72,7 @@ export default function MessagesScreen() {
 
   // Android back swipe inside an active mobile chat returns to conversation list
   useEffect(() => {
-    if (Platform.OS !== 'android' || isDesktop || !selectedConversation) {
+    if (Platform.OS !== 'android' || !selectedConversation) {
       return;
     }
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -83,7 +80,7 @@ export default function MessagesScreen() {
       return true;
     });
     return () => sub.remove();
-  }, [isDesktop, selectedConversation, closeConversation]);
+  }, [selectedConversation, closeConversation]);
 
   // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
   if (!isAuthLoading && !isAuthenticated) {
@@ -310,48 +307,38 @@ export default function MessagesScreen() {
 
   return (
     <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
-      <View className="flex-1 w-full max-w-[1440px] mx-auto px-0 sm:px-4 lg:px-6">
-        <View className="flex-1 flex-row h-full gap-4 lg:gap-6">
-          {/* 1. Left Sidebar: Chats / Conversations Sidebar */}
-          <View
-            style={{ display: !isChatActive || isDesktop ? 'flex' : 'none' }}
-            className="w-full md:w-60 lg:w-60 xl:w-64 2xl:w-72 h-full shrink-0 flex-col pt-[60px] pb-[56px] md:pt-0 md:pb-0">
-            <ConversationSidebar
-              conversations={conversations}
-              isLoading={isLoading}
-              isRefreshing={isRefreshing}
-              onRefresh={() => {
-                setIsRefreshing(true);
-                loadChatData(true);
-              }}
-              selectedId={selectedConversation?.id || null}
-              onSelectConversation={openConversation}
-              onStartChatWithUser={handleStartChatWithUser}
-              currentUserId={user?.id}
-              totalUnreadCount={totalUnreadCount}
-            />
-          </View>
-
-          {/* 2. Main Area: Active Chat Window or Empty Placeholder */}
-          {isChatActive || isDesktop ? (
-            <View className="flex-1 w-full min-w-0 h-full py-0 md:py-3 lg:py-4 px-0">
-              <View className="flex-1 w-full h-full bg-white dark:bg-[#242526] sm:rounded-2xl sm:border sm:border-[#e4e6eb] sm:dark:border-[#393a3b] overflow-hidden">
-                {selectedConversation ? (
-                  <ChatView
-                    key={selectedConversation.id}
-                    conversation={selectedConversation}
-                    onBack={closeConversation}
-                    onConversationUpdated={handleConversationUpdated}
-                    onConversationMarkedRead={handleConversationMarkedRead}
-                  />
-                ) : (
-                  <EmptyChatPlaceholder />
-                )}
-              </View>
-            </View>
-          ) : null}
-        </View>
+      {/* 1. Chats / Conversations List */}
+      <View
+        style={{ display: !isChatActive ? 'flex' : 'none' }}
+        className="flex-1 w-full h-full pt-[60px] pb-[56px]">
+        <ConversationSidebar
+          conversations={conversations}
+          isLoading={isLoading}
+          isRefreshing={isRefreshing}
+          onRefresh={() => {
+            setIsRefreshing(true);
+            loadChatData(true);
+          }}
+          selectedId={selectedConversation?.id || null}
+          onSelectConversation={openConversation}
+          onStartChatWithUser={handleStartChatWithUser}
+          currentUserId={user?.id}
+          totalUnreadCount={totalUnreadCount}
+        />
       </View>
+
+      {/* 2. Active Chat View */}
+      {isChatActive && selectedConversation ? (
+        <View className="flex-1 w-full h-full">
+          <ChatView
+            key={selectedConversation.id}
+            conversation={selectedConversation}
+            onBack={closeConversation}
+            onConversationUpdated={handleConversationUpdated}
+            onConversationMarkedRead={handleConversationMarkedRead}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }

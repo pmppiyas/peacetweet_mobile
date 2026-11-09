@@ -35,7 +35,7 @@ export function ChatViewHeader({
         {onBack ? (
           <Pressable
             onPress={onBack}
-            className="md:hidden p-2 -ml-1.5 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
+            className="p-2 -ml-1.5 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
             <AppIcon
               android="arrow_back"
               ios="chevron.left"
