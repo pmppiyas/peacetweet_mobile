@@ -733,11 +733,11 @@ export function MobileComposerModal() {
                 <AppIcon
                   android={isEditing ? 'check' : 'send'}
                   ios={isEditing ? 'checkmark' : 'paperplane.fill'}
-                  size={14}
+                  size={15}
                   color={isPostValid ? '#ffffff' : '#9ca3af'}
                 />
                 <Text
-                  className={`text-xs font-bold ${
+                  className={`text-[13.5px] font-bold ${
                     isPostValid
                       ? 'text-white'
                       : 'text-gray-400 dark:text-gray-500'
@@ -764,18 +764,18 @@ export function MobileComposerModal() {
                 setPostType('TEXT');
                 setErrorMessage(null);
               }}
-              className={`flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-xl ${
+              className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl ${
                 postType === 'TEXT' ? 'bg-white dark:bg-[#18191a]' : ''
               }`}>
               <AppIcon
                 android="edit"
-                size={14}
-                color={postType === 'TEXT' ? '#1565d8' : '#65676b'}
+                size={16}
+                color={postType === 'TEXT' ? '#0866FF' : '#65676b'}
               />
               <Text
-                className={`text-xs font-bold ${
+                className={`text-[13px] font-bold ${
                   postType === 'TEXT'
-                    ? 'text-primary-600 dark:text-primary-300'
+                    ? 'text-[#0866FF] dark:text-[#36a4fa]'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
                 }`}>
                 {locale === 'bn' ? 'ভাবনা / সাধারণ' : 'Reflection'}
@@ -787,16 +787,16 @@ export function MobileComposerModal() {
                 setPostType('DUA');
                 setErrorMessage(null);
               }}
-              className={`flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-xl ${
+              className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl ${
                 postType === 'DUA' ? 'bg-white dark:bg-[#18191a]' : ''
               }`}>
               <AppIcon
                 android="menu_book"
-                size={14}
+                size={16}
                 color={postType === 'DUA' ? '#059669' : '#65676b'}
               />
               <Text
-                className={`text-xs font-bold ${
+                className={`text-[13px] font-bold ${
                   postType === 'DUA'
                     ? 'text-emerald-600 dark:text-emerald-300'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -810,16 +810,16 @@ export function MobileComposerModal() {
                 setPostType('BLOOD_REQUEST');
                 setErrorMessage(null);
               }}
-              className={`flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-xl ${
+              className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl ${
                 postType === 'BLOOD_REQUEST' ? 'bg-white dark:bg-[#18191a]' : ''
               }`}>
               <AppIcon
                 android="water_drop"
-                size={14}
+                size={16}
                 color={postType === 'BLOOD_REQUEST' ? '#e11d48' : '#65676b'}
               />
               <Text
-                className={`text-xs font-bold ${
+                className={`text-[13px] font-bold ${
                   postType === 'BLOOD_REQUEST'
                     ? 'text-rose-600 dark:text-rose-300'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'

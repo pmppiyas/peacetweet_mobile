@@ -22,6 +22,16 @@ export default function HomeScreen() {
   const { user, isAuthenticated } = useAuth();
   const { items, isLoading, isRefreshing, error, refreshFeed } = useFeed();
 
+  const firstName = user?.name?.trim()?.split(' ')?.[0] || '';
+  const composerPrompt =
+    locale === 'bn'
+      ? firstName
+        ? `${firstName}, কী ভাবছেন?`
+        : 'কী ভাবছেন?'
+      : firstName
+        ? `${firstName}, what's on your mind?`
+        : "What's on your mind?";
+
   return (
     <ScrollView
       testID="feed-scroll-view"
@@ -39,29 +49,33 @@ export default function HomeScreen() {
       }
     >
       <View className="w-full max-w-[720px] mx-auto">
-        {/* 1. Post Composer Card matching peacetweet_frontend PostComposer.tsx */}
-        <View className="w-full bg-white dark:bg-[#242526] border-b border-[#d9dde4] dark:border-[#393a3b] pt-2.5 pb-1.5 px-3">
+        {/* 1. Post Composer Card */}
+        <View className="w-full bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-4 pt-3.5 pb-2.5">
           {!isAuthenticated ? (
-            <View className="flex-row items-center justify-between gap-3 pb-1.5">
-              <View className="flex-row items-center gap-2.5 flex-1">
-                <View className="h-9 w-9 items-center justify-center rounded-xl bg-primary-500">
-                  <Text className="text-white font-black text-base">P</Text>
+            <View className="flex-row items-center justify-between gap-3 py-1">
+              <View className="flex-row items-center gap-3 flex-1">
+                <View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#0866FF]">
+                  <Text className="text-white font-black text-lg">P</Text>
                 </View>
-                <Text className="flex-1 text-sm text-[#65676b] dark:text-[#b0b3b8]">
-                  Sign in to share reflections, Duas, or blood donation
-                  requests.
+                <Text className="flex-1 text-[13.5px] leading-snug text-[#65676b] dark:text-[#b0b3b8]">
+                  {locale === 'bn'
+                    ? 'আপনার ভাবনা, দোয়া বা রক্তদানের অনুরোধ শেয়ার করতে সাইন ইন করুন।'
+                    : 'Sign in to share reflections, Duas, or blood donation requests.'}
                 </Text>
               </View>
               <Pressable
                 onPress={() => router.push('/login')}
-                className="rounded-lg bg-primary-500 px-3.5 py-2"
+                className="rounded-xl bg-[#0866FF] active:bg-[#0756d6] px-4 py-2"
               >
-                <Text className="text-white text-xs font-semibold">Log In</Text>
+                <Text className="text-white text-[13px] font-bold">
+                  {locale === 'bn' ? 'লগইন' : 'Log In'}
+                </Text>
               </Pressable>
             </View>
           ) : (
             <>
-              <View className="flex-row items-center gap-2.5">
+              {/* Top Row: User Avatar + Spacious Input Pill */}
+              <View className="flex-row items-center gap-3">
                 <Pressable
                   onPress={() => router.push('/profile')}
                   className="active:opacity-80"
@@ -75,63 +89,73 @@ export default function HomeScreen() {
 
                 <Pressable
                   onPress={() => openComposer({ mode: 'TEXT' })}
-                  className="h-9 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 justify-center"
+                  className="h-11 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4.5 justify-center active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
                 >
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
-                    {user?.name
-                      ? `${user.name.split(' ')[0]}, what's on your mind?`
-                      : "What's on your mind?"}
+                  <Text className="text-[15px] font-normal text-[#65676b] dark:text-[#b0b3b8]">
+                    {composerPrompt}
                   </Text>
                 </Pressable>
               </View>
 
-              {/* Compact 3-Column Bottom Action Buttons */}
-              <View className="flex-row gap-1 pt-1 mt-2 border-t border-[#e4e6eb] dark:border-[#393a3b]">
+              {/* Clean Subtle Horizontal Divider */}
+              <View className="h-[1px] bg-[#e4e6eb] dark:bg-[#393a3b] mt-3 mb-1" />
+
+              {/* 3-Column Bottom Action Buttons with prominent icons & text */}
+              <View className="flex-row items-center justify-between">
+                {/* 1. Photo/Video */}
                 <Pressable
                   onPress={() =>
                     openComposer({ mode: 'TEXT', action: 'photo' })
                   }
-                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-2 py-2.5 px-1 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
                     android="image"
                     ios="photo"
-                    size={18}
-                    color="#10b981"
+                    size={23}
+                    color="#45bd62"
                   />
-                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[13.5px] font-semibold text-[#4e5156] dark:text-[#d1d5db]">
                     {locale === 'bn' ? 'ছবি / মিডিয়া' : 'Photo/video'}
                   </Text>
                 </Pressable>
 
+                {/* Vertical Divider */}
+                <View className="w-[1px] h-5 bg-[#e4e6eb] dark:bg-[#393a3b]" />
+
+                {/* 2. Dua */}
                 <Pressable
                   onPress={() => openComposer({ mode: 'DUA' })}
-                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-2 py-2.5 px-1 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
                     android="menu_book"
                     ios="book"
-                    size={18}
-                    color="#6366f1"
+                    size={23}
+                    color="#0866FF"
                   />
-                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                    {locale === 'bn' ? 'দোয়া' : 'Dua'}
+                  <Text className="text-[13.5px] font-semibold text-[#4e5156] dark:text-[#d1d5db]">
+                    {locale === 'bn' ? 'পবিত্র দোয়া' : 'Dua'}
                   </Text>
                 </Pressable>
 
+                {/* Vertical Divider */}
+                <View className="w-[1px] h-5 bg-[#e4e6eb] dark:bg-[#393a3b]" />
+
+                {/* 3. Feeling */}
                 <Pressable
                   onPress={() =>
                     openComposer({ mode: 'TEXT', action: 'feeling' })
                   }
-                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-2 py-2.5 px-1 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
                     android="sentiment_satisfied"
                     ios="face.smiling"
-                    size={18}
-                    color="#f59e0b"
+                    size={23}
+                    color="#f7b125"
                   />
-                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[13.5px] font-semibold text-[#4e5156] dark:text-[#d1d5db]">
                     {locale === 'bn' ? 'অনুভূতি' : 'Feeling'}
                   </Text>
                 </Pressable>
