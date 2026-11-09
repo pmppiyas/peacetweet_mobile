@@ -68,9 +68,15 @@ export function MessageFeedItem({
   onRequestDelete,
 }: MessageFeedItemProps) {
   const { locale, theme, isUserOnline } = useUi();
-  const isOtherOnline = otherUser?.id
-    ? isUserOnline(otherUser.id) || Boolean(otherUser.isOnline)
-    : false;
+  const resolvedOtherUserId =
+    otherUser?.id ||
+    (message.receiverId && message.receiverId !== message.senderId
+      ? message.receiverId
+      : undefined);
+  const isOtherOnline = resolvedOtherUserId
+    ? isUserOnline(resolvedOtherUserId) || Boolean(otherUser?.isOnline)
+    : Boolean(otherUser?.isOnline);
+  const isDelivered = Boolean(message.isDelivered || isOtherOnline);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<any>(null);
 
@@ -287,7 +293,7 @@ export function MessageFeedItem({
                       ? 'schedule'
                       : message.isRead
                       ? 'done_all'
-                      : isOtherOnline
+                      : isDelivered
                       ? 'done_all'
                       : 'check'
                   }
@@ -296,7 +302,7 @@ export function MessageFeedItem({
                       ? 'clock'
                       : message.isRead
                       ? 'checkmark.circle.fill'
-                      : isOtherOnline
+                      : isDelivered
                       ? 'checkmark.circle'
                       : 'checkmark'
                   }
@@ -306,7 +312,7 @@ export function MessageFeedItem({
                       ? 'rgba(255,255,255,0.6)'
                       : message.isRead
                       ? '#ffffff'
-                      : isOtherOnline
+                      : isDelivered
                       ? 'rgba(255,255,255,0.9)'
                       : 'rgba(255,255,255,0.7)'
                   }
@@ -334,7 +340,7 @@ export function MessageFeedItem({
                     />
                   ) : null}
                 </View>
-              ) : isOtherOnline ? (
+              ) : isDelivered ? (
                 <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
                   {locale === 'bn' ? 'পৌঁছেছে' : 'Delivered'}
                 </Text>

@@ -54,10 +54,12 @@ export function initAppSocket(): Socket | null {
 
   try {
     socket = io(socketUrl, {
-      auth: (cb: (data: Record<string, any>) => void) => {
-        // Dynamically fetch the current access token on each connection / reconnection attempt
-        const latestToken = tokenStorage.getAccessToken() || '';
-        cb({ token: latestToken });
+      path: '/socket.io',
+      auth: {
+        token,
+      },
+      extraHeaders: {
+        authorization: `Bearer ${token}`,
       },
       transports: ['polling', 'websocket'],
       reconnection: true,

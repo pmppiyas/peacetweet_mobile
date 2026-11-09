@@ -106,7 +106,12 @@ export function useUnreadBadgeSync() {
       const handleConnect = () => {
         fetchNotificationsUnread();
         fetchMessagesUnread();
+        s.emit('users:get_online');
       };
+
+      if (s.connected) {
+        s.emit('users:get_online');
+      }
 
       const handleNotifReceived = () => {
         fetchNotificationsUnread();
@@ -143,6 +148,15 @@ export function useUnreadBadgeSync() {
         // If sent by myself, never touch or increment badge count
         if (myId && senderId && senderId === myId) {
           return;
+        }
+
+        // Acknowledge receipt/delivery to sender
+        if (senderId && msg?.conversationId) {
+          s.emit('message:delivered', {
+            conversationId: msg.conversationId,
+            messageId: msg.id,
+            senderId,
+          });
         }
 
         // If actively viewing this conversation, message is already read

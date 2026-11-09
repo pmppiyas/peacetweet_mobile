@@ -45,7 +45,7 @@ export function ChatView({
   onConversationUpdated,
   onConversationMarkedRead,
 }: ChatViewProps) {
-  const { locale } = useUi();
+  const { locale, isUserOnline } = useUi();
   const { user } = useAuth();
   const scrollViewRef = useRef<any>(null);
 
@@ -156,6 +156,9 @@ export function ChatView({
     const s = initAppSocket() || getAppSocket();
     if (!s) return;
 
+    // Request latest online users list immediately
+    s.emit('users:get_online');
+
     // 1. Message received from the other user in real-time
     const handleReceived = (newMsg: ChatMessage) => {
       if (newMsg.conversationId === conversation.id) {
@@ -164,6 +167,12 @@ export function ChatView({
           return [...prev, newMsg];
         });
         scrollToBottom(true);
+        // Acknowledge delivery back to the sender
+        s.emit('message:delivered', {
+          conversationId: conversation.id,
+          messageId: newMsg.id,
+          senderId: newMsg.senderId,
+        });
         // Mark as read immediately on active screen
         chatApi.markAsRead(conversation.id).catch(() => {});
         s.emit('message:read', {
@@ -196,6 +205,22 @@ export function ChatView({
           }
           return prev;
         });
+      }
+    };
+
+    // 2.1 Message delivered acknowledgment (receiver is online / received)
+    const handleDelivered = (payload: {
+      conversationId: string;
+      messageId?: string;
+    }) => {
+      if (payload.conversationId === conversation.id) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.senderId === (user?.id || 'me') && !m.isRead
+              ? { ...m, isDelivered: true }
+              : m
+          )
+        );
       }
     };
 
@@ -247,6 +272,7 @@ export function ChatView({
 
     s.on('message:received', handleReceived);
     s.on('message:sent', handleSent);
+    s.on('message:delivered', handleDelivered);
     s.on('message:seen', handleSeen);
     s.on('message:typing', handleTyping);
     s.on('message:updated', handleUpdated);
@@ -256,6 +282,7 @@ export function ChatView({
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
       s.off('message:received', handleReceived);
       s.off('message:sent', handleSent);
+      s.off('message:delivered', handleDelivered);
       s.off('message:seen', handleSeen);
       s.off('message:typing', handleTyping);
       s.off('message:updated', handleUpdated);
