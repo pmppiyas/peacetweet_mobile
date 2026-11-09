@@ -185,7 +185,7 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('division');
             }}
-            className="h-11 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#18191a] rounded-2xl px-3.5 border border-transparent">
+            className="h-11 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#242526] rounded-2xl px-3.5 border border-transparent">
             <Text
               numberOfLines={1}
               className={`text-xs flex-1 ${
@@ -219,8 +219,8 @@ export function LocationSelector({
             }}
             className={`h-11 flex-row items-center justify-between rounded-2xl px-3.5 border ${
               !value?.divisionId
-                ? 'bg-[#f0f2f5]/50 dark:bg-[#18191a]/50 border-dashed border-gray-200 dark:border-gray-800 opacity-60'
-                : 'bg-[#f0f2f5] dark:bg-[#18191a] border-transparent'
+                ? 'bg-[#f0f2f5]/50 dark:bg-[#242526]/50 border-dashed border-gray-200 dark:border-gray-800 opacity-60'
+                : 'bg-[#f0f2f5] dark:bg-[#242526] border-transparent'
             }`}>
             <Text
               numberOfLines={1}
@@ -262,8 +262,8 @@ export function LocationSelector({
             }}
             className={`h-11 flex-row items-center justify-between rounded-2xl px-3.5 border ${
               !value?.districtId
-                ? 'bg-[#f0f2f5]/50 dark:bg-[#18191a]/50 border-dashed border-gray-200 dark:border-gray-800 opacity-60'
-                : 'bg-[#f0f2f5] dark:bg-[#18191a] border-transparent'
+                ? 'bg-[#f0f2f5]/50 dark:bg-[#242526]/50 border-dashed border-gray-200 dark:border-gray-800 opacity-60'
+                : 'bg-[#f0f2f5] dark:bg-[#242526] border-transparent'
             }`}>
             <Text
               numberOfLines={1}
@@ -303,25 +303,18 @@ export function LocationSelector({
                 : 'Road 3, Mirpur'
             }
             placeholderTextColor={theme === 'dark' ? '#65676b' : '#8a8d91'}
-            className="h-11 bg-[#f0f2f5] dark:bg-[#18191a] rounded-2xl px-3.5 text-xs text-[#050505] dark:text-[#e4e6eb] border border-transparent focus:border-rose-400"
+            className="h-11 bg-[#f0f2f5] dark:bg-[#242526] rounded-2xl px-3.5 text-xs text-[#050505] dark:text-[#e4e6eb] border border-transparent focus:border-rose-400"
           />
         </View>
       </View>
 
-      {/* Formatted Location Preview Card */}
+      {/* Formatted Location Preview */}
       {value?.location ? (
-        <View className="flex-row items-center gap-3 p-3 mt-1.5 rounded-2xl bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/40">
-          <View className="h-8 w-8 rounded-full bg-rose-500 items-center justify-center">
-            <AppIcon android="location_on" size={17} color="#ffffff" />
-          </View>
-          <View className="flex-1">
-            <Text className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
-              {locale === 'bn' ? 'রক্তের প্রয়োজনস্থল' : 'Need Location'}
-            </Text>
-            <Text className="text-[13px] font-bold text-[#1c1e21] dark:text-[#e4e6eb] mt-0.5">
-              {value.location}
-            </Text>
-          </View>
+        <View className="flex-row items-center gap-2 px-3.5 py-2.5 mt-1 rounded-2xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200/90 dark:border-rose-900/50">
+          <AppIcon android="location_on" size={17} color="#e11d48" />
+          <Text className="text-xs font-semibold text-rose-700 dark:text-rose-300 flex-1">
+            {value.location}
+          </Text>
         </View>
       ) : null}
 

@@ -275,7 +275,7 @@ export function DateTimePicker({
       <Pressable
         onPress={handleOpen}
         style={webNoOutline}
-        className={`h-11 bg-[#f0f2f5] dark:bg-[#18191a] rounded-2xl px-3.5 flex-row items-center justify-between border ${
+        className={`h-11 bg-[#f0f2f5] dark:bg-[#242526] rounded-2xl px-3.5 flex-row items-center justify-between border ${
           isOpen
             ? 'border-rose-400 dark:border-rose-500'
             : 'border-transparent'

@@ -47,7 +47,14 @@ export type AndroidSymbol =
   | 'calculate'
   | 'menu'
   | 'add_box'
-  | 'messenger';
+  | 'messenger'
+  | 'remove'
+  | 'phone'
+  | 'phone_iphone'
+  | 'smartphone'
+  | 'account_circle'
+  | 'notes'
+  | 'description';
 
 export interface AppIconProps {
   android: AndroidSymbol;
@@ -120,6 +127,9 @@ export function AppIcon({
           </>
         );
 
+      case 'remove':
+        return <Line x1="5" y1="12" x2="19" y2="12" />;
+
       case 'chat':
       case 'chat_bubble':
         return <Path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />;
@@ -190,6 +200,16 @@ export function AppIcon({
             <Path d="M10 9H8" />
             <Path d="M16 13H8" />
             <Path d="M16 17H8" />
+          </>
+        );
+
+      case 'notes':
+      case 'description':
+        return (
+          <>
+            <Line x1="7" y1="7" x2="17" y2="7" />
+            <Line x1="7" y1="12" x2="17" y2="12" />
+            <Line x1="7" y1="17" x2="13" y2="17" />
           </>
         );
 
@@ -351,6 +371,15 @@ export function AppIcon({
           <>
             <Path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
             <Circle cx="12" cy="7" r="4" />
+          </>
+        );
+
+      case 'account_circle':
+        return (
+          <>
+            <Circle cx="12" cy="12" r="10" />
+            <Circle cx="12" cy="10" r="3" />
+            <Path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
           </>
         );
 
@@ -605,8 +634,18 @@ export function AppIcon({
         return <Path d="m18 15-6-6-6 6" />;
 
       case 'call':
+      case 'phone':
         return (
           <Path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+        );
+
+      case 'phone_iphone':
+      case 'smartphone':
+        return (
+          <>
+            <Rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
+            <Line x1="12" y1="18" x2="12.01" y2="18" />
+          </>
         );
 
       case 'cancel':
