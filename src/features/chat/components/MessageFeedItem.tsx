@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, Platform } from 'react-native';
+import { View, Text, Pressable, Platform, Image } from 'react-native';
 import { useUi } from '@/providers/UiProvider';
 import { AppIcon } from '@/components/ui/Icon';
+import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
 import { ChatMessage, ChatUser } from '../types/chat.types';
 import { ChatAvatar } from './ChatAvatar';
 
@@ -11,6 +12,7 @@ export interface MessageFeedItemProps {
   showAvatar: boolean;
   showDateSeparator?: boolean;
   otherUser?: ChatUser | null;
+  isLastFromMe?: boolean;
   onStartEdit?: (message: ChatMessage) => void;
   onRequestDelete?: (message: ChatMessage) => void;
 }
@@ -61,10 +63,14 @@ export function MessageFeedItem({
   showAvatar,
   showDateSeparator = false,
   otherUser,
+  isLastFromMe = false,
   onStartEdit,
   onRequestDelete,
 }: MessageFeedItemProps) {
-  const { locale, theme } = useUi();
+  const { locale, theme, isUserOnline } = useUi();
+  const isOtherOnline = otherUser?.id
+    ? isUserOnline(otherUser.id) || Boolean(otherUser.isOnline)
+    : false;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<any>(null);
 
@@ -272,12 +278,22 @@ export function MessageFeedItem({
 
             {isMe && !isDeleted ? (
               <AppIcon
-                android={isTemp ? 'schedule' : message.isRead ? 'done_all' : 'check'}
+                android={
+                  isTemp
+                    ? 'schedule'
+                    : message.isRead
+                    ? 'done_all'
+                    : isOtherOnline
+                    ? 'done_all'
+                    : 'check'
+                }
                 ios={
                   isTemp
                     ? 'clock'
                     : message.isRead
                     ? 'checkmark.circle.fill'
+                    : isOtherOnline
+                    ? 'checkmark.circle'
                     : 'checkmark'
                 }
                 size={12}
@@ -286,12 +302,45 @@ export function MessageFeedItem({
                     ? 'rgba(255,255,255,0.6)'
                     : message.isRead
                     ? '#ffffff'
-                    : 'rgba(255,255,255,0.85)'
+                    : isOtherOnline
+                    ? 'rgba(255,255,255,0.9)'
+                    : 'rgba(255,255,255,0.7)'
                 }
               />
             ) : null}
           </View>
         </Pressable>
+
+        {/* Read / Delivered / Sent status below bubble for the last message from me */}
+        {isMe && !isDeleted && isLastFromMe ? (
+          <View className="flex-row items-center justify-end gap-1 mt-1 pr-1">
+            {message.isRead ? (
+              <View className="flex-row items-center gap-1">
+                <Text className="text-[11px] font-semibold text-primary-600 dark:text-primary-400">
+                  {locale === 'bn' ? 'দেখা হয়েছে' : 'Seen'}
+                </Text>
+                {otherUser?.avatarUrl ? (
+                  <Image
+                    source={{
+                      uri:
+                        normalizeMediaUrl(otherUser.avatarUrl) ||
+                        otherUser.avatarUrl,
+                    }}
+                    style={{ width: 14, height: 14, borderRadius: 7 }}
+                  />
+                ) : null}
+              </View>
+            ) : isOtherOnline ? (
+              <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn' ? 'পৌঁছেছে' : 'Delivered'}
+              </Text>
+            ) : (
+              <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn' ? 'পাঠানো হয়েছে' : 'Sent'}
+              </Text>
+            )}
+          </View>
+        ) : null}
       </View>
     </View>
   );

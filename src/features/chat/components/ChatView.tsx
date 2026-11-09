@@ -431,6 +431,10 @@ export function ChatView({
     }
   };
 
+  const lastMyMessageIndex = messages
+    .map((m) => m.senderId === user?.id || m.senderId === 'me')
+    .lastIndexOf(true);
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -515,6 +519,7 @@ export function ChatView({
                 ? new Date(prevMsg.createdAt).toDateString()
                 : null;
               const showDateSeparator = !prevMsg || msgDateStr !== prevDateStr;
+              const isLastFromMe = isMe && idx === lastMyMessageIndex;
 
               return (
                 <MessageFeedItem
@@ -524,6 +529,7 @@ export function ChatView({
                   showAvatar={showAvatar}
                   showDateSeparator={showDateSeparator}
                   otherUser={otherUser}
+                  isLastFromMe={isLastFromMe}
                   onStartEdit={(target) => {
                     setEditingMessage(target);
                     setText(target.text);
