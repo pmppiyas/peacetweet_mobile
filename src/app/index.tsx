@@ -49,8 +49,8 @@ export default function HomeScreen() {
       }
     >
       <View className="w-full max-w-[720px] mx-auto">
-        {/* 1. Post Composer Card */}
-        <View className="w-full bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-4 pt-3.5 pb-2.5">
+        {/* 1. Post Composer Card (Clean, borderless, relaxed) */}
+        <View className="w-full bg-white dark:bg-[#242526] px-4 pt-3 pb-2.5">
           {!isAuthenticated ? (
             <View className="flex-row items-center justify-between gap-3 py-1">
               <View className="flex-row items-center gap-3 flex-1">
@@ -74,7 +74,7 @@ export default function HomeScreen() {
             </View>
           ) : (
             <>
-              {/* Top Row: User Avatar + Spacious Input Pill */}
+              {/* Top Row: User Avatar + Input Pill (perfect 40px proportional height) */}
               <View className="flex-row items-center gap-3">
                 <Pressable
                   onPress={() => router.push('/profile')}
@@ -89,73 +89,64 @@ export default function HomeScreen() {
 
                 <Pressable
                   onPress={() => openComposer({ mode: 'TEXT' })}
-                  className="h-11 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4.5 justify-center active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+                  className="h-10 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 justify-center active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
                 >
-                  <Text className="text-[15px] font-normal text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[14px] font-normal text-[#65676b] dark:text-[#b0b3b8]">
                     {composerPrompt}
                   </Text>
                 </Pressable>
               </View>
 
-              {/* Clean Subtle Horizontal Divider */}
-              <View className="h-[1px] bg-[#e4e6eb] dark:bg-[#393a3b] mt-3 mb-1" />
-
-              {/* 3-Column Bottom Action Buttons with prominent icons & text */}
-              <View className="flex-row items-center justify-between">
+              {/* 3-Column Bottom Action Buttons (No HR line, No vertical borders!) */}
+              <View className="flex-row items-center justify-between gap-1 mt-2.5 pt-0.5">
                 {/* 1. Photo/Video */}
                 <Pressable
                   onPress={() =>
                     openComposer({ mode: 'TEXT', action: 'photo' })
                   }
-                  className="flex-1 flex-row items-center justify-center gap-2 py-2.5 px-1 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
                     android="image"
                     ios="photo"
-                    size={23}
+                    size={20}
                     color="#45bd62"
                   />
-                  <Text className="text-[13.5px] font-semibold text-[#4e5156] dark:text-[#d1d5db]">
+                  <Text className="text-[12.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn' ? 'ছবি / মিডিয়া' : 'Photo/video'}
                   </Text>
                 </Pressable>
 
-                {/* Vertical Divider */}
-                <View className="w-[1px] h-5 bg-[#e4e6eb] dark:bg-[#393a3b]" />
-
                 {/* 2. Dua */}
                 <Pressable
                   onPress={() => openComposer({ mode: 'DUA' })}
-                  className="flex-1 flex-row items-center justify-center gap-2 py-2.5 px-1 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
                     android="menu_book"
                     ios="book"
-                    size={23}
+                    size={20}
                     color="#0866FF"
                   />
-                  <Text className="text-[13.5px] font-semibold text-[#4e5156] dark:text-[#d1d5db]">
+                  <Text className="text-[12.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn' ? 'পবিত্র দোয়া' : 'Dua'}
                   </Text>
                 </Pressable>
-
-                {/* Vertical Divider */}
-                <View className="w-[1px] h-5 bg-[#e4e6eb] dark:bg-[#393a3b]" />
 
                 {/* 3. Feeling */}
                 <Pressable
                   onPress={() =>
                     openComposer({ mode: 'TEXT', action: 'feeling' })
                   }
-                  className="flex-1 flex-row items-center justify-center gap-2 py-2.5 px-1 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
                     android="sentiment_satisfied"
                     ios="face.smiling"
-                    size={23}
+                    size={20}
                     color="#f7b125"
                   />
-                  <Text className="text-[13.5px] font-semibold text-[#4e5156] dark:text-[#d1d5db]">
+                  <Text className="text-[12.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn' ? 'অনুভূতি' : 'Feeling'}
                   </Text>
                 </Pressable>
@@ -163,6 +154,9 @@ export default function HomeScreen() {
             </>
           )}
         </View>
+
+        {/* Soft Section Separator (Clean gap between Composer and Feed, zero harsh lines!) */}
+        <View className="h-2 w-full bg-[#f0f2f5] dark:bg-[#18191a]" />
 
         {/* 2. Feed List Card */}
         {isLoading && items.length === 0 ? (
@@ -209,11 +203,11 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         ) : (
-          <View className="w-full bg-white dark:bg-[#242526] border-b border-[#d9dde4] dark:border-[#393a3b] overflow-hidden">
+          <View className="w-full bg-white dark:bg-[#242526] overflow-hidden">
             {items.map((post, index) => (
               <React.Fragment key={post.id}>
                 {index > 0 && (
-                  <View className="h-2 w-full bg-[#f0f2f5] dark:bg-[#18191a] border-y border-[#e4e6eb] dark:border-[#393a3b]" />
+                  <View className="h-2 w-full bg-[#f0f2f5] dark:bg-[#18191a]" />
                 )}
                 <View nativeID={`feed-post-${post.id}`} collapsable={false}>
                   <FeedPostCard post={post} />

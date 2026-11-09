@@ -171,7 +171,7 @@ export function Navbar() {
         };
 
   return (
-    <View className="w-full h-[60px] border-b border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526] px-3.5 flex-row items-center justify-between select-none">
+    <View className="w-full h-[60px] border-b border-[#f0f2f5] bg-white dark:border-[#2d2e2f] dark:bg-[#242526] px-3.5 flex-row items-center justify-between select-none">
       {isSearchExpanded ? (
         /* Full-Width Search Input View (Facebook mobile style) */
         <View className="flex-1 flex-row items-center gap-2">
