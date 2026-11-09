@@ -53,13 +53,25 @@ export default function MessagesScreen() {
     []
   );
 
-  // Sync activeConversationId with UiProvider so Navbar & MobileNav hide on mobile when inside an active chat
+  const openConversation = useCallback(
+    (conv: ConversationItem) => {
+      setActiveConversationId(conv.id);
+      setSelectedConversation(conv);
+    },
+    [setActiveConversationId]
+  );
+
+  const closeConversation = useCallback(() => {
+    setActiveConversationId(null);
+    setSelectedConversation(null);
+  }, [setActiveConversationId]);
+
+  // Clean up activeConversationId when leaving the Messages screen entirely
   useEffect(() => {
-    setActiveConversationId(selectedConversation?.id || null);
     return () => {
       setActiveConversationId(null);
     };
-  }, [selectedConversation?.id, setActiveConversationId]);
+  }, [setActiveConversationId]);
 
   // Android back swipe inside an active mobile chat returns to conversation list
   useEffect(() => {
@@ -67,11 +79,11 @@ export default function MessagesScreen() {
       return;
     }
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setSelectedConversation(null);
+      closeConversation();
       return true;
     });
     return () => sub.remove();
-  }, [isDesktop, selectedConversation]);
+  }, [isDesktop, selectedConversation, closeConversation]);
 
   // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
   if (!isAuthLoading && !isAuthenticated) {
@@ -151,10 +163,11 @@ export default function MessagesScreen() {
       });
 
       if (existing) {
-        setSelectedConversation({
+        const enriched: ConversationItem = {
           ...existing,
           otherUser: getOtherUserFromConversation(existing) || targetUser,
-        });
+        };
+        openConversation(enriched);
         return;
       }
 
@@ -168,10 +181,10 @@ export default function MessagesScreen() {
           const filtered = prev.filter((c) => c.id !== enriched.id);
           return [enriched, ...filtered];
         });
-        setSelectedConversation(enriched);
+        openConversation(enriched);
       } catch {}
     },
-    [conversations]
+    [conversations, openConversation, setConversations]
   );
 
   const handledParamRef = useRef<string>('');
@@ -189,20 +202,20 @@ export default function MessagesScreen() {
       const match = conversations.find((c) => c.id === params.conversationId);
       if (match) {
         handledParamRef.current = currentKey;
-        setSelectedConversation(match);
+        openConversation(match);
       }
     } else if (params.userId) {
       handledParamRef.current = currentKey;
       chatApi
         .getOrCreateConversation(params.userId)
         .then((conv) => {
-          setSelectedConversation(conv);
+          openConversation(conv);
         })
         .catch(() => {
           handledParamRef.current = '';
         });
     }
-  }, [params.conversationId, params.userId, isAuthenticated, conversations.length]);
+  }, [params.conversationId, params.userId, isAuthenticated, conversations.length, openConversation]);
 
   const selectedConversationRef = useRef(selectedConversation);
   selectedConversationRef.current = selectedConversation;
@@ -300,24 +313,24 @@ export default function MessagesScreen() {
       <View className="flex-1 w-full max-w-[1440px] mx-auto px-0 sm:px-4 lg:px-6">
         <View className="flex-1 flex-row h-full gap-4 lg:gap-6">
           {/* 1. Left Sidebar: Chats / Conversations Sidebar */}
-          {!isChatActive || isDesktop ? (
-            <View className="w-full md:w-60 lg:w-60 xl:w-64 2xl:w-72 h-full shrink-0 flex-col">
-              <ConversationSidebar
-                conversations={conversations}
-                isLoading={isLoading}
-                isRefreshing={isRefreshing}
-                onRefresh={() => {
-                  setIsRefreshing(true);
-                  loadChatData(true);
-                }}
-                selectedId={selectedConversation?.id || null}
-                onSelectConversation={(conv) => setSelectedConversation(conv)}
-                onStartChatWithUser={handleStartChatWithUser}
-                currentUserId={user?.id}
-                totalUnreadCount={totalUnreadCount}
-              />
-            </View>
-          ) : null}
+          <View
+            style={{ display: !isChatActive || isDesktop ? 'flex' : 'none' }}
+            className="w-full md:w-60 lg:w-60 xl:w-64 2xl:w-72 h-full shrink-0 flex-col">
+            <ConversationSidebar
+              conversations={conversations}
+              isLoading={isLoading}
+              isRefreshing={isRefreshing}
+              onRefresh={() => {
+                setIsRefreshing(true);
+                loadChatData(true);
+              }}
+              selectedId={selectedConversation?.id || null}
+              onSelectConversation={openConversation}
+              onStartChatWithUser={handleStartChatWithUser}
+              currentUserId={user?.id}
+              totalUnreadCount={totalUnreadCount}
+            />
+          </View>
 
           {/* 2. Main Area: Active Chat Window or Empty Placeholder */}
           {isChatActive || isDesktop ? (
@@ -327,7 +340,7 @@ export default function MessagesScreen() {
                   <ChatView
                     key={selectedConversation.id}
                     conversation={selectedConversation}
-                    onBack={() => setSelectedConversation(null)}
+                    onBack={closeConversation}
                     onConversationUpdated={handleConversationUpdated}
                     onConversationMarkedRead={handleConversationMarkedRead}
                   />

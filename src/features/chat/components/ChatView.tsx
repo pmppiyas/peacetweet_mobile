@@ -466,7 +466,9 @@ export function ChatView({
           ) : null}
 
           {isLoading && messages.length === 0 ? (
-            <ChatMessagesSkeleton />
+            <View className="flex-1 items-center justify-center py-20">
+              <ActivityIndicator size="small" color="#0866FF" />
+            </View>
           ) : messages.length === 0 ? (
             <EmptyState
               iconAndroid="chat_bubble"
