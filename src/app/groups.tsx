@@ -225,7 +225,7 @@ export default function GroupsScreen() {
             <AuthPromptCard
               icon="groups"
               iconBgColor="bg-primary-50 dark:bg-primary-950/60"
-              iconColor="#0A66C2"
+              iconColor="#0866FF"
               titleBn="আপনার গ্রুপসমূহ দেখতে লগইন করুন"
               titleEn="Sign in to view your Groups"
               descriptionBn="আপনার যুক্ত থাকা গ্রুপসমূহ দেখতে এবং নতুন গ্রুপে যোগ দিতে অ্যাকাউন্টে প্রবেশ করুন।"

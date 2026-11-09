@@ -519,7 +519,7 @@ export default function SavedScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor="#0A66C2"
+            tintColor="#0866FF"
             progressViewOffset={60 + routineBarHeight}
           />
         }>

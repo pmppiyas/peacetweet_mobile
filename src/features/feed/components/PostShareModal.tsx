@@ -355,7 +355,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
                   onPress={handleFacebook}
                   className="items-center gap-1.5 active:opacity-75">
                   <View
-                    style={{ backgroundColor: '#0A66C2' }}
+                    style={{ backgroundColor: '#0866FF' }}
                     className="h-14 w-14 rounded-full items-center justify-center shadow-sm">
                     <AppIcon android="public" size={24} color="#ffffff" />
                   </View>

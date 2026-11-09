@@ -158,14 +158,14 @@ export function ConversationSidebar({
 
         <View className="shrink-0">
           {isCreatingThis ? (
-            <ActivityIndicator size="small" color="#0A66C2" />
+            <ActivityIndicator size="small" color="#0866FF" />
           ) : (
             <View className="h-8 w-8 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c]">
               <AppIcon
                 android="chat_bubble"
                 ios="bubble.right.fill"
                 size={15}
-                color="#0A66C2"
+                color="#0866FF"
               />
             </View>
           )}
@@ -253,8 +253,8 @@ export function ConversationSidebar({
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={onRefresh}
-            colors={['#0A66C2']}
-            tintColor="#0A66C2"
+            colors={['#0866FF']}
+            tintColor="#0866FF"
           />
         }>
         {activeQuery ? (

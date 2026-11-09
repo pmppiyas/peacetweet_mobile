@@ -152,8 +152,8 @@ function CommentTreeItem({
           borderRadius: 10,
           backgroundColor: isReplyTarget
             ? isDark
-              ? 'rgba(10, 102, 194, 0.16)'
-              : 'rgba(10, 102, 194, 0.08)'
+              ? 'rgba(8, 102, 255, 0.16)'
+              : 'rgba(8, 102, 255, 0.08)'
             : 'transparent',
         }}>
         <UserAvatar
@@ -202,7 +202,7 @@ function CommentTreeItem({
               <Text
                 style={{
                   color: isReplyTarget
-                    ? '#0A66C2'
+                    ? '#0866FF'
                     : isDark
                       ? '#b0b3b8'
                       : '#65676b',
@@ -655,7 +655,7 @@ export function CommentsBottomSheetModal({
                   onPress={handleSend}
                   className={`h-10 w-10 rounded-full items-center justify-center ${
                     commentText.trim()
-                      ? 'bg-[#0A66C2]'
+                      ? 'bg-[#0866FF]'
                       : 'bg-gray-200 dark:bg-gray-800'
                   }`}>
                   <AppIcon

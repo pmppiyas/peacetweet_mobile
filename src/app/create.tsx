@@ -13,7 +13,7 @@ export default function CreatePostScreen() {
       <AuthPromptScreen
         icon="add_circle"
         iconBgColor="bg-primary-50 dark:bg-primary-950/60"
-        iconColor="#0A66C2"
+        iconColor="#0866FF"
         titleBn="নতুন পোস্ট তৈরি করতে লগইন করুন"
         titleEn="Sign in to create a Post"
         descriptionBn="কমিউনিটির সাথে দোয়া, হাদিস ও সুন্দর বার্তা শেয়ার করতে আপনার অ্যাকাউন্টে লগইন করুন।"

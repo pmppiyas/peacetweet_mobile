@@ -41,7 +41,7 @@ export function SearchInputBar({
         className="flex-1 ml-2.5 text-sm text-[#050505] dark:text-[#e4e6eb] py-0"
       />
       {isLoading ? (
-        <ActivityIndicator size="small" color="#0A66C2" className="ml-1.5" />
+        <ActivityIndicator size="small" color="#0866FF" className="ml-1.5" />
       ) : value.length > 0 ? (
         <Pressable
           onPress={() => {

@@ -329,7 +329,7 @@ export default function FriendsScreen() {
                       <Pressable
                         onPress={() => handleMessage(u)}
                         className="p-2 rounded-xl bg-primary-50 dark:bg-primary-950/60 active:opacity-80">
-                        <AppIcon android="chat_bubble" size={16} color="#0A66C2" />
+                        <AppIcon android="chat_bubble" size={16} color="#0866FF" />
                       </Pressable>
 
                       <Pressable

@@ -79,7 +79,7 @@ export default function LoginScreen() {
       {/* Compact Brand Header */}
       <View className="items-center mb-2.5">
         <Pressable onPress={() => router.push('/')}>
-          <Text className="text-[26px] leading-8 font-black tracking-tight text-[#0A66C2] dark:text-[#36a4fa]">
+          <Text className="text-[26px] leading-8 font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
             PeaceTweet
           </Text>
         </Pressable>
@@ -116,13 +116,13 @@ export default function LoginScreen() {
           <View
             className={`flex-row items-center rounded-lg border px-2.5 h-9 gap-2 ${
               focusedField === 'identifier'
-                ? 'border-[#0A66C2] bg-white dark:bg-[#1f2021]'
+                ? 'border-[#0866FF] bg-white dark:bg-[#1f2021]'
                 : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
             }`}>
             <AppIcon
               android="mail"
               size={15}
-              color={focusedField === 'identifier' ? '#0A66C2' : '#8a8d91'}
+              color={focusedField === 'identifier' ? '#0866FF' : '#8a8d91'}
             />
             <TextInput
               value={identifier}
@@ -153,13 +153,13 @@ export default function LoginScreen() {
           <View
             className={`flex-row items-center rounded-lg border px-2.5 h-9 gap-2 ${
               focusedField === 'password'
-                ? 'border-[#0A66C2] bg-white dark:bg-[#1f2021]'
+                ? 'border-[#0866FF] bg-white dark:bg-[#1f2021]'
                 : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
             }`}>
             <AppIcon
               android="lock"
               size={15}
-              color={focusedField === 'password' ? '#0A66C2' : '#8a8d91'}
+              color={focusedField === 'password' ? '#0866FF' : '#8a8d91'}
             />
             <TextInput
               value={password}
@@ -192,7 +192,7 @@ export default function LoginScreen() {
         <Pressable
           onPress={handleSubmit}
           disabled={isBusy}
-          className={`w-full h-9 rounded-lg bg-[#0A66C2] items-center flex-row justify-center gap-2 mt-0.5 ${
+          className={`w-full h-9 rounded-lg bg-[#0866FF] items-center flex-row justify-center gap-2 mt-0.5 ${
             isBusy ? 'opacity-65' : 'hover:opacity-90 active:opacity-80'
           }`}>
           {isLoggingIn && <ActivityIndicator size="small" color="#ffffff" />}

@@ -184,7 +184,7 @@ export function MessageComposerView({
               android="sentiment_satisfied"
               ios="face.smiling"
               size={20}
-              color={showEmojiPicker ? '#0A66C2' : iconColor}
+              color={showEmojiPicker ? '#0866FF' : iconColor}
             />
           </Pressable>
 

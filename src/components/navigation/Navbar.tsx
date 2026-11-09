@@ -154,20 +154,20 @@ export function Navbar() {
     ? Platform.OS === 'web'
       ? ({
           borderWidth: 0,
-          boxShadow: '0 0 0 2px rgba(10, 102, 194, 0.5)',
+          boxShadow: '0 0 0 2px rgba(8, 102, 255, 0.5)',
         } as any)
       : {
           borderWidth: 2,
-          borderColor: 'rgba(10, 102, 194, 0.5)',
+          borderColor: 'rgba(8, 102, 255, 0.5)',
         }
     : Platform.OS === 'web'
       ? ({
           borderWidth: 0,
-          boxShadow: '0 0 0 1px rgba(10, 102, 194, 0.2)',
+          boxShadow: '0 0 0 1px rgba(8, 102, 255, 0.2)',
         } as any)
       : {
           borderWidth: 1,
-          borderColor: 'rgba(10, 102, 194, 0.2)',
+          borderColor: 'rgba(8, 102, 255, 0.2)',
         };
 
   return (
@@ -318,7 +318,7 @@ export function Navbar() {
                 className={`text-[28px] leading-none font-black tracking-[-0.7px] select-none ${
                   isBloodRoute
                     ? 'text-rose-600 dark:text-rose-500'
-                    : 'text-[#0A66C2] dark:text-[#36a4fa]'
+                    : 'text-[#0866FF] dark:text-[#36a4fa]'
                 }`}
               >
                 PeaceTweet

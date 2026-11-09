@@ -14,7 +14,7 @@ export function EmptyChatPlaceholder() {
             android="chat_bubble"
             ios="bubble.left.and.bubble.right.fill"
             size={38}
-            color="#0A66C2"
+            color="#0866FF"
           />
         </View>
         <View className="absolute -top-1 -right-1 h-7 w-7 rounded-full bg-primary-500 items-center justify-center">

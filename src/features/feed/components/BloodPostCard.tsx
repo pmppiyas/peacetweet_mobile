@@ -377,7 +377,7 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
             <Text className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
               {locale === 'bn' ? 'বিস্তারিত দেখুন' : 'View Details'}
             </Text>
-            <AppIcon android="arrow_forward" ios="arrow.right" size={11} color="#0A66C2" />
+            <AppIcon android="arrow_forward" ios="arrow.right" size={11} color="#0866FF" />
           </Pressable>
 
           {isOwner ? (

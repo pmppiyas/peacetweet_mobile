@@ -283,7 +283,7 @@ export function PhotoEditorModal({
           <View className="flex-row items-center justify-between pb-3 mb-3 border-b border-[#e4e6eb] dark:border-[#393a3b]">
             <View className="flex-row items-center gap-2.5 flex-1 pr-2">
               <View className="h-9 w-9 rounded-xl bg-primary-50 dark:bg-primary-950/60 items-center justify-center">
-                <AppIcon android="crop_rotate" size={18} color="#0A66C2" />
+                <AppIcon android="crop_rotate" size={18} color="#0866FF" />
               </View>
               <View className="flex-1">
                 <Text className="text-base font-bold text-[#050505] dark:text-white">
@@ -334,7 +334,7 @@ export function PhotoEditorModal({
                   borderRadius: isAvatar ? 9999 : 16,
                   overflow: 'hidden',
                   backgroundColor: '#111827',
-                  border: '2px solid rgba(10, 102, 194, 0.45)',
+                  border: '2px solid rgba(8, 102, 255, 0.45)',
                   cursor: isDragging ? 'grabbing' : 'grab',
                   userSelect: 'none',
                   touchAction: 'none',
@@ -453,7 +453,7 @@ export function PhotoEditorModal({
                     style={{
                       width: '100%',
                       cursor: 'pointer',
-                      accentColor: '#0A66C2',
+                      accentColor: '#0866FF',
                     }}
                   />
                 ) : null}
@@ -482,7 +482,7 @@ export function PhotoEditorModal({
                   onPress={onPickAnother}
                   disabled={isSaving}
                   className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#242526] border border-[#ced0d4] dark:border-[#4a4b4d] active:scale-95">
-                  <AppIcon android="photo_library" size={14} color="#0A66C2" />
+                  <AppIcon android="photo_library" size={14} color="#0866FF" />
                   <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
                     {locale === 'bn' ? 'অন্য ছবি নিন' : 'Change Photo'}
                   </Text>

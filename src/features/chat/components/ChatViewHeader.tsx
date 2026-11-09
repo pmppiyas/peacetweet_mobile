@@ -100,7 +100,7 @@ export function ChatViewHeader({
             size={20}
             color={
               showDetails
-                ? '#0A66C2'
+                ? '#0866FF'
                 : theme === 'dark'
                   ? '#b0b3b8'
                   : '#65676b'

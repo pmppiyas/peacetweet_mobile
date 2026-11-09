@@ -624,8 +624,8 @@ export function ProfileView({
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
-          tintColor="#0A66C2"
-          colors={['#0A66C2']}
+          tintColor="#0866FF"
+          colors={['#0866FF']}
         />
       }
     >
@@ -692,7 +692,7 @@ export function ProfileView({
                   onPress={() => triggerPhotoPicker('cover')}
                   className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b] active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
                 >
-                  <AppIcon android="photo_camera" size={16} color="#0A66C2" />
+                  <AppIcon android="photo_camera" size={16} color="#0866FF" />
                   <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'নতুন ছবি আপলোড' : 'Upload Photo'}
                   </Text>
@@ -771,7 +771,7 @@ export function ProfileView({
                 onPress={() => triggerPhotoPicker('avatar')}
                 className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b] active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
               >
-                <AppIcon android="photo_camera" size={16} color="#0A66C2" />
+                <AppIcon android="photo_camera" size={16} color="#0866FF" />
                 <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
                   {locale === 'bn' ? 'নতুন ছবি আপলোড' : 'Upload Photo'}
                 </Text>
@@ -795,7 +795,7 @@ export function ProfileView({
             {displayUser.name}
           </Text>
           {displayUser.userStatus === 'VERIFIED' && (
-            <AppIcon android="verified" size={20} color="#0A66C2" />
+            <AppIcon android="verified" size={20} color="#0866FF" />
           )}
         </View>
 
@@ -809,7 +809,7 @@ export function ProfileView({
           {/* Verification Badge */}
           {displayUser.userStatus === 'VERIFIED' ? (
             <View className="flex-row items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 border border-blue-200 dark:border-blue-900">
-              <AppIcon android="verified" size={13} color="#0A66C2" />
+              <AppIcon android="verified" size={13} color="#0866FF" />
               <Text className="text-[11px] font-bold text-blue-600 dark:text-blue-300">
                 {locale === 'bn' ? 'ভেরিফাইড' : 'Verified'}
               </Text>
@@ -931,7 +931,7 @@ export function ProfileView({
                   }}
                   className="mt-1.5 flex-row items-center gap-1 rounded-full bg-primary-50 dark:bg-primary-950/60 px-3 py-1 border border-primary-200 dark:border-primary-800"
                 >
-                  <AppIcon android="edit" size={12} color="#0A66C2" />
+                  <AppIcon android="edit" size={12} color="#0866FF" />
                   <Text className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
                     {locale === 'bn' ? 'বায়ো সম্পাদনা' : 'Edit Bio'}
                   </Text>
@@ -946,7 +946,7 @@ export function ProfileView({
               }}
               className="flex-row items-center gap-1.5 rounded-full border border-dashed border-primary-400 dark:border-primary-600 bg-primary-50/60 dark:bg-primary-950/40 px-4 py-1.5"
             >
-              <AppIcon android="add" size={14} color="#0A66C2" />
+              <AppIcon android="add" size={14} color="#0866FF" />
               <Text className="text-xs font-bold text-primary-600 dark:text-primary-300">
                 {locale === 'bn' ? 'বায়ো যুক্ত করুন' : 'Add Bio'}
               </Text>
@@ -1731,7 +1731,7 @@ export function ProfileView({
                             item.type === 'DUA' ? 'menu_book' : 'article'
                           }
                           size={14}
-                          color="#0A66C2"
+                          color="#0866FF"
                         />
                         <Text className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
                           {item.type}

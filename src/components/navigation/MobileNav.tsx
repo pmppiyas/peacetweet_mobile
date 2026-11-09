@@ -163,7 +163,7 @@ export function MobileNav() {
               ? '#059669'
               : isBloodContext
               ? '#e11d48'
-              : '#0A66C2';
+              : '#0866FF';
 
             return (
               <Pressable
@@ -207,7 +207,7 @@ export function MobileNav() {
             href === '/' ? pathname === '/' : pathname.startsWith(href);
 
           const iconColor = isActive
-            ? '#0A66C2'
+            ? '#0866FF'
             : theme === 'dark'
               ? '#e4e6eb'
               : '#1e2329';

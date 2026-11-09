@@ -633,11 +633,11 @@ export default function PostPhotoViewerScreen() {
   const actionIconColor = '#ffffff';
   const actionTextColor = '#ffffff';
 
-  const activeLikeBg = 'rgba(10, 102, 194, 0.35)';
-  const activeLikeBorder = 'rgba(10, 102, 194, 0.7)';
+  const activeLikeBg = 'rgba(8, 102, 255, 0.35)';
+  const activeLikeBorder = 'rgba(8, 102, 255, 0.7)';
 
-  const activeSaveBg = 'rgba(10, 102, 194, 0.35)';
-  const activeSaveBorder = 'rgba(10, 102, 194, 0.7)';
+  const activeSaveBg = 'rgba(8, 102, 255, 0.35)';
+  const activeSaveBorder = 'rgba(8, 102, 255, 0.7)';
 
   const effectivePost: FeedItem = (post || {
     id: postId || 'temp-id',
@@ -838,7 +838,7 @@ export default function PostPhotoViewerScreen() {
                       android="verified"
                       ios="checkmark.seal.fill"
                       size={14}
-                      color="#0A66C2"
+                      color="#0866FF"
                     />
                     <Text
                       style={[{ color: dotColor }, textShadowStyle] as any}
@@ -882,12 +882,12 @@ export default function PostPhotoViewerScreen() {
                 accessibilityLabel="Like">
                 <ThumbLikeIcon
                   size={20}
-                  color={hasReacted ? '#0A66C2' : actionIconColor}
+                  color={hasReacted ? '#0866FF' : actionIconColor}
                   filled={hasReacted}
                 />
                 {reactionCount > 0 ? (
                   <Text
-                    style={[{ color: hasReacted ? '#0A66C2' : actionTextColor }, textShadowStyle] as any}
+                    style={[{ color: hasReacted ? '#0866FF' : actionTextColor }, textShadowStyle] as any}
                     className="text-[13px] font-bold">
                     {reactionCount}
                   </Text>
@@ -943,7 +943,7 @@ export default function PostPhotoViewerScreen() {
                 <AppIcon
                   android="bookmark"
                   size={19}
-                  color={hasSaved ? '#0A66C2' : actionIconColor}
+                  color={hasSaved ? '#0866FF' : actionIconColor}
                   filled={hasSaved}
                 />
               </Pressable>

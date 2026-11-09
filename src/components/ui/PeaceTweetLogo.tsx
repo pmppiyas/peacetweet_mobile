@@ -28,7 +28,7 @@ export function PeaceTweetLogo({
       <Svg width={size} height={size} viewBox="0 0 512 512">
         <Defs>
           <LinearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#0A66C2" />
+            <Stop offset="0" stopColor="#0866FF" />
             <Stop offset="1" stopColor="#1054be" />
           </LinearGradient>
         </Defs>
