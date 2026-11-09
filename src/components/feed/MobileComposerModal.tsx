@@ -1495,7 +1495,7 @@ export function MobileComposerModal() {
               </View>
 
               {/* Contact Numbers (Row) */}
-              <View className="flex-row gap-2.5">
+              <View className="flex-row gap-2.5 mt-1">
                 <View className="flex-1 gap-1">
                   <Text className="text-xs font-bold text-gray-700 dark:text-gray-300">
                     {locale === 'bn' ? 'মোবাইল নম্বর *' : 'Contact Phone *'}
@@ -1530,8 +1530,8 @@ export function MobileComposerModal() {
                 <DateTimePicker
                   label={
                     locale === 'bn'
-                      ? 'কখন রক্তের প্রয়োজন? (তারিখ ও সময়) *'
-                      : 'Needed Date & Time *'
+                      ? 'কখন রক্তের প্রয়োজন? (তারিখ ও সময়)'
+                      : 'Needed Date & Time'
                   }
                   value={neededDate}
                   onChange={setNeededDate}

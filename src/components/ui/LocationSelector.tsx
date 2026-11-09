@@ -171,7 +171,7 @@ export function LocationSelector({
   };
 
   return (
-    <View className="space-y-2.5">
+    <View className="gap-3">
       {/* Row 1: Division & District */}
       <View className="flex-row gap-2.5">
         {/* 1. Division Selector */}
@@ -310,7 +310,7 @@ export function LocationSelector({
 
       {/* Formatted Location Preview */}
       {value?.location ? (
-        <View className="flex-row items-center gap-2 p-2.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40">
+        <View className="flex-row items-center gap-2 px-3 py-2.5 mt-1.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40">
           <AppIcon android="location_on" size={16} color="#e11d48" />
           <Text className="text-xs font-medium text-rose-700 dark:text-rose-300 flex-1">
             {value.location}
