@@ -855,7 +855,7 @@ export default function BloodScreen() {
                   style={{ flex: 1, minWidth: 0 }}
                   className={`py-2 items-center justify-center flex-row gap-1 rounded-lg ${
                     isSelected
-                      ? 'bg-rose-600 shadow-xs'
+                      ? 'bg-rose-600'
                       : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
                   }`}>
                   {t.icon ? (
@@ -899,7 +899,7 @@ export default function BloodScreen() {
                       onPress={() => setSelectedGroup(grp)}
                       className={`px-3 py-1 rounded-full border ${
                         isSelected
-                          ? 'bg-rose-600 border-rose-600 shadow-xs'
+                          ? 'bg-rose-600 border-rose-600'
                           : 'bg-[#e6e9ef] dark:bg-[#242526] border-[#ced0d4] dark:border-[#3a3b3c]'
                       }`}>
                       <Text

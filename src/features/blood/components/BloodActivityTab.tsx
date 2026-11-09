@@ -74,7 +74,7 @@ export function BloodActivityTab({
             style={{ flex: 1, minWidth: 0 }}
             className={`py-2 items-center justify-center flex-row gap-1.5 rounded-lg ${
               activitySubTab === 'my_requests'
-                ? 'bg-white dark:bg-[#3a3b3c] shadow-xs'
+                ? 'bg-white dark:bg-[#3a3b3c]'
                 : 'active:bg-white/50'
             }`}>
             <AppIcon
@@ -100,7 +100,7 @@ export function BloodActivityTab({
             style={{ flex: 1, minWidth: 0 }}
             className={`py-2 items-center justify-center flex-row gap-1.5 rounded-lg ${
               activitySubTab === 'my_accepted'
-                ? 'bg-white dark:bg-[#3a3b3c] shadow-xs'
+                ? 'bg-white dark:bg-[#3a3b3c]'
                 : 'active:bg-white/50'
             }`}>
             <AppIcon

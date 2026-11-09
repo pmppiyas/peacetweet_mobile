@@ -43,6 +43,7 @@
   },
   "scripts": {
     "start": "expo start",
+    "postinstall": "node ./scripts/patch-css-interop.js",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",

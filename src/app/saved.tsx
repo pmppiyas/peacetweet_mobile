@@ -496,7 +496,7 @@ export default function SavedScreen() {
                   style={{ flex: 1, minWidth: 0 }}
                   className={`py-2 items-center justify-center rounded-lg ${
                     isActive
-                      ? 'bg-primary-600 shadow-xs'
+                      ? 'bg-[#0866FF]'
                       : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
                   }`}>
                   <Text className="text-[22px] leading-tight select-none">{tab.icon}</Text>

@@ -950,7 +950,7 @@ export function MobileComposerModal() {
                           onPress={() => setMediaLayout('COLLAGE')}
                           className={`flex-row items-center gap-1 rounded-full px-2.5 py-0.5 ${
                             mediaLayout === 'COLLAGE'
-                              ? 'bg-white dark:bg-[#18191a] shadow-xs'
+                              ? 'bg-white dark:bg-[#18191a]'
                               : ''
                           }`}>
                           <AppIcon
@@ -971,7 +971,7 @@ export function MobileComposerModal() {
                           onPress={() => setMediaLayout('SWIPE')}
                           className={`flex-row items-center gap-1 rounded-full px-2.5 py-0.5 ${
                             mediaLayout === 'SWIPE'
-                              ? 'bg-white dark:bg-[#18191a] shadow-xs'
+                              ? 'bg-white dark:bg-[#18191a]'
                               : ''
                           }`}>
                           <AppIcon

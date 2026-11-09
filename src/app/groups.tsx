@@ -203,7 +203,7 @@ export default function GroupsScreen() {
                 onPress={() => setActiveTab(t.key as any)}
                 className={`flex-1 py-2 items-center rounded-lg ${
                   isSelected
-                    ? 'bg-emerald-600 shadow-xs'
+                    ? 'bg-emerald-600'
                     : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
                 }`}>
                 <Text

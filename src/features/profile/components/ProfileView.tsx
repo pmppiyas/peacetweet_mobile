@@ -979,6 +979,7 @@ export function ProfileView({
 
               {friendshipStatus === 'PENDING_SENT' && (
                 <Pressable
+                  key="btn-pending-sent"
                   onPress={handleCancelRequest}
                   disabled={isFriendActionLoading}
                   className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c] px-4 py-2 active:scale-95"
@@ -999,9 +1000,10 @@ export function ProfileView({
               {friendshipStatus === 'PENDING_RECEIVED' && (
                 <>
                   <Pressable
+                    key="btn-accept-request"
                     onPress={handleAcceptRequest}
                     disabled={isFriendActionLoading}
-                    className="flex-row items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 shadow-sm active:scale-95"
+                    className="flex-row items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 active:scale-95"
                   >
                     {isFriendActionLoading ? (
                       <ActivityIndicator size="small" color="#ffffff" />
@@ -1016,6 +1018,7 @@ export function ProfileView({
                   </Pressable>
 
                   <Pressable
+                    key="btn-reject-request"
                     onPress={handleRejectRequest}
                     disabled={isFriendActionLoading}
                     className="flex-row items-center gap-1.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c] px-3.5 py-2 active:scale-95"
@@ -1030,6 +1033,7 @@ export function ProfileView({
 
               {friendshipStatus === 'FRIENDS' && (
                 <Pressable
+                  key="btn-unfriend"
                   onPress={() => setUnfriendConfirmVisible(true)}
                   disabled={isFriendActionLoading}
                   className="flex-row items-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 px-4 py-2 active:scale-95"
@@ -1044,8 +1048,9 @@ export function ProfileView({
               {/* Message button */}
               {isAuthenticated && (
                 <Pressable
+                  key="btn-message"
                   onPress={handleMessagePress}
-                  className="flex-row items-center gap-1.5 rounded-xl bg-[#e4e6eb] dark:bg-[#3a3b3c] px-4 py-2 shadow-xs active:scale-95"
+                  className="flex-row items-center gap-1.5 rounded-xl bg-[#e4e6eb] dark:bg-[#3a3b3c] px-4 py-2 active:scale-95"
                 >
                   <AppIcon android="chat_bubble" size={15} color="#050505" />
                   <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -1063,10 +1068,11 @@ export function ProfileView({
         <View className="w-full max-w-[768px] mx-auto flex-row items-center justify-between gap-1">
           {/* Overview Tab */}
           <Pressable
+            key="profile-tab-overview"
             onPress={() => setActiveTab('overview')}
             className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
               activeTab === 'overview'
-                ? 'bg-primary-600 shadow-sm'
+                ? 'bg-[#0866FF]'
                 : 'bg-transparent'
             }`}
           >
@@ -1088,10 +1094,11 @@ export function ProfileView({
 
           {/* Posts Tab */}
           <Pressable
+            key="profile-tab-posts"
             onPress={() => setActiveTab('posts')}
             className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
               activeTab === 'posts'
-                ? 'bg-primary-600 shadow-sm'
+                ? 'bg-[#0866FF]'
                 : 'bg-transparent'
             }`}
           >
@@ -1113,10 +1120,11 @@ export function ProfileView({
 
           {/* Friends Tab */}
           <Pressable
+            key="profile-tab-friends"
             onPress={() => setActiveTab('friends')}
             className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
               activeTab === 'friends'
-                ? 'bg-primary-600 shadow-sm'
+                ? 'bg-[#0866FF]'
                 : 'bg-transparent'
             }`}
           >
@@ -1149,10 +1157,11 @@ export function ProfileView({
 
           {/* Groups Tab */}
           <Pressable
+            key="profile-tab-groups"
             onPress={() => setActiveTab('groups')}
             className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
               activeTab === 'groups'
-                ? 'bg-primary-600 shadow-sm'
+                ? 'bg-[#0866FF]'
                 : 'bg-transparent'
             }`}
           >
@@ -1175,10 +1184,11 @@ export function ProfileView({
           {/* Saved Tab (Only visible to Owner) */}
           {isOwner && (
             <Pressable
+              key="profile-tab-saved"
               onPress={() => setActiveTab('saved')}
               className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
                 activeTab === 'saved'
-                  ? 'bg-primary-600 shadow-sm'
+                  ? 'bg-[#0866FF]'
                   : 'bg-transparent'
               }`}
             >

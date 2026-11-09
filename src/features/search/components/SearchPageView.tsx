@@ -311,7 +311,7 @@ export function SearchPageView() {
                   onPress={() => setActiveTab(tab.id)}
                   className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-lg select-none ${
                     isActive
-                      ? 'bg-primary-500 shadow-xs'
+                      ? 'bg-[#0866FF]'
                       : 'bg-transparent hover:bg-white/60 dark:hover:bg-[#242526]'
                   }`}
                 >

@@ -623,7 +623,7 @@ export default function EditProfileScreen() {
                       onPress={() => setBloodGroup(bg.value)}
                       className={`px-3.5 py-2 rounded-xl border active:scale-95 ${
                         isSelected
-                          ? 'bg-rose-600 border-rose-600 shadow-xs'
+                          ? 'bg-rose-600 border-rose-600'
                           : 'bg-[#e6e9ef] dark:bg-[#3a3b3c] border-[#ced0d4] dark:border-[#4a4b4d]'
                       }`}
                     >

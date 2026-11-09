@@ -453,7 +453,7 @@ export function BloodCreateTab({ onSubmitOptimistic, onScrollTo }: BloodCreateTa
               style={webNoOutline}
               className={`px-3 py-1.5 rounded-xl border ${
                 formBloodGroup === bg
-                  ? 'bg-rose-600 border-rose-600 shadow-xs'
+                  ? 'bg-rose-600 border-rose-600'
                   : 'bg-[#e6e9ef] dark:bg-[#242526] border-[#e4e6eb] dark:border-[#393a3b]'
               }`}>
               <Text
