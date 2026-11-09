@@ -464,7 +464,7 @@ export default function SavedScreen() {
   });
 
   return (
-    <View className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a] relative">
+    <View className="flex-1 bg-white dark:bg-[#18191a] relative">
       {/* Sticky Routine Tab Switcher synced with Navbar slide */}
       <Animated.View
         onLayout={(e) => {
@@ -481,9 +481,9 @@ export default function SavedScreen() {
           zIndex: 30,
           transform: [{ translateY: stickySubHeaderTranslateY }],
         }}
-        className="w-full bg-white dark:bg-[#18191a] border-b border-[#d9dde4] dark:border-[#242526] px-3 py-2">
+        className="w-full bg-white dark:bg-[#18191a] border-b border-[#e4e6eb] dark:border-[#242526] px-3 py-2">
         <View className="w-full max-w-[768px] mx-auto">
-          <View className="w-full flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#242526] p-1">
+          <View className="w-full flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
             {mobileTabs.map((tab) => {
               const isActive = selectedSlot === tab.id;
               return (

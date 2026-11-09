@@ -603,7 +603,7 @@ export function ProfileView({
 
   if (!displayUser) {
     return (
-      <View className="flex-1 items-center justify-center p-8 bg-[#e6e9ef] dark:bg-[#18191a]">
+      <View className="flex-1 items-center justify-center p-8 bg-white dark:bg-[#18191a]">
         <AppIcon android="person" size={40} color="#65676b" />
         <Text className="text-sm font-bold text-[#65676b] dark:text-[#b0b3b8] mt-3">
           {locale === 'bn' ? 'ব্যবহারকারী পাওয়া যায়নি' : 'User not found'}
@@ -618,7 +618,7 @@ export function ProfileView({
 
   return (
     <ScrollView
-      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
+      className="flex-1 bg-white dark:bg-[#18191a]"
       stickyHeaderIndices={[2]}
       refreshControl={
         <RefreshControl

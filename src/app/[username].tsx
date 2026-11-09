@@ -126,7 +126,7 @@ export default function UserProfileScreen() {
   // Error / Not Found State
   if (isError || !profile) {
     return (
-      <ScrollView className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]">
+      <ScrollView className="flex-1 bg-white dark:bg-[#18191a]">
         <View className="p-4 pt-12 items-center">
           <View className="w-full max-w-[500px] bg-white dark:bg-[#242526] rounded-3xl p-8 border border-dashed border-[#e4e6eb] dark:border-[#393a3b] items-center text-center">
             <View className="h-16 w-16 rounded-full bg-rose-50 dark:bg-rose-950/60 items-center justify-center mb-4">
@@ -167,7 +167,7 @@ export default function UserProfileScreen() {
   }
 
   return (
-    <View className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]">
+    <View className="flex-1 bg-white dark:bg-[#18191a]">
       <ProfileView
         targetUser={isOwner ? authUser || profile : profile}
         initialTab={initialTab}

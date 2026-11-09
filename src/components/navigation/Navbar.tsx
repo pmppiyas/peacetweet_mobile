@@ -171,7 +171,7 @@ export function Navbar() {
         };
 
   return (
-    <View className="w-full h-[60px] border-b border-[#d9dde4] bg-white dark:border-[#393a3b] dark:bg-[#242526] px-3.5 flex-row items-center justify-between select-none">
+    <View className="w-full h-[60px] border-b border-[#e4e6eb] bg-white dark:border-[#393a3b] dark:bg-[#242526] px-3.5 flex-row items-center justify-between select-none">
       {isSearchExpanded ? (
         /* Full-Width Search Input View (Facebook mobile style) */
         <View className="flex-1 flex-row items-center gap-2">
@@ -179,7 +179,7 @@ export function Navbar() {
             onPress={closeSearchBar}
             hitSlop={8}
             accessibilityLabel="Close search"
-            className="h-10 w-10 items-center justify-center rounded-full active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
+            className="h-10 w-10 items-center justify-center rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
           >
             <AppIcon android="arrow_back" ios="arrow.left" size={22} color={iconColor} />
           </Pressable>
@@ -190,7 +190,7 @@ export function Navbar() {
                 flex: 1,
                 height: 40,
                 borderRadius: 9999,
-                backgroundColor: theme === 'dark' ? '#3a3b3c' : '#e6e9ef',
+                backgroundColor: theme === 'dark' ? '#3a3b3c' : '#f0f2f5',
                 flexDirection: 'row',
                 alignItems: 'center',
                 overflow: 'hidden',
@@ -334,7 +334,7 @@ export function Navbar() {
               hitSlop={4}
               accessibilityLabel="Create post"
               accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] active:bg-[#d9dde4] dark:active:bg-[#4e4f50]"
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="add_box"
@@ -350,7 +350,7 @@ export function Navbar() {
               hitSlop={4}
               accessibilityLabel="Search"
               accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] active:bg-[#d9dde4] dark:active:bg-[#4e4f50]"
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="search"
@@ -367,7 +367,7 @@ export function Navbar() {
               hitSlop={4}
               accessibilityLabel="Open menu drawer"
               accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] active:bg-[#d9dde4] dark:active:bg-[#4e4f50]"
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="menu"

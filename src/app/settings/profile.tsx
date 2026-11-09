@@ -289,7 +289,7 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]">
+    <View className="flex-1 bg-white dark:bg-[#18191a]">
       {/* Top Facebook-Style Header Bar */}
       <View className="w-full bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-4 py-3 flex-row items-center justify-between sticky top-0 z-30">
         <View className="flex-row items-center gap-2.5">

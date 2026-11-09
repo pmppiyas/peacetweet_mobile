@@ -34,7 +34,7 @@ export function PostCardSkeleton() {
 export function ProfileSkeleton() {
   return (
     <ScrollView
-      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
+      className="flex-1 bg-white dark:bg-[#18191a]"
       showsVerticalScrollIndicator={false}>
       {/* Cover Banner Skeleton */}
       <Skeleton className="w-full h-44 sm:h-52 rounded-none" />

@@ -264,7 +264,7 @@ export default function MessagesScreen() {
   const isChatActive = Boolean(selectedConversation);
 
   return (
-    <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a] sm:bg-[#e6e9ef]">
+    <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
       <View className="flex-1 w-full max-w-[1440px] mx-auto px-0 sm:px-4 lg:px-6">
         <View className="flex-1 flex-row h-full gap-4 lg:gap-6">
           {/* 1. Left Sidebar: Chats / Conversations Sidebar */}

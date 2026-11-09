@@ -211,9 +211,9 @@ function AppShell() {
     resetNavVisibility,
   ]);
 
-  // Soft eye-comfort off-white (#f5f6f8) in light mode, rich dark card (#242526) in dark mode
-  const surfaceColor = isDark ? '#242526' : '#f5f6f8';
-  const canvasColor = isDark ? '#18191a' : '#e6e9ef';
+  // Pure white (#ffffff) in light mode, rich dark card (#242526) in dark mode
+  const surfaceColor = isDark ? '#242526' : '#ffffff';
+  const canvasColor = isDark ? '#18191a' : '#ffffff';
   const photoViewerColor = isDark ? '#000000' : '#0b0e14';
 
   const topSafeColor = isPhotoViewerActive

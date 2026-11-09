@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-} from 'react-native';
+import { Modal, View, Text, Pressable, ScrollView } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUi } from '@/providers/UiProvider';
@@ -142,7 +136,8 @@ export function MenuDrawer() {
       transparent
       statusBarTranslucent
       animationType="fade"
-      onRequestClose={() => setMenuDrawerOpen(false)}>
+      onRequestClose={() => setMenuDrawerOpen(false)}
+    >
       <View className="flex-1 flex-row justify-end bg-black/60">
         {/* Backdrop tap area */}
         <Pressable
@@ -153,18 +148,21 @@ export function MenuDrawer() {
         {/* Drawer Panel matching peacetweet_frontend MenuDrawer */}
         <View
           style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
-          className="w-[88%] sm:w-[380px] max-w-[90%] h-full bg-white dark:bg-[#242526] border-l border-[#d9dde4] dark:border-[#393a3b] flex-col select-none">
+          className="w-[88%] sm:w-[380px] max-w-[90%] h-full bg-white dark:bg-[#242526] border-l border-[#e4e6eb] dark:border-[#393a3b] flex-col select-none"
+        >
           {/* Drawer Header */}
-          <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#d9dde4] dark:border-[#393a3b] select-none">
+          <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#e4e6eb] dark:border-[#393a3b] select-none">
             <Text
               selectable={false}
-              className="text-[20px] font-bold text-[#1e2329] dark:text-[#e4e6eb] select-none">
+              className="text-[20px] font-bold text-[#1e2329] dark:text-[#e4e6eb] select-none"
+            >
               {locale === 'bn' ? 'মেনু ও সেটিংস' : 'Menu & Settings'}
             </Text>
 
             <Pressable
               onPress={() => setMenuDrawerOpen(false)}
-              className="h-9 w-9 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c]">
+              className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c]"
+            >
               <AppIcon
                 android="close"
                 ios="xmark"
@@ -182,7 +180,8 @@ export function MenuDrawer() {
               <View className="mb-3.5">
                 <Pressable
                   onPress={() => closeAndNavigate('/profile')}
-                  className="flex-row items-center gap-3.5 p-3.5 rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c]">
+                  className="flex-row items-center gap-3.5 p-3.5 rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c]"
+                >
                   <UserAvatar
                     avatarUrl={user.avatarUrl || (user as any).avatar}
                     name={user.name}
@@ -191,12 +190,14 @@ export function MenuDrawer() {
                   <View className="flex-1">
                     <Text
                       numberOfLines={1}
-                      className="font-bold text-[16px] text-[#1e2329] dark:text-white">
+                      className="font-bold text-[16px] text-[#1e2329] dark:text-white"
+                    >
                       {user.name}
                     </Text>
                     <Text
                       numberOfLines={1}
-                      className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                      className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5"
+                    >
                       {user.username ? `@${user.username}` : user.email}
                     </Text>
                   </View>
@@ -208,7 +209,7 @@ export function MenuDrawer() {
                 </Pressable>
               </View>
             ) : (
-              <View className="p-4 rounded-2xl border border-[#d9dde4] bg-[#e6e9ef]/70 dark:border-[#393a3b] dark:bg-[#3a3b3c]/40 mb-3.5">
+              <View className="p-4 rounded-2xl  bg-[#e6e9ef]/70  dark:bg-[#3a3b3c]/40 mb-3.5">
                 <Text className="font-bold text-[16px] text-[#1e2329] dark:text-white">
                   {locale === 'bn'
                     ? 'PeaceTweet এ স্বাগতম'
@@ -223,7 +224,8 @@ export function MenuDrawer() {
                 <View className="flex-row gap-2.5">
                   <Pressable
                     onPress={() => closeAndNavigate('/login')}
-                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-primary-500 py-2.5">
+                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-primary-500 py-2.5"
+                  >
                     <AppIcon
                       android="login"
                       ios="arrow.right.square"
@@ -237,7 +239,8 @@ export function MenuDrawer() {
 
                   <Pressable
                     onPress={() => closeAndNavigate('/register')}
-                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-[#d9dde4] bg-white py-2.5 dark:border-[#393a3b] dark:bg-[#242526]">
+                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-[#d9dde4] bg-white py-2.5 dark:border-[#393a3b] dark:bg-[#242526]"
+                  >
                     <AppIcon
                       android="person_add"
                       ios="person.badge.plus"
@@ -264,7 +267,8 @@ export function MenuDrawer() {
                   : item.href === '/categories'
                     ? pathname === '/categories' || pathname === '/explore'
                     : pathname === item.href ||
-                      (pathname.startsWith(item.href + '/') && item.href !== '/');
+                      (pathname.startsWith(item.href + '/') &&
+                        item.href !== '/');
 
                 return (
                   <Pressable
@@ -274,10 +278,12 @@ export function MenuDrawer() {
                       isActive
                         ? 'bg-[#dee2e8] dark:bg-[#3a3b3c]'
                         : 'active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]/60'
-                    }`}>
+                    }`}
+                  >
                     <View className="flex-row items-center gap-3.5 flex-1">
                       <View
-                        className={`h-9 w-9 items-center justify-center rounded-full shrink-0 ${item.iconBg}`}>
+                        className={`h-9 w-9 items-center justify-center rounded-full shrink-0 ${item.iconBg}`}
+                      >
                         <AppIcon
                           android={item.icon}
                           size={19}
@@ -290,7 +296,8 @@ export function MenuDrawer() {
                           isActive
                             ? 'font-bold text-primary-700 dark:text-primary-400'
                             : 'font-semibold text-[#1e2329] dark:text-[#e4e6eb]'
-                        }`}>
+                        }`}
+                      >
                         {locale === 'bn' ? item.labelBn : item.labelEn}
                       </Text>
                     </View>
@@ -327,7 +334,8 @@ export function MenuDrawer() {
 
                 <Pressable
                   onPress={toggleTheme}
-                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#242526]">
+                  className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#242526]"
+                >
                   <Text className="font-bold text-[12.5px] text-[#1e2329] dark:text-[#e4e6eb]">
                     {theme === 'dark' ? 'Switch Light' : 'Switch Dark'}
                   </Text>
@@ -355,13 +363,15 @@ export function MenuDrawer() {
                       locale === 'bn'
                         ? 'bg-primary-500'
                         : 'bg-white dark:bg-[#242526]'
-                    }`}>
+                    }`}
+                  >
                     <Text
                       className={`font-bold text-[12.5px] ${
                         locale === 'bn'
                           ? 'text-white'
                           : 'text-[#65676b] dark:text-[#b0b3b8]'
-                      }`}>
+                      }`}
+                    >
                       বাংলা
                     </Text>
                   </Pressable>
@@ -371,13 +381,15 @@ export function MenuDrawer() {
                       locale === 'en'
                         ? 'bg-primary-500'
                         : 'bg-white dark:bg-[#242526]'
-                    }`}>
+                    }`}
+                  >
                     <Text
                       className={`font-bold text-[12.5px] ${
                         locale === 'en'
                           ? 'text-white'
                           : 'text-[#65676b] dark:text-[#b0b3b8]'
-                      }`}>
+                      }`}
+                    >
                       ENG
                     </Text>
                   </Pressable>
@@ -389,7 +401,8 @@ export function MenuDrawer() {
                 <Text className="text-[12px] text-[#65676b] dark:text-[#b0b3b8]">
                   {locale === 'bn' ? 'উদ্দেশ্য' : 'Purpose'} •{' '}
                   {locale === 'bn' ? 'ব্যবহারের শর্তাবলী' : 'Terms'} •{' '}
-                  {locale === 'bn' ? 'গোপনীয়তা নীতি' : 'Privacy'} • PeaceTweet © 2026
+                  {locale === 'bn' ? 'গোপনীয়তা নীতি' : 'Privacy'} • PeaceTweet ©
+                  2026
                 </Text>
               </View>
             </View>

@@ -73,7 +73,7 @@ export default function LoginScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
+      className="flex-1 bg-white dark:bg-[#18191a]"
       keyboardShouldPersistTaps="handled"
       contentContainerClassName="flex-grow items-center justify-center px-3 py-3">
       {/* Compact Brand Header */}

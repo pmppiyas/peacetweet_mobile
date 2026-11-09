@@ -125,7 +125,7 @@ export default function ZakatScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
+      className="flex-1 bg-white dark:bg-[#18191a]"
     >
       {/* Main Scrollable Body with Accordions (No Header Bar) */}
       <ScrollView

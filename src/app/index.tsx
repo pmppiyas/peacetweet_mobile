@@ -25,7 +25,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       testID="feed-scroll-view"
-      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
+      className="flex-1 bg-white dark:bg-[#18191a]"
       onScroll={handleFeedScroll}
       scrollEventThrottle={16}
       contentContainerStyle={{ paddingTop: 60, paddingBottom: 68 }}
@@ -75,7 +75,7 @@ export default function HomeScreen() {
 
                 <Pressable
                   onPress={() => openComposer({ mode: 'TEXT' })}
-                  className="h-9 flex-1 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] px-3.5 justify-center"
+                  className="h-9 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3.5 justify-center"
                 >
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
                     {user?.name
@@ -86,12 +86,12 @@ export default function HomeScreen() {
               </View>
 
               {/* Compact 3-Column Bottom Action Buttons */}
-              <View className="flex-row gap-1 pt-1 mt-2 border-t border-[#d9dde4] dark:border-[#393a3b]">
+              <View className="flex-row gap-1 pt-1 mt-2 border-t border-[#e4e6eb] dark:border-[#393a3b]">
                 <Pressable
                   onPress={() =>
                     openComposer({ mode: 'TEXT', action: 'photo' })
                   }
-                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
                     android="image"
@@ -106,7 +106,7 @@ export default function HomeScreen() {
 
                 <Pressable
                   onPress={() => openComposer({ mode: 'DUA' })}
-                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
                     android="menu_book"
@@ -123,7 +123,7 @@ export default function HomeScreen() {
                   onPress={() =>
                     openComposer({ mode: 'TEXT', action: 'feeling' })
                   }
-                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
                     android="sentiment_satisfied"
@@ -189,7 +189,7 @@ export default function HomeScreen() {
             {items.map((post, index) => (
               <React.Fragment key={post.id}>
                 {index > 0 && (
-                  <View className="h-2 w-full bg-[#e6e9ef] dark:bg-[#18191a] border-y border-[#d9dde4] dark:border-[#393a3b]" />
+                  <View className="h-2 w-full bg-[#f0f2f5] dark:bg-[#18191a] border-y border-[#e4e6eb] dark:border-[#393a3b]" />
                 )}
                 <View nativeID={`feed-post-${post.id}`} collapsable={false}>
                   <FeedPostCard post={post} />

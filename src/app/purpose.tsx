@@ -59,7 +59,7 @@ export default function PurposeScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
+      className="flex-1 bg-white dark:bg-[#18191a]"
       onScroll={handleFeedScroll}
       scrollEventThrottle={16}
       contentContainerStyle={{

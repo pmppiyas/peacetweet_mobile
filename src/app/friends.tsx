@@ -225,8 +225,8 @@ export default function FriendsScreen() {
         />
       }>
       {/* Index 0: Sticky Tab Switcher (No Header) */}
-      <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e6e9ef] dark:border-[#242526] px-3 py-2">
-        <View className="w-full max-w-[768px] mx-auto flex-row rounded-xl bg-[#e6e9ef] dark:bg-[#242526] p-1">
+      <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e4e6eb] dark:border-[#242526] px-3 py-2">
+        <View className="w-full max-w-[768px] mx-auto flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
           {[
             { key: 'all', bn: 'আমার ফ্রেন্ডস', en: 'My Friends' },
             { key: 'requests', bn: 'রিকোয়েস্ট', en: 'Requests' },

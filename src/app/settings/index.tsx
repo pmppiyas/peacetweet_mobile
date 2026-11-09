@@ -15,7 +15,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a]"
+      className="flex-1 bg-white dark:bg-[#18191a]"
       contentContainerStyle={{ paddingHorizontal: 6, paddingTop: 10, paddingBottom: 20 }}>
       <View className="w-full max-w-[768px] mx-auto space-y-3">
         {/* Hero Card */}

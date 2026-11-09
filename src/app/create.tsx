@@ -23,7 +23,7 @@ export default function CreatePostScreen() {
   }
 
   return (
-    <View className="flex-1 bg-[#e6e9ef] dark:bg-[#18191a] px-1.5 pt-3">
+    <View className="flex-1 bg-white dark:bg-[#18191a] px-1.5 pt-3">
       <View className="bg-white dark:bg-[#242526] rounded-2xl p-4 border border-[#e4e6eb] dark:border-[#393a3b]">
         <Text className="text-lg font-bold text-[#050505] dark:text-[#e4e6eb] mb-2">
           {locale === 'bn' ? 'নতুন দোয়া বা রিমাইন্ডার শেয়ার করুন' : 'Share a Dua or Reminder'}

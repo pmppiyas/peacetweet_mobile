@@ -10,10 +10,10 @@ module.exports = {
   theme: {
     extend: {
       backgroundColor: {
-        white: '#f5f6f8',
+        white: '#ffffff',
       },
       borderColor: {
-        white: '#f5f6f8',
+        white: '#ffffff',
       },
       colors: {
         brand: {
@@ -43,13 +43,13 @@ module.exports = {
           950: '#052060',
         },
         fb: {
-          bg: '#e6e9ef',
-          card: '#f5f6f8',
+          bg: '#ffffff',
+          card: '#ffffff',
           darkBg: '#18191a',
           darkCard: '#242526',
-          border: '#d9dde4',
+          border: '#e4e6eb',
           darkBorder: '#393a3b',
-          hover: '#dee2e8',
+          hover: '#f0f2f5',
           darkHover: '#3a3b3c',
           text: '#1e2329',
           secondary: '#65676b',
