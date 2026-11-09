@@ -338,7 +338,7 @@ export function Navbar() {
             >
               <AppIcon
                 android="add_box"
-                size={22}
+                size={25}
                 weight="bold"
                 color={iconColor}
               />
@@ -355,7 +355,7 @@ export function Navbar() {
               <AppIcon
                 android="search"
                 ios="magnifyingglass"
-                size={21}
+                size={24}
                 weight="bold"
                 color={iconColor}
               />
@@ -371,7 +371,7 @@ export function Navbar() {
             >
               <AppIcon
                 android="menu"
-                size={21}
+                size={25}
                 weight="bold"
                 color={iconColor}
               />
