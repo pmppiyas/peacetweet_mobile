@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useUi, ComposerMode, ComposerAction } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
@@ -687,14 +688,22 @@ export function MobileComposerModal() {
   return (
     <Modal
       visible={isComposerModalOpen}
+      transparent
       statusBarTranslucent
       animationType="slide"
       onRequestClose={handleClose}>
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
       <View
-        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+        style={{
+          flex: 1,
+          backgroundColor: theme === 'dark' ? '#18191a' : '#ffffff',
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        }}
         className="flex-1 bg-white dark:bg-[#18191a]">
         {/* ────────────────── 1. TOP HEADER ────────────────── */}
-        <View className="flex-row items-center justify-between px-3.5 h-14 border-b border-[#d9dde4] dark:border-[#2d2e2f] bg-white dark:bg-[#18191a]">
+        <View style={{ backgroundColor: theme === 'dark' ? '#18191a' : '#ffffff' }}
+          className="flex-row items-center justify-between px-3.5 h-14 border-b border-[#d9dde4] dark:border-[#2d2e2f] bg-white dark:bg-[#18191a]">
           <Pressable
             onPress={handleClose}
             className="h-9 w-9 items-center justify-center rounded-full bg-[#e6e9ef] dark:bg-[#2d2e2f] active:scale-95">

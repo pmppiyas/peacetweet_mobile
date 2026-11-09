@@ -89,7 +89,7 @@ export default function HomeScreen() {
 
                 <Pressable
                   onPress={() => openComposer({ mode: 'TEXT' })}
-                  className="h-10 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 justify-center active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+                  className="h-10 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 justify-center active:opacity-80"
                 >
                   <Text className="text-[14px] font-normal text-[#65676b] dark:text-[#b0b3b8]">
                     {composerPrompt}
@@ -104,7 +104,7 @@ export default function HomeScreen() {
                   onPress={() =>
                     openComposer({ mode: 'TEXT', action: 'photo' })
                   }
-                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:opacity-75"
                 >
                   <AppIcon
                     android="image"
@@ -120,7 +120,7 @@ export default function HomeScreen() {
                 {/* 2. Dua */}
                 <Pressable
                   onPress={() => openComposer({ mode: 'DUA' })}
-                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:opacity-75"
                 >
                   <AppIcon
                     android="menu_book"
@@ -136,7 +136,7 @@ export default function HomeScreen() {
                 {/* 3. Blood (রক্তদান) */}
                 <Pressable
                   onPress={() => openComposer({ mode: 'BLOOD_REQUEST' })}
-                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:opacity-75"
                 >
                   <AppIcon
                     android="water_drop"
