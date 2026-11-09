@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, Pressable, Linking } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, Pressable, Linking, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { FeedItem } from '@/features/feed/types/feed.types';
 import { useUi } from '@/providers/UiProvider';
@@ -7,6 +7,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
 import { PostMediaGallery } from './PostMediaGallery';
 import { ExpandablePostCaption } from './ExpandablePostCaption';
+import { bloodApi } from '@/features/blood/api/blood.api';
 
 const BLOOD_LABEL_MAP: Record<string, string> = {
   A_POSITIVE: 'A+',
@@ -25,9 +26,21 @@ export interface BloodPostCardProps {
 }
 
 export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
-  const { locale, theme } = useUi();
-  const { user } = useAuth();
+  const { locale, theme, showToast } = useUi();
+  const { user, isAuthenticated } = useAuth();
   const blood = post.bloodRequest;
+
+  const [localDonations, setLocalDonations] = useState<any[]>(
+    blood?.donations || []
+  );
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  useEffect(() => {
+    if (blood?.donations) {
+      setLocalDonations(blood.donations);
+    }
+  }, [blood?.donations]);
 
   if (!blood || (blood as any).isUnavailable) {
     return (
@@ -56,9 +69,9 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
     : null;
 
   const activeDonationsCount =
-    blood.donations?.filter(
+    localDonations.filter(
       (d: any) => d.status === 'ACCEPTED' || d.status === 'COMPLETED'
-    ).length || 0;
+    ).length;
 
   const progressPercent = blood.units
     ? Math.min(
@@ -71,10 +84,103 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
     BLOOD_LABEL_MAP[blood.bloodGroup] || blood.bloodGroup || '?';
 
   const isOwner = user?.id === blood.requesterId;
-  const myDonation = blood.donations?.find(
+  const myDonation = localDonations.find(
     (d: any) => d.donorId === user?.id && d.status !== 'CANCELLED'
   );
   const isMyDonationActive = Boolean(myDonation);
+  const isFullyPledged = blood.units ? activeDonationsCount >= blood.units : false;
+
+  const handleAccept = async () => {
+    if (!isAuthenticated) {
+      showToast({
+        message:
+          locale === 'bn'
+            ? 'রক্তদানের আবেদন গ্রহণ করতে অনুগ্রহ করে আগে লগইন করুন।'
+            : 'Please log in to accept this blood donation request.',
+        type: 'warning',
+      });
+      router.push('/login');
+      return;
+    }
+
+    if (user?.id && blood.requesterId === user.id) {
+      showToast({
+        message:
+          locale === 'bn'
+            ? 'আপনি নিজের তৈরিকৃত রক্তের আবেদনে নিজেই রক্তদাতা হতে পারবেন না।'
+            : 'You cannot donate blood to your own request.',
+        type: 'warning',
+      });
+      return;
+    }
+
+    if (isMyDonationActive || isAccepting) return;
+
+    try {
+      setIsAccepting(true);
+      const res = await bloodApi.acceptBloodRequest(blood.id);
+
+      const newDonation = {
+        id: res?.donation?.id || `temp-${Date.now()}`,
+        donorId: user?.id || '',
+        status: 'ACCEPTED',
+        donor: {
+          id: user?.id || '',
+          name: user?.name || '',
+          avatarUrl: user?.avatarUrl || '',
+          bloodGroup: user?.bloodGroup || '',
+        },
+      };
+
+      setLocalDonations((prev) => [...(prev || []), newDonation]);
+
+      showToast({
+        message:
+          locale === 'bn'
+            ? `ধন্যবাদ! ${blood.patientName}-এর জন্য আপনার রক্তদানের প্রতিশ্রুতি গৃহীত হয়েছে।`
+            : `Thank you! Your pledge for ${blood.patientName} was accepted.`,
+        type: 'success',
+      });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        (locale === 'bn'
+          ? 'রক্তদানের আবেদন গ্রহণ করতে ব্যর্থ হয়েছে।'
+          : 'Failed to accept blood request.');
+      showToast({ message: msg, type: 'error' });
+    } finally {
+      setIsAccepting(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (isCancelling) return;
+    try {
+      setIsCancelling(true);
+      await bloodApi.cancelDonation(blood.id);
+
+      setLocalDonations((prev) =>
+        prev.filter((d: any) => d.donorId !== user?.id)
+      );
+
+      showToast({
+        message:
+          locale === 'bn'
+            ? 'রক্তদানের প্রতিশ্রুতি বাতিল করা হয়েছে।'
+            : 'Blood donation pledge was cancelled.',
+        type: 'info',
+      });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        (locale === 'bn'
+          ? 'বাতিল করতে সমস্যা হয়েছে।'
+          : 'Failed to cancel blood donation pledge.');
+      showToast({ message: msg, type: 'error' });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   // Avoid duplicating caption if content is identical to blood problem
   const isRedundantContent =
@@ -331,7 +437,7 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
         </View>
 
         {/* Donors Preview */}
-        {blood.donations && blood.donations.length > 0 ? (
+        {localDonations && localDonations.length > 0 ? (
           <View className="flex-row items-center gap-2 pt-0.5">
             <Text
               selectable={false}
@@ -339,7 +445,7 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
               {locale === 'bn' ? 'ডোনারসমূহ:' : 'Donors:'}
             </Text>
             <View className="flex-row -space-x-1.5">
-              {blood.donations
+              {localDonations
                 .filter((d: any) => d.status !== 'CANCELLED')
                 .slice(0, 4)
                 .map((d: any, idx: number) => (
@@ -387,28 +493,49 @@ export function BloodPostCard({ post, onOpenPhoto }: BloodPostCardProps) {
               </Text>
             </View>
           ) : isMyDonationActive ? (
-            <View className="flex-row items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40">
-              <AppIcon
-                android="check_circle"
-                ios="checkmark.circle.fill"
-                size={12}
-                color="#059669"
-              />
-              <Text className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                {locale === 'bn' ? 'যুক্ত আছেন' : 'Accepted'}
+            <View className="flex-row items-center gap-1.5">
+              <View className="flex-row items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40">
+                <AppIcon
+                  android="check_circle"
+                  ios="checkmark.circle.fill"
+                  size={12}
+                  color="#059669"
+                />
+                <Text className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                  {locale === 'bn' ? 'যুক্ত আছেন' : 'Accepted'}
+                </Text>
+              </View>
+
+              <Pressable
+                onPress={handleCancel}
+                disabled={isCancelling}
+                hitSlop={8}
+                className="px-1 py-0.5 active:opacity-70">
+                {isCancelling ? (
+                  <ActivityIndicator size="small" color="#e11d48" />
+                ) : (
+                  <Text className="text-[10px] font-bold text-rose-600 dark:text-rose-400 underline">
+                    {locale === 'bn' ? 'বাতিল' : 'Cancel'}
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          ) : isFullyPledged ? (
+            <View className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40">
+              <Text className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                {locale === 'bn' ? 'ডোনার পূর্ণ' : 'Fulfilled'}
               </Text>
             </View>
           ) : (
             <Pressable
-              onPress={() => {
-                if (blood.contactNumber) {
-                  Linking.openURL(`tel:${blood.contactNumber}`);
-                } else {
-                  router.push('/blood');
-                }
-              }}
-              className="flex-row items-center gap-1 px-2.5 py-1 rounded-full bg-rose-600 active:scale-95 shadow-2xs">
-              <AppIcon android="water_drop" ios="drop.fill" size={11} color="#ffffff" />
+              onPress={handleAccept}
+              disabled={isAccepting}
+              className="flex-row items-center gap-1 px-3 py-1 rounded-full bg-rose-600 active:scale-95 shadow-2xs">
+              {isAccepting ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <AppIcon android="water_drop" ios="drop.fill" size={11} color="#ffffff" />
+              )}
               <Text className="text-[10px] font-bold text-white">
                 {locale === 'bn' ? 'রক্ত দিতে চাই' : 'Donate Blood'}
               </Text>
