@@ -307,38 +307,40 @@ export default function MessagesScreen() {
 
   return (
     <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
-      {/* 1. Chats / Conversations List */}
-      <View
-        style={{ display: !isChatActive ? 'flex' : 'none' }}
-        className="flex-1 w-full h-full pt-[60px] pb-[56px]">
-        <ConversationSidebar
-          conversations={conversations}
-          isLoading={isLoading}
-          isRefreshing={isRefreshing}
-          onRefresh={() => {
-            setIsRefreshing(true);
-            loadChatData(true);
-          }}
-          selectedId={selectedConversation?.id || null}
-          onSelectConversation={openConversation}
-          onStartChatWithUser={handleStartChatWithUser}
-          currentUserId={user?.id}
-          totalUnreadCount={totalUnreadCount}
-        />
-      </View>
-
-      {/* 2. Active Chat View */}
-      {isChatActive && selectedConversation ? (
-        <View className="flex-1 w-full h-full">
-          <ChatView
-            key={selectedConversation.id}
-            conversation={selectedConversation}
-            onBack={closeConversation}
-            onConversationUpdated={handleConversationUpdated}
-            onConversationMarkedRead={handleConversationMarkedRead}
+      <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b]">
+        {/* 1. Chats / Conversations List */}
+        <View
+          style={{ display: !isChatActive ? 'flex' : 'none' }}
+          className="flex-1 w-full h-full pt-[60px] pb-[56px]">
+          <ConversationSidebar
+            conversations={conversations}
+            isLoading={isLoading}
+            isRefreshing={isRefreshing}
+            onRefresh={() => {
+              setIsRefreshing(true);
+              loadChatData(true);
+            }}
+            selectedId={selectedConversation?.id || null}
+            onSelectConversation={openConversation}
+            onStartChatWithUser={handleStartChatWithUser}
+            currentUserId={user?.id}
+            totalUnreadCount={totalUnreadCount}
           />
         </View>
-      ) : null}
+
+        {/* 2. Active Chat View */}
+        {isChatActive && selectedConversation ? (
+          <View className="flex-1 w-full h-full">
+            <ChatView
+              key={selectedConversation.id}
+              conversation={selectedConversation}
+              onBack={closeConversation}
+              onConversationUpdated={handleConversationUpdated}
+              onConversationMarkedRead={handleConversationMarkedRead}
+            />
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }
