@@ -486,19 +486,19 @@ export function FeedPostCard({
       </View>
 
       {/* 3. Action Bar with icons & counts, aligned to start */}
-      <View className="flex-row items-center justify-start gap-4 sm:gap-6 px-3 py-1.5 mt-2 border-t border-[#d9dde4]/80 dark:border-[#393a3b]/70 select-none">
+      <View className="flex-row items-center justify-start gap-3 sm:gap-5 px-3.5 py-2 mt-1.5 border-t border-[#f0f2f5] dark:border-[#2e2f30] select-none">
         {/* Reaction (Ameen / Like) */}
         <Pressable
           onPress={handleToggleReaction}
-          className={`flex-row items-center gap-1.5 py-1 px-2 rounded-lg select-none ${
+          className={`flex-row items-center gap-2 py-1.5 px-3 rounded-xl select-none active:scale-95 ${
             hasReacted
-              ? 'bg-rose-50/50 dark:bg-rose-950/20'
-              : 'active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]'
+              ? 'bg-rose-50/60 dark:bg-rose-950/30'
+              : 'active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]'
           }`}>
           <AppIcon
             android="favorite"
             ios={hasReacted ? 'heart.fill' : 'heart'}
-            size={18}
+            size={22}
             color={
               hasReacted
                 ? '#e11d48'
@@ -511,7 +511,7 @@ export function FeedPostCard({
           />
           <Text
             selectable={false}
-            className={`text-xs font-semibold select-none ${
+            className={`text-[13.5px] font-semibold select-none ${
               hasReacted
                 ? 'text-rose-600 dark:text-rose-400'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -523,15 +523,15 @@ export function FeedPostCard({
         {/* Comment */}
         <Pressable
           onPress={handleToggleComments}
-          className={`flex-row items-center gap-1.5 py-1 px-2 rounded-lg select-none ${
+          className={`flex-row items-center gap-2 py-1.5 px-3 rounded-xl select-none active:scale-95 ${
             showComments
-              ? 'bg-primary-50/50 dark:bg-primary-950/20'
-              : 'active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]'
+              ? 'bg-primary-50/60 dark:bg-primary-950/30'
+              : 'active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]'
           }`}>
           <AppIcon
             android="chat_bubble"
             ios="bubble.left"
-            size={18}
+            size={22}
             color={
               showComments
                 ? '#0866FF'
@@ -542,9 +542,9 @@ export function FeedPostCard({
           />
           <Text
             selectable={false}
-            className={`text-xs font-semibold select-none ${
+            className={`text-[13.5px] font-semibold select-none ${
               showComments
-                ? 'text-primary-600 dark:text-primary-400'
+                ? 'text-[#0866FF] dark:text-[#36a4fa]'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
             }`}>
             {commentCount}
@@ -554,15 +554,15 @@ export function FeedPostCard({
         {/* Save */}
         <Pressable
           onPress={handleToggleSave}
-          className={`flex-row items-center gap-1.5 py-1 px-2 rounded-lg select-none ${
+          className={`flex-row items-center gap-2 py-1.5 px-3 rounded-xl select-none active:scale-95 ${
             hasSaved
-              ? 'bg-amber-50/50 dark:bg-amber-950/20'
-              : 'active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]'
+              ? 'bg-amber-50/60 dark:bg-amber-950/30'
+              : 'active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]'
           }`}>
           <AppIcon
             android="bookmark"
             ios={hasSaved ? 'bookmark.fill' : 'bookmark'}
-            size={18}
+            size={22}
             color={
               hasSaved
                 ? '#d97706'
@@ -575,7 +575,7 @@ export function FeedPostCard({
           />
           <Text
             selectable={false}
-            className={`text-xs font-semibold select-none ${
+            className={`text-[13.5px] font-semibold select-none ${
               hasSaved
                 ? 'text-amber-600 dark:text-amber-400'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -587,16 +587,16 @@ export function FeedPostCard({
         {/* Share */}
         <Pressable
           onPress={() => setShowShareModal(true)}
-          className="flex-row items-center gap-1.5 py-1 px-2 rounded-lg select-none active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
+          className="flex-row items-center gap-2 py-1.5 px-3 rounded-xl select-none active:scale-95 active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
           <AppIcon
             android="share"
             ios="square.and.arrow.up"
-            size={18}
+            size={22}
             color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
           />
           <Text
             selectable={false}
-            className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] select-none">
+            className="text-[13.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8] select-none">
             {shareCount}
           </Text>
         </Pressable>

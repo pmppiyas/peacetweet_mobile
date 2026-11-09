@@ -1039,14 +1039,14 @@ export function GlobalPhotoViewerModal() {
                   accessibilityLabel="Like"
                 >
                   <ThumbLikeIcon
-                    size={20}
+                    size={22}
                     color={hasReacted ? '#0866FF' : actionIconColor}
                     filled={hasReacted}
                   />
                   {reactionCount > 0 ? (
                     <Text
                       style={[{ color: hasReacted ? '#0866FF' : actionTextColor }, textShadowStyle] as any}
-                      className="text-[13px] font-bold"
+                      className="text-[13.5px] font-bold"
                     >
                       {reactionCount}
                     </Text>
@@ -1065,11 +1065,11 @@ export function GlobalPhotoViewerModal() {
                   className="h-10 px-3.5 rounded-full flex-row items-center justify-center gap-1.5 active:scale-95"
                   accessibilityLabel="Comments"
                 >
-                  <CommentOutlineIcon size={20} color={actionIconColor} />
+                  <CommentOutlineIcon size={22} color={actionIconColor} />
                   {commentCount > 0 ? (
                     <Text
                       style={[{ color: actionTextColor }, textShadowStyle] as any}
-                      className="text-[13px] font-bold"
+                      className="text-[13.5px] font-bold"
                     >
                       {commentCount}
                     </Text>
@@ -1088,7 +1088,7 @@ export function GlobalPhotoViewerModal() {
                   className="h-10 w-10 rounded-full items-center justify-center active:scale-95"
                   accessibilityLabel="Share"
                 >
-                  <ShareArrowIcon size={19} color={actionIconColor} />
+                  <ShareArrowIcon size={21} color={actionIconColor} />
                 </Pressable>
 
                 {/* 4. Bookmark / Save Button */}
@@ -1105,7 +1105,7 @@ export function GlobalPhotoViewerModal() {
                 >
                   <AppIcon
                     android="bookmark"
-                    size={19}
+                    size={21}
                     color={hasSaved ? '#0866FF' : actionIconColor}
                     filled={hasSaved}
                   />
