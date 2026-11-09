@@ -171,20 +171,20 @@ export function MobileNav() {
                 disabled={isUploadingPost}
                 onPress={handleComposerPress}
                 accessibilityLabel={label}
-                className="flex-1 flex-col items-center justify-center -top-3 z-20 h-full px-0.5 active:scale-95 select-none">
+                className="flex-1 flex-col items-center justify-center -top-3.5 z-20 h-full px-0.5 active:scale-95 select-none">
                 <View
                   style={{
                     backgroundColor: activeBg,
                     borderColor: theme === 'dark' ? '#242526' : '#ffffff',
                   }}
-                  className="h-12 w-12 items-center justify-center rounded-full shadow-lg border-2 select-none">
+                  className="h-[52px] w-[52px] items-center justify-center rounded-full shadow-lg border-2 select-none">
                   {isUploadingPost ? (
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : isPostUploadSuccess ? (
                     <AppIcon
                       android="check"
                       ios="checkmark"
-                      size={24}
+                      size={28}
                       weight="bold"
                       color="#ffffff"
                     />
@@ -192,7 +192,7 @@ export function MobileNav() {
                     <AppIcon
                       android="add"
                       ios="plus"
-                      size={28}
+                      size={32}
                       weight="bold"
                       color="#ffffff"
                     />
@@ -225,12 +225,12 @@ export function MobileNav() {
               <View className="relative items-center justify-center select-none">
                 <AppIcon
                   android={item.icon}
-                  size={25}
+                  size={29}
                   weight="bold"
                   color={iconColor}
                 />
                 {typeof item.badge === 'number' && item.badge > 0 ? (
-                  <View className="absolute -top-1 -right-2 h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 select-none">
+                  <View className="absolute -top-1.5 -right-2.5 h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 select-none">
                     <Text
                       selectable={false}
                       className="text-[9px] font-bold text-white select-none">

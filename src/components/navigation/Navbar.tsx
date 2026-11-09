@@ -334,11 +334,11 @@ export function Navbar() {
               hitSlop={4}
               accessibilityLabel="Create post"
               accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+              className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="add_box"
-                size={25}
+                size={28}
                 weight="bold"
                 color={iconColor}
               />
@@ -350,12 +350,12 @@ export function Navbar() {
               hitSlop={4}
               accessibilityLabel="Search"
               accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+              className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="search"
                 ios="magnifyingglass"
-                size={24}
+                size={27}
                 weight="bold"
                 color={iconColor}
               />
@@ -367,11 +367,11 @@ export function Navbar() {
               hitSlop={4}
               accessibilityLabel="Open menu drawer"
               accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+              className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="menu"
-                size={25}
+                size={28}
                 weight="bold"
                 color={iconColor}
               />
