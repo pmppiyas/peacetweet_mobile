@@ -1,4 +1,3 @@
-import React from 'react';
 import { Modal, View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { useUi } from '@/providers/UiProvider';
 import { AppIcon } from './Icon';
@@ -36,62 +35,66 @@ export function ConfirmDialog({
     variant === 'warning'
       ? 'bg-amber-100 dark:bg-amber-950/50'
       : variant === 'success'
-      ? 'bg-emerald-100 dark:bg-emerald-950/50'
-      : variant === 'danger'
-      ? 'bg-rose-100 dark:bg-rose-950/50'
-      : 'bg-primary-100 dark:bg-primary-950/50';
+        ? 'bg-emerald-100 dark:bg-emerald-950/50'
+        : variant === 'danger'
+          ? 'bg-rose-100 dark:bg-rose-950/50'
+          : 'bg-primary-100 dark:bg-primary-950/50';
 
   const iconColor =
     variant === 'warning'
       ? '#d97706'
       : variant === 'success'
-      ? '#059669'
-      : variant === 'danger'
-      ? '#e11d48'
-      : '#1877f2';
+        ? '#059669'
+        : variant === 'danger'
+          ? '#e11d48'
+          : '#1877f2';
 
   const confirmBtnClass =
     variant === 'warning'
       ? 'bg-amber-600 active:bg-amber-700'
       : variant === 'success'
-      ? 'bg-emerald-600 active:bg-emerald-700'
-      : variant === 'danger'
-      ? 'bg-rose-600 active:bg-rose-700'
-      : 'bg-primary-600 active:bg-primary-700';
+        ? 'bg-emerald-600 active:bg-emerald-700'
+        : variant === 'danger'
+          ? 'bg-rose-600 active:bg-rose-700'
+          : 'bg-primary-600 active:bg-primary-700';
 
   const androidHeaderIcon =
     variant === 'danger'
       ? 'delete'
       : variant === 'success'
-      ? 'check_circle'
-      : variant === 'warning'
-      ? 'warning'
-      : 'info';
+        ? 'check_circle'
+        : variant === 'warning'
+          ? 'warning'
+          : 'info';
 
   const iosHeaderIcon =
     variant === 'danger'
       ? 'trash'
       : variant === 'success'
-      ? 'checkmark.circle'
-      : variant === 'warning'
-      ? 'exclamationmark.triangle.fill'
-      : 'info.circle';
+        ? 'checkmark.circle'
+        : variant === 'warning'
+          ? 'exclamationmark.triangle.fill'
+          : 'info.circle';
 
   return (
     <Modal
       visible={isOpen}
       transparent
       animationType="fade"
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+    >
       <Pressable
         onPress={onClose}
-        className="flex-1 bg-black/60 items-center justify-center p-4">
+        className="flex-1 bg-black/60 items-center justify-center p-4"
+      >
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          className="w-full max-w-sm rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] p-5 shadow-2xl">
+          className="w-full max-w-sm rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] p-5 shadow-2xl"
+        >
           <View className="flex-row items-center gap-3">
             <View
-              className={`h-11 w-11 items-center justify-center rounded-full ${iconBgClass}`}>
+              className={`h-11 w-11 items-center justify-center rounded-full ${iconBgClass}`}
+            >
               <AppIcon
                 android={androidHeaderIcon}
                 ios={iosHeaderIcon}
@@ -123,7 +126,8 @@ export function ConfirmDialog({
             <Pressable
               disabled={isLoading}
               onPress={onClose}
-              className="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
+              className="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
+            >
               <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                 {cancelText || (locale === 'bn' ? 'বাতিল করুন' : 'Cancel')}
               </Text>
@@ -135,7 +139,8 @@ export function ConfirmDialog({
                 onConfirm();
                 onClose();
               }}
-              className={`flex-row items-center gap-1.5 rounded-xl px-4 py-2 ${confirmBtnClass}`}>
+              className={`flex-row items-center gap-1.5 rounded-xl px-4 py-2 ${confirmBtnClass}`}
+            >
               {isLoading ? (
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
