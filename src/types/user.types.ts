@@ -12,6 +12,11 @@ export type BloodGroup =
   | 'O_POSITIVE'
   | 'O_NEGATIVE';
 
+export interface UserBadge {
+  id: string;
+  name: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -20,6 +25,7 @@ export interface User {
   role: UserRole;
   userStatus?: UserStatus;
   badge?: string;
+  badges?: UserBadge[];
   bio?: string | null;
   avatarUrl?: string | null;
   coverUrl?: string | null;
