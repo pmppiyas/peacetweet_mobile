@@ -315,7 +315,7 @@ export function Navbar() {
               ) : null}
               <Text
                 selectable={false}
-                className={`text-[28px] leading-none font-black tracking-[-0.7px] select-none ${
+                className={`text-[30px] leading-none font-black tracking-[-0.8px] select-none ${
                   isBloodRoute
                     ? 'text-rose-600 dark:text-rose-500'
                     : 'text-[#0866FF] dark:text-[#36a4fa]'

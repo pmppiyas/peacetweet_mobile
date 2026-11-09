@@ -14,6 +14,7 @@ import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
+import { PeaceTweetLogo } from '@/components/ui/PeaceTweetLogo';
 import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
 
 export default function LoginScreen() {
@@ -24,7 +25,9 @@ export default function LoginScreen() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [focusedField, setFocusedField] = useState<'identifier' | 'password' | null>(null);
+  const [focusedField, setFocusedField] = useState<
+    'identifier' | 'password' | null
+  >(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   const isDark = theme === 'dark';
@@ -76,15 +79,17 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-white dark:bg-[#18191a]">
+      className="flex-1 bg-white dark:bg-[#18191a]"
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-        className="flex-1">
+        className="flex-1"
+      >
         <View className="w-full max-w-[420px] mx-auto px-6 py-10 justify-center">
           {/* Top Bar with Back Button */}
-          <View className="flex-row items-center justify-between mb-8">
+          <View className="flex-row items-center justify-between mb-6">
             <Pressable
               onPress={() => {
                 if (router.canGoBack()) {
@@ -96,7 +101,8 @@ export default function LoginScreen() {
               hitSlop={10}
               accessibilityLabel="Back"
               accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]"
+            >
               <AppIcon
                 android="arrow_back"
                 ios="arrow.left"
@@ -104,23 +110,19 @@ export default function LoginScreen() {
                 color={isDark ? '#e4e6eb' : '#1e2329'}
               />
             </Pressable>
-
-            {/* Subtle Brand Tag */}
-            <Pressable onPress={() => router.push('/')}>
-              <Text className="text-[20px] font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
-                PeaceTweet
-              </Text>
-            </Pressable>
-
-            {/* Empty view for symmetrical spacing */}
-            <View className="w-10 h-10" />
           </View>
 
-          {/* Welcoming Header */}
+          {/* Welcoming Hero & Brand Section */}
           <View className="mb-8">
-            <Text className="text-[28px] font-black tracking-tight text-[#1e2329] dark:text-[#e4e6eb]">
-              {locale === 'bn' ? 'স্বাগতম!' : 'Welcome back'}
-            </Text>
+            <View className="flex-row items-center gap-3 mb-4">
+              <PeaceTweetLogo size={52} />
+              <Pressable onPress={() => router.push('/')}>
+                <Text className="text-[34px] font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
+                  PeaceTweet
+                </Text>
+              </Pressable>
+            </View>
+
             <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-1.5 leading-relaxed">
               {locale === 'bn'
                 ? 'আপনার অ্যাকাউন্টে সাইন ইন করুন এবং শান্তির বার্তা ছড়িয়ে দিন।'
@@ -150,7 +152,8 @@ export default function LoginScreen() {
                   focusedField === 'identifier'
                     ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
                     : 'bg-[#f0f2f5] dark:bg-[#242526]'
-                }`}>
+                }`}
+              >
                 <AppIcon
                   android="mail"
                   size={19}
@@ -189,7 +192,8 @@ export default function LoginScreen() {
                   focusedField === 'password'
                     ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
                     : 'bg-[#f0f2f5] dark:bg-[#242526]'
-                }`}>
+                }`}
+              >
                 <AppIcon
                   android="lock"
                   size={19}
@@ -214,7 +218,8 @@ export default function LoginScreen() {
                 <Pressable
                   onPress={() => setShowPassword(!showPassword)}
                   hitSlop={8}
-                  className="p-1">
+                  className="p-1"
+                >
                   <AppIcon
                     android={showPassword ? 'visibility_off' : 'visibility'}
                     size={18}
@@ -230,8 +235,11 @@ export default function LoginScreen() {
               disabled={isBusy}
               className={`h-12 rounded-2xl bg-[#0866FF] items-center justify-center flex-row gap-2 mt-2 shadow-sm shadow-[#0866FF]/25 ${
                 isBusy ? 'opacity-65' : 'active:opacity-90'
-              }`}>
-              {isLoggingIn && <ActivityIndicator size="small" color="#ffffff" />}
+              }`}
+            >
+              {isLoggingIn && (
+                <ActivityIndicator size="small" color="#ffffff" />
+              )}
               <Text className="text-white font-bold text-[15px] select-none">
                 {isLoggingIn
                   ? locale === 'bn'
@@ -258,7 +266,8 @@ export default function LoginScreen() {
               disabled={isBusy}
               className={`h-12 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] items-center justify-center flex-row gap-2.5 active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] ${
                 isBusy ? 'opacity-60' : ''
-              }`}>
+              }`}
+            >
               {isGoogleLoading ? (
                 <ActivityIndicator size="small" color="#4285F4" />
               ) : (
@@ -279,18 +288,15 @@ export default function LoginScreen() {
           {/* Bottom Switch: Sign Up Prompt */}
           <View className="flex-row items-center justify-center gap-1.5 mt-8 py-2">
             <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8]">
-              {locale === 'bn'
-                ? 'অ্যাকাউন্ট নেই?'
-                : "Don't have an account?"}
+              {locale === 'bn' ? 'অ্যাকাউন্ট নেই?' : "Don't have an account?"}
             </Text>
             <Pressable
               onPress={() => router.push('/register')}
               hitSlop={8}
-              className="py-1">
+              className="py-1"
+            >
               <Text className="text-[14px] font-bold text-[#0866FF] dark:text-[#36a4fa]">
-                {locale === 'bn'
-                  ? 'নতুন অ্যাকাউন্ট খুলুন'
-                  : 'Create account'}
+                {locale === 'bn' ? 'নতুন অ্যাকাউন্ট খুলুন' : 'Create account'}
               </Text>
             </Pressable>
           </View>
