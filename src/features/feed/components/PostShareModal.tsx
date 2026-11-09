@@ -299,12 +299,12 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
             </View>
 
             {/* Social Platforms Row */}
-            <View {...bodyPanResponder.panHandlers} className="px-4 py-5">
-              <View className="flex-row items-center justify-around flex-wrap gap-3">
+            <View {...bodyPanResponder.panHandlers} className="px-5 py-5">
+              <View style={{ justifyContent: 'flex-start' }} className="flex-row items-start justify-start flex-wrap gap-x-4 sm:gap-x-6 gap-y-4">
                 {/* 1. Copy Link */}
                 <Pressable
                   onPress={handleCopyLink}
-                  className="items-center gap-1.5 active:opacity-75">
+                  className="items-center gap-1.5 active:opacity-75 w-16 sm:w-[72px]">
                   <View
                     style={{
                       backgroundColor: copied
@@ -339,7 +339,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
                 {/* 2. WhatsApp */}
                 <Pressable
                   onPress={handleWhatsApp}
-                  className="items-center gap-1.5 active:opacity-75">
+                  className="items-center gap-1.5 active:opacity-75 w-16 sm:w-[72px]">
                   <View
                     style={{ backgroundColor: '#25D366' }}
                     className="h-14 w-14 rounded-full items-center justify-center shadow-sm">
@@ -353,7 +353,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
                 {/* 3. Facebook */}
                 <Pressable
                   onPress={handleFacebook}
-                  className="items-center gap-1.5 active:opacity-75">
+                  className="items-center gap-1.5 active:opacity-75 w-16 sm:w-[72px]">
                   <View
                     style={{ backgroundColor: '#0866FF' }}
                     className="h-14 w-14 rounded-full items-center justify-center shadow-sm">
@@ -367,7 +367,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
                 {/* 4. Messenger */}
                 <Pressable
                   onPress={handleMessenger}
-                  className="items-center gap-1.5 active:opacity-75">
+                  className="items-center gap-1.5 active:opacity-75 w-16 sm:w-[72px]">
                   <View
                     style={{ backgroundColor: '#0084FF' }}
                     className="h-14 w-14 rounded-full items-center justify-center shadow-sm">
@@ -381,7 +381,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
                 {/* 5. Twitter / X */}
                 <Pressable
                   onPress={handleTwitter}
-                  className="items-center gap-1.5 active:opacity-75">
+                  className="items-center gap-1.5 active:opacity-75 w-16 sm:w-[72px]">
                   <View
                     style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }}
                     className="h-14 w-14 rounded-full items-center justify-center shadow-sm">
@@ -399,7 +399,7 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
                 {/* 6. Device More Share */}
                 <Pressable
                   onPress={handleNativeShare}
-                  className="items-center gap-1.5 active:opacity-75">
+                  className="items-center gap-1.5 active:opacity-75 w-16 sm:w-[72px]">
                   <View
                     style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
                     className="h-14 w-14 rounded-full items-center justify-center">
