@@ -1,4 +1,4 @@
-import { BloodGroup, UserRole, UserStatus } from '@/types/user.types';
+import { BloodGroup, UserBadge, UserRole, UserStatus } from '@/types/user.types';
 
 export type FriendshipStatus =
   | 'NONE'
@@ -20,6 +20,7 @@ export interface UserProfileResponse {
   role?: UserRole;
   userStatus?: UserStatus;
   badge?: string;
+  badges?: UserBadge[];
   bio?: string | null;
   avatarUrl?: string | null;
   coverUrl?: string | null;

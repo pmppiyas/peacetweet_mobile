@@ -32,7 +32,7 @@ import {
   ProfileTab,
   FriendshipStatus,
 } from '../types/profile.types';
-import { User, BloodGroup } from '@/types/user.types';
+import { User, BloodGroup, UserBadge } from '@/types/user.types';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { PostCardSkeleton } from './ProfileSkeleton';
 import { PhotoEditorModal, PhotoEditorMode } from './PhotoEditorModal';
@@ -830,13 +830,24 @@ export function ProfileView({
             </View>
           )}
 
-          {/* Member Tier */}
-          <View className="flex-row items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 border border-emerald-200 dark:border-emerald-800">
-            <AppIcon android="how_to_reg" size={13} color="#059669" />
-            <Text className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-              {displayUser.badge || 'Standard Member'}
-            </Text>
-          </View>
+          {/* Dynamic Badges */}
+          {displayUser.badges
+            ?.filter(
+              (b: UserBadge) =>
+                b.name !== 'STANDARD MEMBER' &&
+                b.name !== 'NON VERIFIED' &&
+                b.name !== 'VERIFIED'
+            )
+            .map((b: UserBadge) => (
+              <View
+                key={b.id || b.name}
+                className="flex-row items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 border border-emerald-200 dark:border-emerald-800">
+                <AppIcon android="how_to_reg" size={13} color="#059669" />
+                <Text className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                  {b.name}
+                </Text>
+              </View>
+            ))}
 
           {/* Blood Group */}
           {bloodGroupLabel && (
