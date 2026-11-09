@@ -445,42 +445,46 @@ export function ChatView({
 
       {/* Scrollable Message Feed matching MessageFeed.tsx */}
       <View className="relative flex-1 min-h-0 flex-col bg-[#f8f9fa] dark:bg-[#18191a]">
-        <ScrollView
-          ref={scrollViewRef}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={!isLoading || messages.length > 0}
-          onContentSizeChange={handleContentSizeChange}
-          className="flex-1 no-scrollbar scrollbar-none"
-          contentContainerClassName="flex-grow p-3 sm:p-5">
-          {/* Loader or "Load Earlier Messages" Button */}
-          {nextCursor ? (
-            <View className="items-center justify-center pt-2 pb-3">
-              {isLoadingOlder ? (
-                <View className="flex-row items-center gap-2">
-                  <ActivityIndicator size="small" color="#0866FF" />
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
-                    {locale === 'bn'
-                      ? 'আগের মেসেজ লোড হচ্ছে...'
-                      : 'Loading older messages...'}
-                  </Text>
-                </View>
-              ) : (
-                <Pressable
-                  onPress={handleLoadOlder}
-                  className="px-3 py-1 rounded-full bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b]">
-                  <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                    {locale === 'bn'
-                      ? 'পূর্ববর্তী মেসেজ দেখুন'
-                      : 'Load earlier messages'}
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-          ) : null}
-
-          {isLoading && messages.length === 0 ? (
+        {isLoading && messages.length === 0 ? (
+          <View style={{ flex: 1 }} className="flex-1 w-full h-full">
             <ChatMessagesSkeleton />
-          ) : messages.length === 0 ? (
+          </View>
+        ) : (
+          <ScrollView
+            ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={!isLoading || messages.length > 0}
+            onContentSizeChange={handleContentSizeChange}
+            className="flex-1 no-scrollbar scrollbar-none"
+            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerClassName="p-3 sm:p-5">
+            {/* Loader or "Load Earlier Messages" Button */}
+            {nextCursor ? (
+              <View className="items-center justify-center pt-2 pb-3">
+                {isLoadingOlder ? (
+                  <View className="flex-row items-center gap-2">
+                    <ActivityIndicator size="small" color="#0866FF" />
+                    <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                      {locale === 'bn'
+                        ? 'আগের মেসেজ লোড হচ্ছে...'
+                        : 'Loading older messages...'}
+                    </Text>
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={handleLoadOlder}
+                    className="px-3 py-1 rounded-full bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b]">
+                    <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                      {locale === 'bn'
+                        ? 'পূর্ববর্তী মেসেজ দেখুন'
+                        : 'Load earlier messages'}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            ) : null}
+
+            {messages.length === 0 ? (
             <EmptyState
               iconAndroid="chat_bubble"
               iconIos="bubble.left.and.bubble.right"
@@ -553,6 +557,7 @@ export function ChatView({
             </View>
           ) : null}
         </ScrollView>
+        )}
       </View>
 
       {/* Bottom Message Composer */}

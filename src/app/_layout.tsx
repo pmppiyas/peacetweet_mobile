@@ -42,6 +42,7 @@ const COLLAPSIBLE_NAV_ROUTES = new Set([
   '/zakat',
   '/purpose',
   '/feedback',
+  '/messages',
 ]);
 
 function MainContentSlot({

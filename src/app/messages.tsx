@@ -315,7 +315,7 @@ export default function MessagesScreen() {
           {/* 1. Left Sidebar: Chats / Conversations Sidebar */}
           <View
             style={{ display: !isChatActive || isDesktop ? 'flex' : 'none' }}
-            className="w-full md:w-60 lg:w-60 xl:w-64 2xl:w-72 h-full shrink-0 flex-col">
+            className="w-full md:w-60 lg:w-60 xl:w-64 2xl:w-72 h-full shrink-0 flex-col pt-[60px] pb-[56px] md:pt-0 md:pb-0">
             <ConversationSidebar
               conversations={conversations}
               isLoading={isLoading}
@@ -334,7 +334,7 @@ export default function MessagesScreen() {
 
           {/* 2. Main Area: Active Chat Window or Empty Placeholder */}
           {isChatActive || isDesktop ? (
-            <View className="flex-1 w-full min-w-0 h-full py-0 sm:py-3 lg:py-4 px-0">
+            <View className="flex-1 w-full min-w-0 h-full py-0 md:py-3 lg:py-4 px-0">
               <View className="flex-1 w-full h-full bg-white dark:bg-[#242526] sm:rounded-2xl sm:border sm:border-[#e4e6eb] sm:dark:border-[#393a3b] overflow-hidden">
                 {selectedConversation ? (
                   <ChatView
