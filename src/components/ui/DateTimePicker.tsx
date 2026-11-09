@@ -556,28 +556,26 @@ export function DateTimePicker({
 
               {/* Right Side: 24H Time Picker (Hours 00..23 + Minutes 00..59) */}
               <View style={{ flex: 1, flexDirection: 'column', height: 242 }}>
-                {/* Time Display Header */}
+                {/* Time Display Header (Right Top Preview in 12H format: e.g. 02:30 PM, 12:00 AM) */}
                 <View
                   style={{
                     height: 38,
                     borderBottomWidth: 1,
                     borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
-                    paddingHorizontal: 12,
-                    flexDirection: 'row',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
+                    justifyContent: 'center',
                     backgroundColor: isDark ? '#242526' : '#ffffff',
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 14,
+                      fontSize: 13.5,
                       fontWeight: '700',
                       color: isDark ? '#36a4fa' : '#0866FF',
+                      letterSpacing: 0.5,
                     }}
                   >
-                    {String(selectedHour).padStart(2, '0')}:
-                    {String(selectedMinute).padStart(2, '0')}
+                    {format12Hour(selectedHour, selectedMinute)}
                   </Text>
                 </View>
 
