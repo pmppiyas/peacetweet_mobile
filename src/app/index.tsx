@@ -47,7 +47,7 @@ export default function HomeScreen() {
                 <View className="h-9 w-9 items-center justify-center rounded-xl bg-primary-500">
                   <Text className="text-white font-black text-base">P</Text>
                 </View>
-                <Text className="flex-1 text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                <Text className="flex-1 text-sm text-[#65676b] dark:text-[#b0b3b8]">
                   Sign in to share reflections, Duas, or blood donation
                   requests.
                 </Text>
