@@ -336,14 +336,16 @@ export default function RegisterScreen() {
       className="flex-1 bg-white dark:bg-[#18191a]"
     >
       <ScrollView
+        bounces={false}
+        overScrollMode="never"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
         className="flex-1"
       >
-        <View className="w-full max-w-[420px] mx-auto px-6 py-8 justify-center">
+        <View className="w-full max-w-[420px] mx-auto px-6 py-3.5 justify-center">
           {/* Top Bar with Back Button & Step Badge */}
-          <View className="flex-row items-center justify-between mb-6">
+          <View className="flex-row items-center justify-between mb-2">
             <Pressable
               onPress={() => {
                 if (step > 1) {
@@ -358,36 +360,36 @@ export default function RegisterScreen() {
               hitSlop={10}
               accessibilityLabel="Back"
               accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]"
+              className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]"
             >
               <AppIcon
                 android="arrow_back"
                 ios="arrow.left"
-                size={20}
+                size={18}
                 color={isDark ? '#e4e6eb' : '#1e2329'}
               />
             </Pressable>
 
             {/* Step Counter Badge */}
-            <View className="px-3.5 py-1.5 rounded-full bg-[#edf5ff] dark:bg-[#1a2744]">
-              <Text className="text-[12px] font-bold text-[#0866FF] dark:text-[#36a4fa]">
+            <View className="px-3 py-1 rounded-full bg-[#edf5ff] dark:bg-[#1a2744]">
+              <Text className="text-[11.5px] font-bold text-[#0866FF] dark:text-[#36a4fa]">
                 {locale === 'bn' ? `ধাপ ${step} / ৫` : `Step ${step} of 5`}
               </Text>
             </View>
           </View>
 
           {/* Welcoming Hero & Brand Section */}
-          <View className="mb-6">
-            <View className="flex-row items-center gap-3 mb-4">
-              <PeaceTweetLogo size={52} />
+          <View className="mb-2.5">
+            <View className="flex-row items-center gap-2 mb-1">
+              <PeaceTweetLogo size={36} />
               <Pressable onPress={() => router.push('/')}>
-                <Text className="text-[34px] font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
+                <Text className="text-[25px] font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
                   PeaceTweet
                 </Text>
               </Pressable>
             </View>
 
-            <Text className="text-[26px] font-black tracking-tight text-[#1e2329] dark:text-[#e4e6eb]">
+            <Text className="text-[18px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
               {step === 1 &&
                 (locale === 'bn' ? 'নতুন অ্যাকাউন্ট খুলুন' : 'Create Account')}
               {step === 2 &&
@@ -399,36 +401,36 @@ export default function RegisterScreen() {
               {step === 5 &&
                 (locale === 'bn' ? 'রক্তের গ্রুপ' : 'Blood Group')}
             </Text>
-            <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-1.5 leading-relaxed">
+            <Text className="text-[12px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5 leading-snug">
               {step === 1 &&
                 (locale === 'bn'
-                  ? 'বিশুদ্ধ ও শান্তিময় কমিউনিটিতে যুক্ত হতে আপনার নাম ও ইমেইল লিখুন।'
+                  ? 'কমিউনিটিতে যুক্ত হতে পূর্ণ নাম ও ইমেইল লিখুন।'
                   : 'Enter your full name and email to get started.')}
               {step === 2 &&
                 (locale === 'bn'
-                  ? 'নিরাপত্তার স্বার্থে কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড ব্যবহার করুন।'
+                  ? 'নিরাপত্তার জন্য কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড দিন।'
                   : 'Use at least 6 characters to secure your account.')}
               {step === 3 &&
                 (locale === 'bn'
-                  ? 'মোবাইল থেকে আপলোড করুন অথবা নিচের সুন্দর ছবি বেছে নিন।'
-                  : 'Upload from device or choose a peaceful avatar below.')}
+                  ? 'ডিভাইস থেকে আপলোড করুন বা পছন্দের ছবি বেছে নিন।'
+                  : 'Upload from device or choose a peaceful avatar.')}
               {step === 4 &&
                 (locale === 'bn'
-                  ? 'আপনার এলাকা নির্বাচন করুন (ঐচ্ছিক, চাইলে স্কিপ করতে পারেন)।'
-                  : 'Select your country and area (optional, can skip).')}
+                  ? 'আপনার দেশ ও এলাকা নির্বাচন করুন (ঐচ্ছিক)।'
+                  : 'Select your country and area (optional).')}
               {step === 5 &&
                 (locale === 'bn'
                   ? 'জরুরি রক্তদানের সুবিধার্থে রক্তের গ্রুপ দিন (ঐচ্ছিক)।'
-                  : 'Help in emergencies by sharing your blood group (optional).')}
+                  : 'Help in emergencies by sharing blood group (optional).')}
             </Text>
           </View>
 
           {/* 5-Segment Progress Bar */}
-          <View className="flex-row gap-1.5 mb-6">
+          <View className="flex-row gap-1.5 mb-3">
             {[1, 2, 3, 4, 5].map((s) => (
               <View
                 key={s}
-                className={`flex-1 h-1.5 rounded-full ${
+                className={`flex-1 h-1 rounded-full ${
                   s <= step
                     ? 'bg-[#0866FF] dark:bg-[#36a4fa]'
                     : 'bg-[#e4e6eb] dark:bg-[#3a3b3c]'
@@ -439,9 +441,9 @@ export default function RegisterScreen() {
 
           {/* Error Message Pill */}
           {errorMessage !== '' && (
-            <View className="mb-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 p-3.5 flex-row items-center gap-2.5">
-              <AppIcon android="error" size={18} color="#e11d48" />
-              <Text className="flex-1 text-[12.5px] leading-snug text-rose-700 dark:text-rose-300 font-medium">
+            <View className="mb-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 p-2.5 flex-row items-center gap-2">
+              <AppIcon android="error" size={16} color="#e11d48" />
+              <Text className="flex-1 text-[12px] leading-snug text-rose-700 dark:text-rose-300 font-medium">
                 {errorMessage}
               </Text>
             </View>
@@ -449,14 +451,14 @@ export default function RegisterScreen() {
 
           {/* STEP 1: Name & Email */}
           {step === 1 && (
-            <View className="space-y-4 gap-4">
+            <View className="gap-2.5">
               {/* Full Name */}
               <View>
-                <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                <Text className="text-[12px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1 ml-1">
                   {locale === 'bn' ? 'আপনার পূর্ণ নাম' : 'Full Name'}
                 </Text>
                 <View
-                  className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                  className={`h-11 rounded-2xl px-3.5 flex-row items-center gap-2.5 transition-all ${
                     focusedField === 'name'
                       ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
                       : 'bg-[#f0f2f5] dark:bg-[#242526]'
@@ -464,7 +466,7 @@ export default function RegisterScreen() {
                 >
                   <AppIcon
                     android="person"
-                    size={19}
+                    size={18}
                     color={focusedField === 'name' ? '#0866FF' : '#8a8d91'}
                   />
                   <TextInput
@@ -480,18 +482,18 @@ export default function RegisterScreen() {
                         : 'e.g. Abdullah Hasan'
                     }
                     placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
-                    className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                    className="flex-1 text-[14px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
                   />
                 </View>
               </View>
 
               {/* Email Address */}
               <View>
-                <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                <Text className="text-[12px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1 ml-1">
                   {locale === 'bn' ? 'ইমেইল এড্রেস' : 'Email Address'}
                 </Text>
                 <View
-                  className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                  className={`h-11 rounded-2xl px-3.5 flex-row items-center gap-2.5 transition-all ${
                     focusedField === 'email'
                       ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
                       : 'bg-[#f0f2f5] dark:bg-[#242526]'
@@ -499,7 +501,7 @@ export default function RegisterScreen() {
                 >
                   <AppIcon
                     android="mail"
-                    size={19}
+                    size={18}
                     color={focusedField === 'email' ? '#0866FF' : '#8a8d91'}
                   />
                   <TextInput
@@ -511,7 +513,7 @@ export default function RegisterScreen() {
                     }
                     placeholder="name@example.com"
                     placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
-                    className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                    className="flex-1 text-[14px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
                     autoCapitalize="none"
                     keyboardType="email-address"
                   />
@@ -521,23 +523,23 @@ export default function RegisterScreen() {
               {/* Continue Button */}
               <Pressable
                 onPress={handleProceedFromStep1}
-                className="h-12 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] items-center justify-center flex-row gap-2 mt-2 shadow-sm shadow-[#0866FF]/20"
+                className="h-11 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] items-center justify-center flex-row gap-2 mt-1 shadow-sm shadow-[#0866FF]/20"
               >
-                <Text className="text-[15px] font-bold text-white">
+                <Text className="text-[14.5px] font-bold text-white">
                   {locale === 'bn' ? 'পরবর্তী ধাপে যান' : 'Continue'}
                 </Text>
                 <AppIcon
                   android="arrow_forward"
                   ios="arrow.right"
-                  size={18}
+                  size={17}
                   color="#ffffff"
                 />
               </Pressable>
 
               {/* Divider */}
-              <View className="flex-row items-center gap-3 my-2">
+              <View className="flex-row items-center gap-3 my-0.5">
                 <View className="flex-1 h-[1px] bg-[#e4e6eb] dark:bg-[#2e2f30]" />
-                <Text className="text-[12px] font-medium text-[#8a8d91] dark:text-[#73767a]">
+                <Text className="text-[11.5px] font-medium text-[#8a8d91] dark:text-[#73767a]">
                   {locale === 'bn' ? 'অথবা' : 'or'}
                 </Text>
                 <View className="flex-1 h-[1px] bg-[#e4e6eb] dark:bg-[#2e2f30]" />
@@ -547,16 +549,16 @@ export default function RegisterScreen() {
               <Pressable
                 onPress={handleGoogleSignIn}
                 disabled={isRegistering || isGoogleLoading}
-                className={`h-12 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] items-center justify-center flex-row gap-2.5 active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] ${
+                className={`h-11 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] items-center justify-center flex-row gap-2 active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] ${
                   isRegistering || isGoogleLoading ? 'opacity-60' : ''
                 }`}
               >
                 {isGoogleLoading ? (
                   <ActivityIndicator size="small" color="#4285F4" />
                 ) : (
-                  <GoogleIcon size={18} />
+                  <GoogleIcon size={17} />
                 )}
-                <Text className="text-[14px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
+                <Text className="text-[13.5px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
                   {isGoogleLoading
                     ? locale === 'bn'
                       ? 'সংযুক্ত হচ্ছে...'
@@ -571,16 +573,16 @@ export default function RegisterScreen() {
 
           {/* STEP 2: Password & Confirm Password */}
           {step === 2 && (
-            <View className="space-y-4 gap-4">
+            <View className="gap-2.5">
               {/* Password */}
               <View>
-                <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                <Text className="text-[12px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1 ml-1">
                   {locale === 'bn'
                     ? 'পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)'
                     : 'Password (min. 6 chars)'}
                 </Text>
                 <View
-                  className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                  className={`h-11 rounded-2xl px-3.5 flex-row items-center gap-2.5 transition-all ${
                     focusedField === 'password'
                       ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
                       : 'bg-[#f0f2f5] dark:bg-[#242526]'
@@ -588,7 +590,7 @@ export default function RegisterScreen() {
                 >
                   <AppIcon
                     android="lock"
-                    size={19}
+                    size={18}
                     color={focusedField === 'password' ? '#0866FF' : '#8a8d91'}
                   />
                   <TextInput
@@ -603,7 +605,7 @@ export default function RegisterScreen() {
                     secureTextEntry={!showPassword}
                     placeholder="••••••••"
                     placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
-                    className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                    className="flex-1 text-[14px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
                   />
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}
@@ -612,7 +614,7 @@ export default function RegisterScreen() {
                   >
                     <AppIcon
                       android={showPassword ? 'visibility_off' : 'visibility'}
-                      size={18}
+                      size={17}
                       color="#8a8d91"
                     />
                   </Pressable>
@@ -621,11 +623,11 @@ export default function RegisterScreen() {
 
               {/* Confirm Password */}
               <View>
-                <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                <Text className="text-[12px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1 ml-1">
                   {locale === 'bn' ? 'পাসওয়ার্ড নিশ্চিত করুন' : 'Confirm Password'}
                 </Text>
                 <View
-                  className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                  className={`h-11 rounded-2xl px-3.5 flex-row items-center gap-2.5 transition-all ${
                     focusedField === 'confirmPassword'
                       ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
                       : 'bg-[#f0f2f5] dark:bg-[#242526]'
@@ -633,7 +635,7 @@ export default function RegisterScreen() {
                 >
                   <AppIcon
                     android="lock"
-                    size={19}
+                    size={18}
                     color={
                       focusedField === 'confirmPassword'
                         ? '#0866FF'
@@ -652,7 +654,7 @@ export default function RegisterScreen() {
                     secureTextEntry={!showConfirmPassword}
                     placeholder="••••••••"
                     placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
-                    className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                    className="flex-1 text-[14px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
                   />
                   <Pressable
                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -663,7 +665,7 @@ export default function RegisterScreen() {
                       android={
                         showConfirmPassword ? 'visibility_off' : 'visibility'
                       }
-                      size={18}
+                      size={17}
                       color="#8a8d91"
                     />
                   </Pressable>
@@ -673,15 +675,15 @@ export default function RegisterScreen() {
               {/* Continue Button */}
               <Pressable
                 onPress={handleProceedFromStep2}
-                className="h-12 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] items-center justify-center flex-row gap-2 mt-2 shadow-sm shadow-[#0866FF]/20"
+                className="h-11 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] items-center justify-center flex-row gap-2 mt-1 shadow-sm shadow-[#0866FF]/20"
               >
-                <Text className="text-[15px] font-bold text-white">
+                <Text className="text-[14.5px] font-bold text-white">
                   {locale === 'bn' ? 'পরবর্তী ধাপে যান' : 'Continue'}
                 </Text>
                 <AppIcon
                   android="arrow_forward"
                   ios="arrow.right"
-                  size={18}
+                  size={17}
                   color="#ffffff"
                 />
               </Pressable>
@@ -690,9 +692,9 @@ export default function RegisterScreen() {
 
           {/* STEP 3: Profile Photo */}
           {step === 3 && (
-            <View className="space-y-4 gap-4">
-              {/* Tappable Device Photo Uploader & Live Preview Circle */}
-              <View className="items-center justify-center py-2">
+            <View className="gap-2">
+              {/* Tappable Device Photo Uploader */}
+              <View className="items-center justify-center py-1">
                 <View className="relative">
                   <Pressable
                     onPress={handlePickFromDevice}
@@ -702,7 +704,7 @@ export default function RegisterScreen() {
                         ? 'ডিভাইস থেকে প্রোফাইল ছবি নির্বাচন করুন'
                         : 'Select profile photo from device'
                     }
-                    className={`h-[84px] w-[84px] items-center justify-center rounded-full overflow-hidden active:scale-95 ${
+                    className={`h-[68px] w-[68px] items-center justify-center rounded-full overflow-hidden active:scale-95 ${
                       selectedAvatarUrl
                         ? 'border-2 border-[#0866FF] bg-[#edf5ff] dark:bg-[#1a2744]'
                         : 'border-2 border-dashed border-[#0866FF]/60 hover:border-[#0866FF] dark:border-[#36a4fa]/60 bg-[#f0f2f5] dark:bg-[#242526]'
@@ -719,10 +721,10 @@ export default function RegisterScreen() {
                         <AppIcon
                           android="photo_camera"
                           ios="camera.fill"
-                          size={26}
+                          size={22}
                           color="#0866FF"
                         />
-                        <Text className="text-[11px] font-bold text-[#0866FF] dark:text-[#36a4fa] mt-1">
+                        <Text className="text-[10px] font-bold text-[#0866FF] dark:text-[#36a4fa] mt-0.5">
                           {locale === 'bn' ? 'আপলোড' : 'Upload'}
                         </Text>
                       </>
@@ -734,12 +736,12 @@ export default function RegisterScreen() {
                       <Pressable
                         onPress={handleClearAvatar}
                         hitSlop={6}
-                        className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-[#1c1e21] dark:bg-[#3a3b3c] border-2 border-white dark:border-[#18191a] items-center justify-center"
+                        className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#1c1e21] dark:bg-[#3a3b3c] border-2 border-white dark:border-[#18191a] items-center justify-center"
                       >
                         <AppIcon
                           android="close"
                           ios="xmark"
-                          size={13}
+                          size={11}
                           color="#ffffff"
                         />
                       </Pressable>
@@ -747,12 +749,12 @@ export default function RegisterScreen() {
                       <Pressable
                         onPress={handlePickFromDevice}
                         hitSlop={4}
-                        className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-[#0866FF] border-2 border-white dark:border-[#18191a] items-center justify-center"
+                        className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-[#0866FF] border-2 border-white dark:border-[#18191a] items-center justify-center"
                       >
                         <AppIcon
                           android="photo_camera"
                           ios="camera.fill"
-                          size={12}
+                          size={10}
                           color="#ffffff"
                         />
                       </Pressable>
@@ -762,7 +764,7 @@ export default function RegisterScreen() {
               </View>
 
               {/* Preset Avatars in 2 Rows of 4 */}
-              <View className="gap-2.5 px-1 py-1">
+              <View className="gap-1.5 px-1">
                 {[PRESET_AVATARS.slice(0, 4), PRESET_AVATARS.slice(4, 8)].map(
                   (row, rowIdx) => (
                     <View
@@ -779,7 +781,7 @@ export default function RegisterScreen() {
                             className="items-center active:scale-95"
                           >
                             <View
-                              className={`relative h-[62px] w-[62px] rounded-full p-[2px] ${
+                              className={`relative h-[48px] w-[48px] rounded-full p-[1.5px] ${
                                 isSelected
                                   ? 'border-2 border-[#0866FF] bg-white dark:bg-[#242526]'
                                   : 'border border-transparent bg-[#f0f2f5] dark:bg-[#242526]'
@@ -791,11 +793,11 @@ export default function RegisterScreen() {
                                 resizeMode="cover"
                               />
                               {isSelected && (
-                                <View className="absolute -bottom-0.5 -right-0.5 h-[20px] w-[20px] rounded-full bg-[#0866FF] border-2 border-white dark:border-[#18191a] items-center justify-center">
+                                <View className="absolute -bottom-0.5 -right-0.5 h-[16px] w-[16px] rounded-full bg-[#0866FF] border border-white dark:border-[#18191a] items-center justify-center">
                                   <AppIcon
                                     android="check"
                                     ios="checkmark"
-                                    size={12}
+                                    size={10}
                                     color="#ffffff"
                                   />
                                 </View>
@@ -809,23 +811,23 @@ export default function RegisterScreen() {
                 )}
               </View>
 
-              <Text className="text-[12px] text-[#65676b] dark:text-[#b0b3b8] text-center">
+              <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] text-center">
                 {locale === 'bn'
                   ? 'পরবর্তীতে প্রোফাইল থেকেও ছবি পরিবর্তন করা যাবে'
                   : 'You can also update your photo later in Profile'}
               </Text>
 
               {/* Step 3 Action Buttons */}
-              <View className="flex-row gap-3 pt-2">
+              <View className="flex-row gap-2.5 pt-1">
                 <Pressable
                   onPress={() => {
                     handleClearAvatar();
                     setErrorMessage('');
                     setStep(4);
                   }}
-                  className="flex-1 h-12 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] items-center justify-center"
+                  className="flex-1 h-11 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] items-center justify-center"
                 >
-                  <Text className="text-[14px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
+                  <Text className="text-[13.5px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'স্কিপ করুন' : 'Skip'}
                   </Text>
                 </Pressable>
@@ -835,9 +837,9 @@ export default function RegisterScreen() {
                     setErrorMessage('');
                     setStep(4);
                   }}
-                  className="flex-1 h-12 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] items-center justify-center shadow-sm shadow-[#0866FF]/20"
+                  className="flex-1 h-11 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] items-center justify-center shadow-sm shadow-[#0866FF]/20"
                 >
-                  <Text className="text-[14px] font-bold text-white">
+                  <Text className="text-[13.5px] font-bold text-white">
                     {locale === 'bn' ? 'পরবর্তী' : 'Next'}
                   </Text>
                 </Pressable>
@@ -847,14 +849,14 @@ export default function RegisterScreen() {
 
           {/* STEP 4: Location */}
           {step === 4 && (
-            <View className="space-y-4 gap-4">
+            <View className="gap-2">
               {/* Country */}
               <View>
-                <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                <Text className="text-[11.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-0.5 ml-1">
                   {locale === 'bn' ? 'দেশ (Country)' : 'Country'}
                 </Text>
                 <View
-                  className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                  className={`h-10 rounded-2xl px-3 flex-row items-center gap-2.5 transition-all ${
                     focusedField === 'country'
                       ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
                       : 'bg-[#f0f2f5] dark:bg-[#242526]'
@@ -862,7 +864,7 @@ export default function RegisterScreen() {
                 >
                   <AppIcon
                     android="public"
-                    size={19}
+                    size={17}
                     color={focusedField === 'country' ? '#0866FF' : '#8a8d91'}
                   />
                   <TextInput
@@ -876,20 +878,20 @@ export default function RegisterScreen() {
                     }
                     placeholder="Bangladesh"
                     placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
-                    className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                    className="flex-1 text-[13.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
                   />
                 </View>
               </View>
 
               {/* State / Division */}
               <View>
-                <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                <Text className="text-[11.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-0.5 ml-1">
                   {locale === 'bn'
                     ? 'বিভাগ / রাজ্য (Division/State)'
                     : 'State / Division'}
                 </Text>
                 <View
-                  className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                  className={`h-10 rounded-2xl px-3 flex-row items-center gap-2.5 transition-all ${
                     focusedField === 'stateName'
                       ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
                       : 'bg-[#f0f2f5] dark:bg-[#242526]'
@@ -897,7 +899,7 @@ export default function RegisterScreen() {
                 >
                   <AppIcon
                     android="location_city"
-                    size={19}
+                    size={17}
                     color={
                       focusedField === 'stateName' ? '#0866FF' : '#8a8d91'
                     }
@@ -913,20 +915,20 @@ export default function RegisterScreen() {
                     }
                     placeholder={locale === 'bn' ? 'যেমন: Dhaka' : 'e.g. Dhaka'}
                     placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
-                    className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                    className="flex-1 text-[13.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
                   />
                 </View>
               </View>
 
               {/* City / District */}
               <View>
-                <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                <Text className="text-[11.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-0.5 ml-1">
                   {locale === 'bn'
                     ? 'জেলা / শহর (District/City)'
                     : 'City / District'}
                 </Text>
                 <View
-                  className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                  className={`h-10 rounded-2xl px-3 flex-row items-center gap-2.5 transition-all ${
                     focusedField === 'city'
                       ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
                       : 'bg-[#f0f2f5] dark:bg-[#242526]'
@@ -934,7 +936,7 @@ export default function RegisterScreen() {
                 >
                   <AppIcon
                     android="pin_drop"
-                    size={19}
+                    size={17}
                     color={focusedField === 'city' ? '#0866FF' : '#8a8d91'}
                   />
                   <TextInput
@@ -952,13 +954,13 @@ export default function RegisterScreen() {
                         : 'e.g. Mirpur, Dhaka'
                     }
                     placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
-                    className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                    className="flex-1 text-[13.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
                   />
                 </View>
               </View>
 
               {/* Step 4 Action Buttons */}
-              <View className="flex-row gap-3 pt-2">
+              <View className="flex-row gap-2.5 pt-1">
                 <Pressable
                   onPress={() => {
                     setErrorMessage('');
@@ -967,9 +969,9 @@ export default function RegisterScreen() {
                     setCity('');
                     setStep(5);
                   }}
-                  className="flex-1 h-12 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] items-center justify-center"
+                  className="flex-1 h-11 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] items-center justify-center"
                 >
-                  <Text className="text-[14px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
+                  <Text className="text-[13.5px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'স্কিপ করুন' : 'Skip'}
                   </Text>
                 </Pressable>
@@ -979,9 +981,9 @@ export default function RegisterScreen() {
                     setErrorMessage('');
                     setStep(5);
                   }}
-                  className="flex-1 h-12 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] items-center justify-center shadow-sm shadow-[#0866FF]/20"
+                  className="flex-1 h-11 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] items-center justify-center shadow-sm shadow-[#0866FF]/20"
                 >
-                  <Text className="text-[14px] font-bold text-white">
+                  <Text className="text-[13.5px] font-bold text-white">
                     {locale === 'bn' ? 'পরবর্তী' : 'Next'}
                   </Text>
                 </Pressable>
@@ -991,9 +993,9 @@ export default function RegisterScreen() {
 
           {/* STEP 5: Blood Group */}
           {step === 5 && (
-            <View className="space-y-4 gap-4">
+            <View className="gap-2.5">
               {/* 8 Blood Group Cards */}
-              <View className="flex-row flex-wrap gap-2.5 py-1 justify-between">
+              <View className="flex-row flex-wrap gap-2 py-0.5 justify-between">
                 {BLOOD_GROUPS.map((bg) => {
                   const isSelected = bloodGroup === bg.value;
                   return (
@@ -1002,7 +1004,7 @@ export default function RegisterScreen() {
                       onPress={() =>
                         setBloodGroup(isSelected ? undefined : bg.value)
                       }
-                      className={`w-[22.5%] h-12 flex-row items-center justify-center gap-1.5 rounded-2xl active:scale-95 ${
+                      className={`w-[22.5%] h-10 flex-row items-center justify-center gap-1 rounded-2xl active:scale-95 ${
                         isSelected
                           ? 'bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800'
                           : 'bg-[#f0f2f5] dark:bg-[#242526]'
@@ -1010,11 +1012,11 @@ export default function RegisterScreen() {
                     >
                       <AppIcon
                         android="water_drop"
-                        size={15}
+                        size={14}
                         color={isSelected ? '#e11d48' : '#8a8d91'}
                       />
                       <Text
-                        className={`text-[14px] font-bold ${
+                        className={`text-[13.5px] font-bold ${
                           isSelected
                             ? 'text-rose-600 dark:text-rose-300'
                             : 'text-[#1e2329] dark:text-[#e4e6eb]'
@@ -1028,13 +1030,13 @@ export default function RegisterScreen() {
               </View>
 
               {/* Step 5 Action Buttons: Skip or Complete */}
-              <View className="flex-row gap-3 pt-2">
+              <View className="flex-row gap-2.5 pt-1">
                 <Pressable
                   onPress={() => handleFinalSubmit(false)}
                   disabled={isSubmitting}
-                  className="flex-1 h-12 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] items-center justify-center"
+                  className="flex-1 h-11 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] items-center justify-center"
                 >
-                  <Text className="text-[14px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
+                  <Text className="text-[13.5px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'স্কিপ করুন' : 'Skip & Finish'}
                   </Text>
                 </Pressable>
@@ -1042,14 +1044,14 @@ export default function RegisterScreen() {
                 <Pressable
                   onPress={() => handleFinalSubmit(true)}
                   disabled={isSubmitting}
-                  className={`flex-1 h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] shadow-sm shadow-[#0866FF]/20 ${
+                  className={`flex-1 h-11 flex-row items-center justify-center gap-2 rounded-2xl bg-[#0866FF] active:bg-[#0756d6] shadow-sm shadow-[#0866FF]/20 ${
                     isSubmitting ? 'opacity-70' : ''
                   }`}
                 >
                   {isSubmitting && (
                     <ActivityIndicator size="small" color="#ffffff" />
                   )}
-                  <Text className="text-[14px] font-bold text-white">
+                  <Text className="text-[13.5px] font-bold text-white">
                     {isSubmitting
                       ? locale === 'bn'
                         ? 'তৈরি হচ্ছে...'
@@ -1064,8 +1066,8 @@ export default function RegisterScreen() {
           )}
 
           {/* Bottom Switch: Log In Prompt */}
-          <View className="flex-row items-center justify-center gap-1.5 mt-8 py-2">
-            <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8]">
+          <View className="flex-row items-center justify-center gap-1.5 mt-3 py-1">
+            <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8]">
               {locale === 'bn'
                 ? 'আগে থেকেই অ্যাকাউন্ট আছে?'
                 : 'Already have an account?'}
@@ -1075,14 +1077,14 @@ export default function RegisterScreen() {
               hitSlop={8}
               className="py-1"
             >
-              <Text className="text-[14px] font-bold text-[#0866FF] dark:text-[#36a4fa]">
+              <Text className="text-[13.5px] font-bold text-[#0866FF] dark:text-[#36a4fa]">
                 {locale === 'bn' ? 'লগইন করুন' : 'Log In'}
               </Text>
             </Pressable>
           </View>
 
           {/* Peaceful Platform Tagline */}
-          <Text className="text-[11.5px] text-[#8a8d91] dark:text-[#73767a] text-center mt-6">
+          <Text className="text-[11px] text-[#8a8d91] dark:text-[#73767a] text-center mt-2">
             {locale === 'bn'
               ? 'PeaceTweet • বিশুদ্ধ দোয়া ও পবিত্র সোশ্যাল নেটওয়ার্ক'
               : 'PeaceTweet • Pure Duas & Peaceful Social Platform'}
