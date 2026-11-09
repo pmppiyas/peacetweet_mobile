@@ -133,21 +133,19 @@ export default function HomeScreen() {
                   </Text>
                 </Pressable>
 
-                {/* 3. Feeling */}
+                {/* 3. Blood (রক্তদান) */}
                 <Pressable
-                  onPress={() =>
-                    openComposer({ mode: 'TEXT', action: 'feeling' })
-                  }
+                  onPress={() => openComposer({ mode: 'BLOOD_REQUEST' })}
                   className="flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                 >
                   <AppIcon
-                    android="sentiment_satisfied"
-                    ios="face.smiling"
+                    android="water_drop"
+                    ios="drop.fill"
                     size={20}
-                    color="#f7b125"
+                    color="#e11d48"
                   />
                   <Text className="text-[12.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                    {locale === 'bn' ? 'অনুভূতি' : 'Feeling'}
+                    {locale === 'bn' ? 'রক্তদান' : 'Blood'}
                   </Text>
                 </Pressable>
               </View>
