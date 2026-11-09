@@ -58,6 +58,8 @@ interface UiContextType {
   setChatSearchQuery: (query: string) => void;
   activeConversationId: string | null;
   setActiveConversationId: (id: string | null) => void;
+  isProfileActive: boolean;
+  setIsProfileActive: (active: boolean) => void;
   unreadMessagesCount: number;
   setUnreadMessagesCount: React.Dispatch<React.SetStateAction<number>>;
   unreadNotificationsCount: number;
@@ -165,6 +167,7 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
+  const [isProfileActive, setIsProfileActive] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const [onlineUserIds, setOnlineUserIdsState] = useState<Set<string>>(
@@ -364,6 +367,8 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         setChatSearchQuery,
         activeConversationId,
         setActiveConversationId,
+        isProfileActive,
+        setIsProfileActive,
         unreadMessagesCount,
         setUnreadMessagesCount,
         unreadNotificationsCount,

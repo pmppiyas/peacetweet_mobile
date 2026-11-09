@@ -77,6 +77,7 @@ function AppShell() {
     isComposerModalOpen,
     setComposerModalOpen,
     activeConversationId,
+    isProfileActive,
     resetNavVisibility,
     topNavTranslateY,
     bottomNavTranslateY,
@@ -190,7 +191,7 @@ function AppShell() {
     isMessagesActive && Boolean(activeConversationId);
 
   const showTopNav =
-    !isAuthPage && !isPostViewerPage && !isInsideActiveChat;
+    !isAuthPage && !isPostViewerPage && !isInsideActiveChat && !isProfileActive;
   const showBottomNav = showTopNav && !isSearchOpen;
   const showSearchOverlay = isSearchOpen && !isMessagesActive;
   const isFullBleedRoute = COLLAPSIBLE_NAV_ROUTES.has(pathname);
@@ -221,13 +222,13 @@ function AppShell() {
 
   const topSafeColor = isPhotoViewerActive
     ? photoViewerColor
-    : isAuthPage
+    : isAuthPage || isProfileActive
       ? canvasColor
       : surfaceColor;
 
   const bottomSafeColor = isPhotoViewerActive
     ? photoViewerColor
-    : isAuthPage
+    : isAuthPage || isProfileActive
       ? canvasColor
       : surfaceColor;
 

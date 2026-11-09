@@ -26,6 +26,7 @@ export function Navbar() {
     chatSearchQuery,
     setChatSearchQuery,
     activeConversationId,
+    isProfileActive,
     setComposerModalOpen,
     postUploadType,
     theme,
@@ -125,7 +126,7 @@ export function Navbar() {
     }
   }, [pathname]);
 
-  if (isAuthPage || isPostViewerPage || isInsideActiveChat) {
+  if (isAuthPage || isPostViewerPage || isInsideActiveChat || isProfileActive) {
     return null;
   }
 

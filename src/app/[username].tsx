@@ -38,10 +38,17 @@ const RESERVED_ROUTES = new Set([
 ]);
 
 export default function UserProfileScreen() {
-  const { locale } = useUi();
+  const { locale, setIsProfileActive } = useUi();
   const { user: authUser } = useAuth();
   const params = useLocalSearchParams<{ username: string; tab?: string }>();
   const username = params.username?.toString() || '';
+
+  useEffect(() => {
+    setIsProfileActive(true);
+    return () => {
+      setIsProfileActive(false);
+    };
+  }, [setIsProfileActive]);
 
   // Reserved route redirection fallback
   const lowerUsername = username.toLowerCase();

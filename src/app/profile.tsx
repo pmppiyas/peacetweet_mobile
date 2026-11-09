@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
+import { useUi } from '@/providers/UiProvider';
 import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
 import { ProfileView } from '@/features/profile/components/ProfileView';
 import { ProfileSkeleton } from '@/features/profile/components/ProfileSkeleton';
@@ -9,7 +10,15 @@ import { ProfileTab } from '@/features/profile/types/profile.types';
 
 export default function ProfileScreen() {
   const { user, isAuthenticated, refreshUser, isLoading } = useAuth();
+  const { setIsProfileActive } = useUi();
   const params = useLocalSearchParams<{ tab?: string }>();
+
+  useEffect(() => {
+    setIsProfileActive(true);
+    return () => {
+      setIsProfileActive(false);
+    };
+  }, [setIsProfileActive]);
 
   if (isLoading) {
     return <ProfileSkeleton />;
@@ -47,7 +56,7 @@ export default function ProfileScreen() {
         targetUser={user}
         initialTab={initialTab}
         onRefreshProfile={refreshUser}
-        showBackButton={false}
+        showBackButton={true}
       />
     </View>
   );
