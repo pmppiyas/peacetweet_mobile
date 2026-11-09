@@ -105,11 +105,20 @@ export function ChatView({
 
   const otherUser = getOtherUserFromConversation(conversation);
 
+  const isInitialScrollDoneRef = useRef(false);
+
   const scrollToBottom = useCallback((animated = true) => {
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       scrollViewRef.current?.scrollToEnd?.({ animated });
-    }, 80);
+    });
   }, []);
+
+  const handleContentSizeChange = useCallback(() => {
+    if (!isInitialScrollDoneRef.current && messages.length > 0) {
+      isInitialScrollDoneRef.current = true;
+      scrollViewRef.current?.scrollToEnd?.({ animated: false });
+    }
+  }, [messages.length]);
 
   const loadMessages = useCallback(
     async (silent = false) => {
@@ -264,11 +273,14 @@ export function ChatView({
   useEffect(() => {
     setEditingMessage(null);
     setText('');
+    isInitialScrollDoneRef.current = false;
     const cached = queryCache.get<ChatMessage[]>(cacheKey);
     if (cached) {
       setMessagesState(cached);
       setIsLoading(false);
-      scrollToBottom(false);
+      requestAnimationFrame(() => {
+        scrollViewRef.current?.scrollToEnd?.({ animated: false });
+      });
     }
     loadMessages(Boolean(cached));
 
@@ -437,6 +449,7 @@ export function ChatView({
           ref={scrollViewRef}
           showsVerticalScrollIndicator={false}
           scrollEnabled={!isLoading || messages.length > 0}
+          onContentSizeChange={handleContentSizeChange}
           className="flex-1 no-scrollbar scrollbar-none"
           contentContainerClassName="flex-grow p-3 sm:p-5">
           {/* Loader or "Load Earlier Messages" Button */}
@@ -466,9 +479,7 @@ export function ChatView({
           ) : null}
 
           {isLoading && messages.length === 0 ? (
-            <View className="flex-1 items-center justify-center py-20">
-              <ActivityIndicator size="small" color="#0866FF" />
-            </View>
+            <ChatMessagesSkeleton />
           ) : messages.length === 0 ? (
             <EmptyState
               iconAndroid="chat_bubble"

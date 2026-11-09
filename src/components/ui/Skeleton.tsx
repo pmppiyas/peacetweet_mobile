@@ -17,20 +17,21 @@ export function Skeleton({
   children,
   ...rest
 }: SkeletonProps) {
-  const opacity = useRef(new Animated.Value(0.45)).current;
+  const opacity = useRef(new Animated.Value(Platform.OS === 'web' ? 1 : 0.45)).current;
 
   useEffect(() => {
+    if (Platform.OS === 'web') return;
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, {
-          toValue: 0.9,
+          toValue: 0.85,
           duration: 750,
-          useNativeDriver: Platform.OS !== 'web',
+          useNativeDriver: true,
         }),
         Animated.timing(opacity, {
-          toValue: 0.45,
+          toValue: 0.4,
           duration: 750,
-          useNativeDriver: Platform.OS !== 'web',
+          useNativeDriver: true,
         }),
       ])
     );
@@ -42,18 +43,13 @@ export function Skeleton({
   }, [opacity]);
 
   return (
-    <View
-      className={`animate-pulse bg-[#e4e6eb] dark:bg-[#3a3b3c] overflow-hidden ${className}`}
-      style={style}
+    <Animated.View
+      className={`bg-[#e4e6eb] dark:bg-[#3a3b3c] overflow-hidden ${
+        Platform.OS === 'web' ? 'animate-pulse' : ''
+      } ${className}`}
+      style={[Platform.OS !== 'web' ? { opacity } : null, style]}
       {...rest}>
-      <Animated.View
-        style={{
-          width: '100%',
-          height: '100%',
-          opacity,
-        }}>
-        {children}
-      </Animated.View>
-    </View>
+      {children}
+    </Animated.View>
   );
 }

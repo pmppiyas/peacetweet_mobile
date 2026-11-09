@@ -52,29 +52,37 @@ export function UserSearchSkeleton({ count = 4 }: { count?: number }) {
 
 export function ChatMessagesSkeleton() {
   return (
-    <View className="flex-1 justify-end p-2 gap-4">
-      {/* Incoming Message Skeleton */}
+    <View className="flex-1 justify-end p-2 gap-3.5">
+      {/* 1. Incoming Message Skeleton */}
       <View className="flex-row items-end gap-2 max-w-[80%]">
-        <Skeleton className="h-8 w-8 rounded-full shrink-0" />
-        <View className="rounded-2xl rounded-bl-sm p-3.5 bg-gray-100 dark:bg-gray-800 gap-1.5 w-48">
-          <Skeleton className="h-3 w-40 rounded-md" />
-          <Skeleton className="h-3 w-28 rounded-md" />
+        <Skeleton className="h-7 w-7 rounded-full shrink-0" />
+        <View className="rounded-2xl rounded-bl-xs p-3 bg-[#e6e9ef] dark:bg-[#3a3b3c] gap-1.5 w-48">
+          <Skeleton className="h-3 w-40 rounded-md bg-[#d8dadf] dark:bg-[#4e4f50]" />
+          <Skeleton className="h-3 w-28 rounded-md bg-[#d8dadf] dark:bg-[#4e4f50]" />
         </View>
       </View>
 
-      {/* Outgoing Message Skeleton */}
+      {/* 2. Outgoing Message Skeleton */}
       <View className="flex-row items-end justify-end gap-2 self-end max-w-[80%]">
-        <View className="rounded-2xl rounded-br-sm p-3.5 bg-primary-100 dark:bg-primary-950/40 gap-1.5 w-52">
-          <Skeleton className="h-3 w-44 rounded-md" />
-          <Skeleton className="h-3 w-32 rounded-md" />
+        <View className="rounded-2xl rounded-br-xs p-3 bg-primary-100 dark:bg-primary-950/40 gap-1.5 w-44">
+          <Skeleton className="h-3 w-36 rounded-md bg-primary-200 dark:bg-primary-900/50" />
         </View>
       </View>
 
-      {/* Incoming Message Skeleton */}
+      {/* 3. Incoming Message Skeleton */}
       <View className="flex-row items-end gap-2 max-w-[80%]">
-        <Skeleton className="h-8 w-8 rounded-full shrink-0" />
-        <View className="rounded-2xl rounded-bl-sm p-3.5 bg-gray-100 dark:bg-gray-800 gap-1.5 w-40">
-          <Skeleton className="h-3 w-32 rounded-md" />
+        <Skeleton className="h-7 w-7 rounded-full shrink-0" />
+        <View className="rounded-2xl rounded-bl-xs p-3 bg-[#e6e9ef] dark:bg-[#3a3b3c] gap-1.5 w-56">
+          <Skeleton className="h-3 w-48 rounded-md bg-[#d8dadf] dark:bg-[#4e4f50]" />
+          <Skeleton className="h-3 w-32 rounded-md bg-[#d8dadf] dark:bg-[#4e4f50]" />
+        </View>
+      </View>
+
+      {/* 4. Outgoing Message Skeleton */}
+      <View className="flex-row items-end justify-end gap-2 self-end max-w-[80%]">
+        <View className="rounded-2xl rounded-br-xs p-3 bg-primary-100 dark:bg-primary-950/40 gap-1.5 w-52">
+          <Skeleton className="h-3 w-44 rounded-md bg-primary-200 dark:bg-primary-900/50" />
+          <Skeleton className="h-3 w-28 rounded-md bg-primary-200 dark:bg-primary-900/50" />
         </View>
       </View>
     </View>
