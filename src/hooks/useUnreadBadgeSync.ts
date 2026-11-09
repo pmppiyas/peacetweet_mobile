@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useAuth } from '@/providers/AuthProvider';
 import { useUi } from '@/providers/UiProvider';
@@ -6,6 +6,7 @@ import { notificationsApi } from '@/features/notifications/api/notifications.api
 import { chatApi } from '@/features/chat/api/chat.api';
 import { initAppSocket, getAppSocket } from '@/lib/socket/socket';
 import { queryCache, CACHE_KEYS } from '@/lib/cache/queryCache';
+import { sessionStorage } from '@/lib/storage/secureStorage';
 
 export function useUnreadBadgeSync() {
   const { user, isAuthenticated } = useAuth();
@@ -18,8 +19,47 @@ export function useUnreadBadgeSync() {
   const activeConversationIdRef = useRef(activeConversationId);
   activeConversationIdRef.current = activeConversationId;
 
-  const currentUserIdRef = useRef(user?.id);
-  currentUserIdRef.current = user?.id;
+  const currentUserIdRef = useRef(user?.id || sessionStorage.getUser()?.id);
+  currentUserIdRef.current = user?.id || sessionStorage.getUser()?.id;
+
+  const fetchDebounceTimerRef = useRef<any>(null);
+
+  const fetchNotificationsUnread = useCallback(() => {
+    notificationsApi
+      .getUnreadCount()
+      .then((count) => {
+        if (typeof count === 'number') {
+          setUnreadNotificationsCount(count);
+        }
+      })
+      .catch(() => {});
+  }, [setUnreadNotificationsCount]);
+
+  const fetchMessagesUnread = useCallback(() => {
+    chatApi
+      .getConversations()
+      .then((list) => {
+        if (Array.isArray(list)) {
+          const total = list.reduce(
+            (sum, c) => sum + (c.unreadCount || 0),
+            0
+          );
+          setUnreadMessagesCount(total);
+          queryCache.set(CACHE_KEYS.CHAT_CONVERSATIONS, list);
+        }
+      })
+      .catch(() => {});
+  }, [setUnreadMessagesCount]);
+
+  const scheduleFetchMessagesUnread = useCallback(() => {
+    if (fetchDebounceTimerRef.current) {
+      clearTimeout(fetchDebounceTimerRef.current);
+    }
+    // Debounce to coalesce simultaneous message:received and conversation:updated into a single clean sync
+    fetchDebounceTimerRef.current = setTimeout(() => {
+      fetchMessagesUnread();
+    }, 60);
+  }, [fetchMessagesUnread]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -28,42 +68,15 @@ export function useUnreadBadgeSync() {
       return;
     }
 
-    const fetchNotificationsUnread = () => {
-      notificationsApi
-        .getUnreadCount()
-        .then((count) => {
-          if (typeof count === 'number') {
-            setUnreadNotificationsCount(count);
-          }
-        })
-        .catch(() => {});
-    };
-
-    const fetchMessagesUnread = () => {
-      chatApi
-        .getConversations()
-        .then((list) => {
-          if (Array.isArray(list)) {
-            const total = list.reduce(
-              (sum, c) => sum + (c.unreadCount || 0),
-              0
-            );
-            setUnreadMessagesCount(total);
-            queryCache.set(CACHE_KEYS.CHAT_CONVERSATIONS, list);
-          }
-        })
-        .catch(() => {});
-    };
-
     // 1. Initial fetch immediately
     fetchNotificationsUnread();
     fetchMessagesUnread();
 
-    // 2. Poll every 10 seconds as a reliable background fallback
+    // 2. Poll every 12 seconds as a solid background fallback
     const timer = setInterval(() => {
       fetchNotificationsUnread();
       fetchMessagesUnread();
-    }, 10000);
+    }, 12000);
 
     // 3. AppState change listener (refresh instantly when user resumes app)
     const appStateSub = AppState.addEventListener(
@@ -107,40 +120,50 @@ export function useUnreadBadgeSync() {
 
       const handleMessageReceived = (msg: any) => {
         const senderId = msg?.senderId || msg?.sender?.id;
-        const myId = currentUserIdRef.current;
-        // If not sent by current user:
-        if (!myId || senderId !== myId) {
-          if (
-            !activeConversationIdRef.current ||
-            activeConversationIdRef.current !== msg?.conversationId
-          ) {
-            setUnreadMessagesCount((prev: number) => Math.max(0, prev + 1));
-          }
-          fetchMessagesUnread();
-          queryCache.invalidate(CACHE_KEYS.CHAT_CONVERSATIONS);
+        const myId = currentUserIdRef.current || user?.id || sessionStorage.getUser()?.id;
+
+        // If sent by myself, never touch or increment badge count
+        if (myId && senderId && senderId === myId) {
+          return;
         }
+
+        // If actively viewing this conversation, message is already read
+        if (
+          activeConversationIdRef.current &&
+          activeConversationIdRef.current === msg?.conversationId
+        ) {
+          return;
+        }
+
+        // Sync without double-increment flicker
+        scheduleFetchMessagesUnread();
+        queryCache.invalidate(CACHE_KEYS.CHAT_CONVERSATIONS);
       };
 
       const handleConversationUpdated = (data: any) => {
         const senderId = data?.senderId;
-        const myId = currentUserIdRef.current;
-        if (!myId || senderId !== myId) {
-          if (
-            data?.unreadDelta &&
-            (!activeConversationIdRef.current ||
-              activeConversationIdRef.current !== data?.conversationId)
-          ) {
-            setUnreadMessagesCount((prev: number) =>
-              Math.max(0, prev + Number(data.unreadDelta))
-            );
-          }
+        const myId = currentUserIdRef.current || user?.id || sessionStorage.getUser()?.id;
+
+        // If sent by myself, never touch or increment badge count
+        if (myId && senderId && senderId === myId) {
+          return;
         }
-        fetchMessagesUnread();
+
+        // If actively viewing this conversation, message is already read
+        if (
+          activeConversationIdRef.current &&
+          activeConversationIdRef.current === data?.conversationId
+        ) {
+          return;
+        }
+
+        // Sync without double-increment flicker
+        scheduleFetchMessagesUnread();
         queryCache.invalidate(CACHE_KEYS.CHAT_CONVERSATIONS);
       };
 
       const handleMessageSeenOrRead = () => {
-        fetchMessagesUnread();
+        scheduleFetchMessagesUnread();
       };
 
       s.on('connect', handleConnect);
@@ -155,6 +178,9 @@ export function useUnreadBadgeSync() {
 
       return () => {
         clearInterval(timer);
+        if (fetchDebounceTimerRef.current) {
+          clearTimeout(fetchDebounceTimerRef.current);
+        }
         appStateSub.remove();
         s.off('connect', handleConnect);
         s.off('notification:received', handleNotifReceived);
@@ -170,11 +196,17 @@ export function useUnreadBadgeSync() {
 
     return () => {
       clearInterval(timer);
+      if (fetchDebounceTimerRef.current) {
+        clearTimeout(fetchDebounceTimerRef.current);
+      }
       appStateSub.remove();
     };
   }, [
     isAuthenticated,
     user?.id,
+    fetchNotificationsUnread,
+    fetchMessagesUnread,
+    scheduleFetchMessagesUnread,
     setUnreadNotificationsCount,
     setUnreadMessagesCount,
   ]);

@@ -204,20 +204,33 @@ export default function MessagesScreen() {
     }
   }, [params.conversationId, params.userId, isAuthenticated, conversations.length]);
 
+  const selectedConversationRef = useRef(selectedConversation);
+  selectedConversationRef.current = selectedConversation;
+
   const handleConversationUpdated = useCallback(
     (
       conversationId: string,
       lastMessageText: string,
-      lastMessageAt: string
+      lastMessageAt: string,
+      senderId?: string,
+      unreadDelta?: number
     ) => {
       setConversations((prev) => {
         const idx = prev.findIndex((c) => c.id === conversationId);
         if (idx === -1) return prev;
+        const myId = user?.id;
+        const isSentByMe = Boolean(myId && senderId && senderId === myId);
+        const isActiveChat = selectedConversationRef.current?.id === conversationId;
+
+        const nextUnread = isActiveChat || isSentByMe
+          ? 0
+          : (prev[idx].unreadCount || 0) + (typeof unreadDelta === 'number' ? unreadDelta : 1);
+
         const updatedItem: ConversationItem = {
           ...prev[idx],
           lastMessageText,
           lastMessageAt,
-          unreadCount: 0,
+          unreadCount: nextUnread,
         };
         const rest = prev.filter((c) => c.id !== conversationId);
         const next = [updatedItem, ...rest];
@@ -229,7 +242,7 @@ export default function MessagesScreen() {
         return next;
       });
     },
-    [setConversations, setUnreadMessagesCount]
+    [user?.id, setConversations, setUnreadMessagesCount]
   );
 
   // Real-time Socket.io update for conversations sidebar
@@ -241,11 +254,15 @@ export default function MessagesScreen() {
       conversationId: string;
       lastMessageText: string;
       lastMessageAt: string;
+      senderId?: string;
+      unreadDelta?: number;
     }) => {
       handleConversationUpdated(
         data.conversationId,
         data.lastMessageText,
-        data.lastMessageAt
+        data.lastMessageAt,
+        data.senderId,
+        data.unreadDelta
       );
     };
 
