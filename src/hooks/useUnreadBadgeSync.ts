@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { useAuth } from '@/providers/AuthProvider';
 import { useUi } from '@/providers/UiProvider';
 import { notificationsApi } from '@/features/notifications/api/notifications.api';
@@ -54,51 +55,99 @@ export function useUnreadBadgeSync() {
         .catch(() => {});
     };
 
-    // Initial fetch on mount & whenever auth is established
+    // 1. Initial fetch immediately
     fetchNotificationsUnread();
     fetchMessagesUnread();
 
-    // 15-second background polling
+    // 2. Poll every 10 seconds as a reliable background fallback
     const timer = setInterval(() => {
       fetchNotificationsUnread();
       fetchMessagesUnread();
-    }, 15000);
+    }, 10000);
 
-    // Socket real-time event listeners
+    // 3. AppState change listener (refresh instantly when user resumes app)
+    const appStateSub = AppState.addEventListener(
+      'change',
+      (state: AppStateStatus) => {
+        if (state === 'active') {
+          fetchNotificationsUnread();
+          fetchMessagesUnread();
+          const s = getAppSocket() || initAppSocket();
+          if (s && s.disconnected) {
+            s.connect();
+          }
+        }
+      }
+    );
+
+    // 4. Socket real-time event listeners
     const s = initAppSocket() || getAppSocket();
     if (s) {
+      if (s.disconnected) {
+        s.connect();
+      }
+
+      const handleConnect = () => {
+        fetchNotificationsUnread();
+        fetchMessagesUnread();
+      };
+
       const handleNotifReceived = () => {
         fetchNotificationsUnread();
         queryCache.invalidate(CACHE_KEYS.NOTIFICATIONS_LIST);
       };
 
-      const handleNotifCount = (count: number) => {
+      const handleNotifCount = (payload: any) => {
+        const count =
+          typeof payload === 'number' ? payload : payload?.unreadCount;
         if (typeof count === 'number') {
           setUnreadNotificationsCount(count);
         }
       };
 
       const handleMessageReceived = (msg: any) => {
+        const senderId = msg?.senderId || msg?.sender?.id;
+        const myId = currentUserIdRef.current;
         // If not sent by current user:
-        if (msg?.senderId && msg.senderId !== currentUserIdRef.current) {
-          if (activeConversationIdRef.current !== msg?.conversationId) {
-            setUnreadMessagesCount((prev: number) => prev + 1);
+        if (!myId || senderId !== myId) {
+          if (
+            !activeConversationIdRef.current ||
+            activeConversationIdRef.current !== msg?.conversationId
+          ) {
+            setUnreadMessagesCount((prev: number) => Math.max(0, prev + 1));
           }
           fetchMessagesUnread();
           queryCache.invalidate(CACHE_KEYS.CHAT_CONVERSATIONS);
         }
       };
 
-      const handleConversationUpdated = () => {
+      const handleConversationUpdated = (data: any) => {
+        const senderId = data?.senderId;
+        const myId = currentUserIdRef.current;
+        if (!myId || senderId !== myId) {
+          if (
+            data?.unreadDelta &&
+            (!activeConversationIdRef.current ||
+              activeConversationIdRef.current !== data?.conversationId)
+          ) {
+            setUnreadMessagesCount((prev: number) =>
+              Math.max(0, prev + Number(data.unreadDelta))
+            );
+          }
+        }
         fetchMessagesUnread();
+        queryCache.invalidate(CACHE_KEYS.CHAT_CONVERSATIONS);
       };
 
       const handleMessageSeenOrRead = () => {
         fetchMessagesUnread();
       };
 
+      s.on('connect', handleConnect);
       s.on('notification:received', handleNotifReceived);
+      s.on('notification:new', handleNotifReceived);
       s.on('notification:unreadCount', handleNotifCount);
+      s.on('notification:unread_count', handleNotifCount);
       s.on('message:received', handleMessageReceived);
       s.on('conversation:updated', handleConversationUpdated);
       s.on('message:seen', handleMessageSeenOrRead);
@@ -106,8 +155,12 @@ export function useUnreadBadgeSync() {
 
       return () => {
         clearInterval(timer);
+        appStateSub.remove();
+        s.off('connect', handleConnect);
         s.off('notification:received', handleNotifReceived);
+        s.off('notification:new', handleNotifReceived);
         s.off('notification:unreadCount', handleNotifCount);
+        s.off('notification:unread_count', handleNotifCount);
         s.off('message:received', handleMessageReceived);
         s.off('conversation:updated', handleConversationUpdated);
         s.off('message:seen', handleMessageSeenOrRead);
@@ -115,6 +168,14 @@ export function useUnreadBadgeSync() {
       };
     }
 
-    return () => clearInterval(timer);
-  }, [isAuthenticated, setUnreadNotificationsCount, setUnreadMessagesCount]);
+    return () => {
+      clearInterval(timer);
+      appStateSub.remove();
+    };
+  }, [
+    isAuthenticated,
+    user?.id,
+    setUnreadNotificationsCount,
+    setUnreadMessagesCount,
+  ]);
 }

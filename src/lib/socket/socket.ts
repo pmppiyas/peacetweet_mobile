@@ -4,6 +4,7 @@ import { tokenStorage } from '@/lib/storage/secureStorage';
 import { envConfig } from '@/config/env.config';
 
 let socket: Socket | null = null;
+let currentSocketToken: string | null = null;
 
 export function getSocketUrl(): string {
   const envSocket = envConfig.socketUrl;
@@ -28,28 +29,47 @@ export function initAppSocket(): Socket | null {
     if (socket) {
       socket.disconnect();
       socket = null;
+      currentSocketToken = null;
     }
     return null;
   }
 
-  if (socket && socket.connected) {
+  // Reuse existing active socket if token has not changed
+  if (socket && currentSocketToken === token) {
+    if (socket.disconnected) {
+      socket.connect();
+    }
     return socket;
   }
 
+  // If token changed or previous socket exists, clean up
+  if (socket) {
+    socket.removeAllListeners();
+    socket.disconnect();
+    socket = null;
+  }
+
+  currentSocketToken = token;
   const socketUrl = getSocketUrl();
 
   try {
     socket = io(socketUrl, {
-      auth: { token },
-      transports: ['websocket', 'polling'],
+      auth: (cb: (data: Record<string, any>) => void) => {
+        // Dynamically fetch the current access token on each connection / reconnection attempt
+        const latestToken = tokenStorage.getAccessToken() || '';
+        cb({ token: latestToken });
+      },
+      transports: ['polling', 'websocket'],
       reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 2000,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1500,
+      reconnectionDelayMax: 5000,
       autoConnect: true,
+      timeout: 10000,
     });
 
     socket.on('connect', () => {
-      // Successfully connected to real-time gateway
+      // Connected to real-time gateway
     });
 
     socket.on('connect_error', (err) => {
@@ -64,12 +84,17 @@ export function initAppSocket(): Socket | null {
 }
 
 export function getAppSocket(): Socket | null {
+  if (socket && socket.disconnected && tokenStorage.getAccessToken()) {
+    socket.connect();
+  }
   return socket;
 }
 
 export function disconnectAppSocket(): void {
   if (socket) {
+    socket.removeAllListeners();
     socket.disconnect();
     socket = null;
+    currentSocketToken = null;
   }
 }
