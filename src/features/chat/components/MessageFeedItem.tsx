@@ -217,130 +217,135 @@ export function MessageFeedItem({
           </View>
         ) : null}
 
-        {/* Message Bubble */}
-        <Pressable
-          onLongPress={() => {
-            if (isMe && !isDeleted && !isTemp) {
-              setIsMenuOpen((prev) => !prev);
-            }
-          }}
-          className={`max-w-[78%] sm:max-w-[70%] px-3.5 py-2 relative ${
-            isDeleted
-              ? 'opacity-60 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl'
-              : isMe
-                ? 'bg-primary-500 rounded-2xl rounded-br-xs'
-                : 'bg-[#e6e9ef] dark:bg-[#3a3b3c] rounded-2xl rounded-bl-xs'
-          } ${isTemp ? 'opacity-95' : ''}`}>
-          {isDeleted ? (
-            <View className="flex-row items-center gap-1.5">
-              <AppIcon
-                android="block"
-                ios="nosign"
-                size={14}
-                color="#9ca3af"
-              />
-              <Text className="text-xs italic text-gray-500">
-                {locale === 'bn'
-                  ? 'মেসেজটি মুছে ফেলা হয়েছে'
-                  : 'This message was deleted'}
-              </Text>
-            </View>
-          ) : (
-            <Text
-              className={`text-sm leading-relaxed ${
-                isMe ? 'text-white' : 'text-[#050505] dark:text-[#e4e6eb]'
-              }`}>
-              {message.text}
-            </Text>
-          )}
-
-          {/* Timestamp & Meta Information inside Bubble */}
-          <View className="flex-row items-center justify-end gap-1 mt-1">
-            {message.isEdited && !isDeleted ? (
+        {/* Message Bubble & Status Container */}
+        <View
+          className={`max-w-[78%] sm:max-w-[70%] flex-col ${
+            isMe ? 'items-end' : 'items-start'
+          }`}>
+          <Pressable
+            onLongPress={() => {
+              if (isMe && !isDeleted && !isTemp) {
+                setIsMenuOpen((prev) => !prev);
+              }
+            }}
+            className={`px-3.5 py-2 relative ${
+              isDeleted
+                ? 'opacity-60 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl'
+                : isMe
+                  ? 'bg-primary-500 rounded-2xl rounded-br-xs'
+                  : 'bg-[#e6e9ef] dark:bg-[#3a3b3c] rounded-2xl rounded-bl-xs'
+            } ${isTemp ? 'opacity-95' : ''}`}>
+            {isDeleted ? (
+              <View className="flex-row items-center gap-1.5">
+                <AppIcon
+                  android="block"
+                  ios="nosign"
+                  size={14}
+                  color="#9ca3af"
+                />
+                <Text className="text-xs italic text-gray-500">
+                  {locale === 'bn'
+                    ? 'মেসেজটি মুছে ফেলা হয়েছে'
+                    : 'This message was deleted'}
+                </Text>
+              </View>
+            ) : (
               <Text
-                className={`text-[10px] italic ${
+                className={`text-sm leading-relaxed ${
+                  isMe ? 'text-white' : 'text-[#050505] dark:text-[#e4e6eb]'
+                }`}>
+                {message.text}
+              </Text>
+            )}
+
+            {/* Timestamp & Meta Information inside Bubble */}
+            <View className="flex-row items-center justify-end gap-1 mt-1">
+              {message.isEdited && !isDeleted ? (
+                <Text
+                  className={`text-[10px] italic ${
+                    isMe
+                      ? 'text-white/80'
+                      : 'text-[#65676b] dark:text-[#b0b3b8]'
+                  }`}>
+                  {locale === 'bn' ? '(সম্পাদিত)' : '(edited)'}
+                </Text>
+              ) : null}
+
+              <Text
+                className={`text-[10px] ${
                   isMe
                     ? 'text-white/80'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
                 }`}>
-                {locale === 'bn' ? '(সম্পাদিত)' : '(edited)'}
+                {formatMessageTime(message.createdAt, locale)}
               </Text>
-            ) : null}
 
-            <Text
-              className={`text-[10px] ${
-                isMe
-                  ? 'text-white/80'
-                  : 'text-[#65676b] dark:text-[#b0b3b8]'
-              }`}>
-              {formatMessageTime(message.createdAt, locale)}
-            </Text>
+              {isMe && !isDeleted ? (
+                <AppIcon
+                  android={
+                    isTemp
+                      ? 'schedule'
+                      : message.isRead
+                      ? 'done_all'
+                      : isOtherOnline
+                      ? 'done_all'
+                      : 'check'
+                  }
+                  ios={
+                    isTemp
+                      ? 'clock'
+                      : message.isRead
+                      ? 'checkmark.circle.fill'
+                      : isOtherOnline
+                      ? 'checkmark.circle'
+                      : 'checkmark'
+                  }
+                  size={12}
+                  color={
+                    isTemp
+                      ? 'rgba(255,255,255,0.6)'
+                      : message.isRead
+                      ? '#ffffff'
+                      : isOtherOnline
+                      ? 'rgba(255,255,255,0.9)'
+                      : 'rgba(255,255,255,0.7)'
+                  }
+                />
+              ) : null}
+            </View>
+          </Pressable>
 
-            {isMe && !isDeleted ? (
-              <AppIcon
-                android={
-                  isTemp
-                    ? 'schedule'
-                    : message.isRead
-                    ? 'done_all'
-                    : isOtherOnline
-                    ? 'done_all'
-                    : 'check'
-                }
-                ios={
-                  isTemp
-                    ? 'clock'
-                    : message.isRead
-                    ? 'checkmark.circle.fill'
-                    : isOtherOnline
-                    ? 'checkmark.circle'
-                    : 'checkmark'
-                }
-                size={12}
-                color={
-                  isTemp
-                    ? 'rgba(255,255,255,0.6)'
-                    : message.isRead
-                    ? '#ffffff'
-                    : isOtherOnline
-                    ? 'rgba(255,255,255,0.9)'
-                    : 'rgba(255,255,255,0.7)'
-                }
-              />
-            ) : null}
-          </View>
-        </Pressable>
-
-        {/* Read / Delivered / Sent status below bubble for the last message from me */}
-        {isMe && !isDeleted && isLastFromMe ? (
-          <View className="flex-row items-center justify-end gap-1 mt-1 pr-1">
-            {message.isRead ? (
-              <View className="flex-row items-center gap-1">
-                <Text className="text-[11px] font-semibold text-primary-600 dark:text-primary-400">
-                  {locale === 'bn' ? 'দেখা হয়েছে' : 'Seen'}
+          {/* Read / Delivered / Sent status below bubble for the last message from me */}
+          {isMe && !isDeleted && isLastFromMe ? (
+            <View className="flex-row items-center justify-end gap-1 mt-1 pr-1">
+              {message.isRead ? (
+                <View className="flex-row items-center gap-1">
+                  <Text className="text-[11px] font-semibold text-primary-600 dark:text-primary-400">
+                    {locale === 'bn' ? 'দেখা হয়েছে' : 'Seen'}
+                  </Text>
+                  {otherUser?.avatarUrl ? (
+                    <Image
+                      source={{
+                        uri:
+                          normalizeMediaUrl(otherUser.avatarUrl) ||
+                          otherUser.avatarUrl,
+                      }}
+                      style={{ width: 14, height: 14, borderRadius: 7 }}
+                    />
+                  ) : null}
+                </View>
+              ) : isOtherOnline ? (
+                <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
+                  {locale === 'bn' ? 'পৌঁছেছে' : 'Delivered'}
                 </Text>
-                {otherUser?.avatarUrl ? (
-                  <Image
-                    source={{
-                      uri:
-                        normalizeMediaUrl(otherUser.avatarUrl) ||
-                        otherUser.avatarUrl,
-                    }}
-                    style={{ width: 14, height: 14, borderRadius: 7 }}
-                  />
-                ) : null}
-              </View>
-            ) : isOtherOnline ? (
-              <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn' ? 'পৌঁছেছে' : 'Delivered'}
-              </Text>
-            ) : (
-              <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn' ? 'পাঠানো হয়েছে' : 'Sent'}
-              </Text>
-            )}
-          </View>
-        ) : null}
+              ) : (
+                <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
+                  {locale === 'bn' ? 'পাঠানো হয়েছে' : 'Sent'}
+                </Text>
+              )}
+            </View>
+          ) : null}
+        </View>
       </View>
     </View>
   );
