@@ -257,13 +257,13 @@ export function DateTimePicker({
       <Pressable
         onPress={handleOpen}
         style={webNoOutline}
-        className={`bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2.5 flex-row items-center justify-between border ${
+        className={`bg-[#f0f2f5] dark:bg-[#242526] rounded-xl px-3.5 py-2.5 flex-row items-center justify-between border ${
           isOpen
-            ? 'border-orange-500 dark:border-orange-500'
-            : 'border-[#e4e6eb] dark:border-[#393a3b]'
+            ? 'border-[#0866FF] dark:border-[#0866FF]'
+            : 'border-transparent'
         }`}>
         <View className="flex-row items-center gap-2 flex-1">
-          <AppIcon android="schedule" size={16} color={isOpen ? '#ea580c' : '#65676b'} />
+          <AppIcon android="schedule" size={16} color={isOpen ? '#0866FF' : '#65676b'} />
           <Text
             className={`text-xs ${
               displayValue
@@ -310,10 +310,10 @@ export function DateTimePicker({
           <Pressable
             onPress={(e) => e.stopPropagation()}
             style={{
-              width: 375,
-              maxWidth: '96%',
-              backgroundColor: isDark ? '#242526' : '#f5f6f8',
-              borderRadius: 16,
+              width: 360,
+              maxWidth: '95%',
+              backgroundColor: isDark ? '#242526' : '#ffffff',
+              borderRadius: 20,
               borderWidth: 1,
               borderColor: isDark ? '#393a3b' : '#e4e6eb',
               shadowColor: '#000',
@@ -326,7 +326,7 @@ export function DateTimePicker({
             {/* Top Container: Calendar (Left) + Time Picker (Right) */}
             <View style={{ flexDirection: 'row', height: 236 }}>
               {/* Left Side: Calendar */}
-              <View style={{ width: 235, padding: 10, justifyContent: 'space-between' }}>
+              <View style={{ width: 196, paddingHorizontal: 6, paddingVertical: 8, justifyContent: 'space-between' }}>
                 {/* Calendar Header: <<  <  Month Year  >  >> */}
                 <View
                   style={{
@@ -418,12 +418,12 @@ export function DateTimePicker({
                         <Pressable
                           onPress={() => handleSelectDay(cell)}
                           style={{
-                            width: 25,
-                            height: 25,
+                            width: 24,
+                            height: 24,
                             alignItems: 'center',
                             justifyContent: 'center',
                             borderRadius: 6,
-                            backgroundColor: isSelected ? '#ea580c' : 'transparent',
+                            backgroundColor: isSelected ? '#0866FF' : 'transparent',
                           }}>
                           <Text
                             style={{
@@ -458,7 +458,7 @@ export function DateTimePicker({
               />
 
               {/* Right Side: Time Picker */}
-              <View style={{ flex: 1, flexDirection: 'column', height: 236 }}>
+              <View style={{ flex: 1, flexDirection: 'column', height: 236, minWidth: 140 }}>
                 {/* Time Display Header (e.g. 10:24 PM) */}
                 <View
                   style={{
@@ -470,9 +470,9 @@ export function DateTimePicker({
                   }}>
                   <Text
                     style={{
-                      fontSize: 12,
+                      fontSize: 12.5,
                       fontWeight: '700',
-                      color: isDark ? '#e4e6eb' : '#050505',
+                      color: isDark ? '#e4e6eb' : '#0866FF',
                     }}>
                     {timeHeader}
                   </Text>
@@ -501,18 +501,19 @@ export function DateTimePicker({
                             borderRadius: 4,
                             backgroundColor: isSelected
                               ? isDark
-                                ? 'rgba(234, 88, 12, 0.25)'
-                                : '#fff7ed'
+                                ? 'rgba(8, 102, 255, 0.25)'
+                                : '#e7f0ff'
                               : 'transparent',
                           }}>
                           <Text
+                            numberOfLines={1}
                             style={{
                               fontSize: 12,
                               fontWeight: isSelected ? '700' : '500',
                               color: isSelected
                                 ? isDark
-                                  ? '#fb923c'
-                                  : '#ea580c'
+                                  ? '#36a4fa'
+                                  : '#0866FF'
                                 : isDark
                                 ? '#e4e6eb'
                                 : '#050505',
@@ -555,18 +556,19 @@ export function DateTimePicker({
                             borderRadius: 4,
                             backgroundColor: isSelected
                               ? isDark
-                                ? 'rgba(234, 88, 12, 0.25)'
-                                : '#fff7ed'
+                                ? 'rgba(8, 102, 255, 0.25)'
+                                : '#e7f0ff'
                               : 'transparent',
                           }}>
                           <Text
+                            numberOfLines={1}
                             style={{
                               fontSize: 12,
                               fontWeight: isSelected ? '700' : '500',
                               color: isSelected
                                 ? isDark
-                                  ? '#fb923c'
-                                  : '#ea580c'
+                                  ? '#36a4fa'
+                                  : '#0866FF'
                                 : isDark
                                 ? '#e4e6eb'
                                 : '#050505',
@@ -588,7 +590,7 @@ export function DateTimePicker({
                   />
 
                   {/* AM/PM Column */}
-                  <View style={{ width: 44, paddingVertical: 4 }}>
+                  <View style={{ width: 38, paddingVertical: 4, paddingHorizontal: 2 }}>
                     {(['AM', 'PM'] as const).map((p) => {
                       const isSelected = selectedPeriod === p;
                       return (
@@ -604,18 +606,19 @@ export function DateTimePicker({
                             borderRadius: 4,
                             backgroundColor: isSelected
                               ? isDark
-                                ? 'rgba(234, 88, 12, 0.25)'
-                                : '#fff7ed'
+                                ? 'rgba(8, 102, 255, 0.25)'
+                                : '#e7f0ff'
                               : 'transparent',
                           }}>
                           <Text
+                            numberOfLines={1}
                             style={{
-                              fontSize: 12,
-                              fontWeight: isSelected ? '700' : '500',
+                              fontSize: 11.5,
+                              fontWeight: isSelected ? '700' : '600',
                               color: isSelected
                                 ? isDark
-                                  ? '#fb923c'
-                                  : '#ea580c'
+                                  ? '#36a4fa'
+                                  : '#0866FF'
                                 : isDark
                                 ? '#e4e6eb'
                                 : '#050505',
@@ -659,7 +662,7 @@ export function DateTimePicker({
               <Pressable
                 onPress={handleConfirm}
                 style={{
-                  backgroundColor: '#0284c7',
+                  backgroundColor: '#0866FF',
                   paddingHorizontal: 16,
                   paddingVertical: 6,
                   borderRadius: 6,
