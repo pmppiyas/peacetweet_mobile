@@ -499,7 +499,7 @@ export default function SavedScreen() {
                       ? 'bg-primary-600 shadow-xs'
                       : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
                   }`}>
-                  <Text className="text-base leading-none select-none">{tab.icon}</Text>
+                  <Text className="text-[22px] leading-tight select-none">{tab.icon}</Text>
                 </Pressable>
               );
             })}
