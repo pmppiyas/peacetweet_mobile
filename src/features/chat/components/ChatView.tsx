@@ -444,7 +444,7 @@ export function ChatView({
             <View className="items-center justify-center pt-2 pb-3">
               {isLoadingOlder ? (
                 <View className="flex-row items-center gap-2">
-                  <ActivityIndicator size="small" color="#1877f2" />
+                  <ActivityIndicator size="small" color="#0A66C2" />
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn'
                       ? 'আগের মেসেজ লোড হচ্ছে...'
@@ -471,7 +471,7 @@ export function ChatView({
             <EmptyState
               iconAndroid="chat_bubble"
               iconIos="bubble.left.and.bubble.right"
-              iconColor="#1877f2"
+              iconColor="#0A66C2"
               iconBgClassName="bg-primary-50 dark:bg-primary-950/40"
               title={
                 locale === 'bn'

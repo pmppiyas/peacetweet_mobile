@@ -573,7 +573,7 @@ export function SearchPageView() {
                   <View className="rounded-xl bg-white dark:bg-[#242526] p-4 border border-[#e4e6eb] dark:border-[#393a3b] gap-2 select-none">
                     <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-2 select-none">
                       <View className="flex-row items-center gap-1.5 select-none">
-                        <AppIcon android="person" size={16} color="#1877f2" />
+                        <AppIcon android="person" size={16} color="#0A66C2" />
                         <Text
                           selectable={false}
                           className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none">

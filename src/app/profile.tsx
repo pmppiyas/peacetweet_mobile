@@ -20,7 +20,7 @@ export default function ProfileScreen() {
       <AuthPromptScreen
         icon="person"
         iconBgColor="bg-primary-50 dark:bg-primary-950/60"
-        iconColor="#1877f2"
+        iconColor="#0A66C2"
         titleBn="প্রোফাইল দেখতে লগইন করুন"
         titleEn="Sign in to view your Profile"
         descriptionBn="আপনার পোস্ট, সংরক্ষিত দোয়া এবং প্রোফাইল তথ্য দেখতে অ্যাকাউন্টে প্রবেশ করুন।"

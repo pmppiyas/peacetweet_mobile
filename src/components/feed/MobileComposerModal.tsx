@@ -691,8 +691,8 @@ export function MobileComposerModal() {
                     ? '#e11d48'
                     : postType === 'DUA'
                     ? '#059669'
-                    : '#1877f2'
-                  : '#1877f2'
+                    : '#0A66C2'
+                  : '#0A66C2'
               }
             />
             <Text className="font-bold text-sm text-[#1e2329] dark:text-[#e4e6eb]">
@@ -956,7 +956,7 @@ export function MobileComposerModal() {
                           <AppIcon
                             android="layers"
                             size={11}
-                            color={mediaLayout === 'COLLAGE' ? '#1877f2' : '#65676b'}
+                            color={mediaLayout === 'COLLAGE' ? '#0A66C2' : '#65676b'}
                           />
                           <Text
                             className={`text-[11px] font-semibold ${
@@ -977,7 +977,7 @@ export function MobileComposerModal() {
                           <AppIcon
                             android="more_horiz"
                             size={11}
-                            color={mediaLayout === 'SWIPE' ? '#1877f2' : '#65676b'}
+                            color={mediaLayout === 'SWIPE' ? '#0A66C2' : '#65676b'}
                           />
                           <Text
                             className={`text-[11px] font-semibold ${
@@ -1633,7 +1633,7 @@ export function MobileComposerModal() {
                         ? '#ef4444'
                         : progress > 0.7
                           ? '#f59e0b'
-                          : '#1877f2'
+                          : '#0A66C2'
                     }
                     strokeWidth={2.5}
                     strokeDasharray={circumference}

@@ -115,7 +115,7 @@ export function ConversationDetailsModal({
                 android="auto_awesome"
                 ios="sparkles"
                 size={16}
-                color="#1877f2"
+                color="#0A66C2"
               />
               <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
                 {locale === 'bn' ? 'সালাম দিন' : 'Salam'}
@@ -181,7 +181,7 @@ export function ConversationDetailsModal({
                 android="favorite"
                 ios="heart.fill"
                 size={16}
-                color="#1877f2"
+                color="#0A66C2"
               />
               <Text className="text-xs font-bold text-primary-700 dark:text-primary-300">
                 {locale === 'bn'

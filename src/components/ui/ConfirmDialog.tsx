@@ -47,7 +47,7 @@ export function ConfirmDialog({
         ? '#059669'
         : variant === 'danger'
           ? '#e11d48'
-          : '#1877f2';
+          : '#0A66C2';
 
   const confirmBtnClass =
     variant === 'warning'

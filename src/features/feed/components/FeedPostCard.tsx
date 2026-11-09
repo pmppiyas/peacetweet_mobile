@@ -375,7 +375,7 @@ export function FeedPostCard({
                   android="verified"
                   ios="checkmark.seal.fill"
                   size={15}
-                  color="#1877f2"
+                  color="#0A66C2"
                 />
                 {feelingItem && (
                   <Text
@@ -534,7 +534,7 @@ export function FeedPostCard({
             size={18}
             color={
               showComments
-                ? '#1877f2'
+                ? '#0A66C2'
                 : theme === 'dark'
                   ? '#b0b3b8'
                   : '#65676b'

@@ -91,7 +91,7 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              <AppIcon android="chevron_right" size={18} color="#1877f2" />
+              <AppIcon android="chevron_right" size={18} color="#0A66C2" />
             </Pressable>
           </View>
         ) : (

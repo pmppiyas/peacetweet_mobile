@@ -33,7 +33,7 @@ export default function HomeScreen() {
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={refreshFeed}
-          tintColor="#1877f2"
+          tintColor="#0A66C2"
           progressViewOffset={60}
         />
       }

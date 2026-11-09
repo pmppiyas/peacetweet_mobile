@@ -298,13 +298,13 @@ export function ReportPostModal({ visible, onClose, post }: ReportPostModalProps
                           onPress={() => setSelectedReason(r.id)}
                           style={{
                             borderColor: isSelected
-                              ? '#1877f2'
+                              ? '#0A66C2'
                               : isDark
                                 ? '#393a3b'
                                 : '#e4e6eb',
                             backgroundColor: isSelected
                               ? isDark
-                                ? 'rgba(24, 119, 242, 0.15)'
+                                ? 'rgba(10, 102, 194, 0.15)'
                                 : '#f0f7ff'
                               : 'transparent',
                           }}
@@ -312,7 +312,7 @@ export function ReportPostModal({ visible, onClose, post }: ReportPostModalProps
                           <Text
                             className={`text-xs font-medium ${
                               isSelected
-                                ? 'font-bold text-[#1877f2]'
+                                ? 'font-bold text-[#0A66C2]'
                                 : 'text-[#050505] dark:text-[#e4e6eb]'
                             }`}>
                             {locale === 'bn' ? r.labelBn : r.labelEn}
@@ -320,14 +320,14 @@ export function ReportPostModal({ visible, onClose, post }: ReportPostModalProps
                           <View
                             style={{
                               borderColor: isSelected
-                                ? '#1877f2'
+                                ? '#0A66C2'
                                 : isDark
                                   ? '#5a5b5c'
                                   : '#bcc0c4',
                             }}
                             className="h-4 w-4 rounded-full border items-center justify-center">
                             {isSelected && (
-                              <View className="h-2 w-2 rounded-full bg-[#1877f2]" />
+                              <View className="h-2 w-2 rounded-full bg-[#0A66C2]" />
                             )}
                           </View>
                         </Pressable>

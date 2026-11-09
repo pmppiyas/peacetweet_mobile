@@ -331,7 +331,7 @@ export default function RegisterScreen() {
   const getInputBoxClass = (field: string) =>
     `flex-row items-center rounded-lg border px-2.5 h-9 gap-2 ${
       focusedField === field
-        ? 'border-[#1877f2] bg-white dark:bg-[#1f2021]'
+        ? 'border-[#0A66C2] bg-white dark:bg-[#1f2021]'
         : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
     }`;
 
@@ -343,7 +343,7 @@ export default function RegisterScreen() {
       {/* Compact Brand Header */}
       <View className="items-center mb-2.5">
         <Pressable onPress={() => router.push('/')}>
-          <Text className="text-[26px] leading-8 font-black tracking-tight text-[#1877f2] dark:text-[#4a80f5]">
+          <Text className="text-[26px] leading-8 font-black tracking-tight text-[#0A66C2] dark:text-[#36a4fa]">
             PeaceTweet
           </Text>
         </Pressable>
@@ -386,7 +386,7 @@ export default function RegisterScreen() {
                   />
                 </Pressable>
               )}
-              <Text className="text-[11px] font-bold text-[#1877f2] dark:text-[#4a80f5] uppercase">
+              <Text className="text-[11px] font-bold text-[#0A66C2] dark:text-[#4a80f5] uppercase">
                 {locale === 'bn' ? `ধাপ ${step} / ৫` : `Step ${step} of 5`}
               </Text>
             </View>
@@ -412,7 +412,7 @@ export default function RegisterScreen() {
                 key={s}
                 className={`flex-1 h-1 rounded-full ${
                   s <= step
-                    ? 'bg-[#1877f2] dark:bg-[#4a80f5]'
+                    ? 'bg-[#0A66C2] dark:bg-[#4a80f5]'
                     : 'bg-[#e4e6eb] dark:bg-[#3a3b3c]'
                 }`}
               />
@@ -451,7 +451,7 @@ export default function RegisterScreen() {
                 <AppIcon
                   android="person"
                   size={15}
-                  color={focusedField === 'name' ? '#1877f2' : '#8a8d91'}
+                  color={focusedField === 'name' ? '#0A66C2' : '#8a8d91'}
                 />
                 <TextInput
                   value={name}
@@ -479,7 +479,7 @@ export default function RegisterScreen() {
                 <AppIcon
                   android="mail"
                   size={15}
-                  color={focusedField === 'email' ? '#1877f2' : '#8a8d91'}
+                  color={focusedField === 'email' ? '#0A66C2' : '#8a8d91'}
                 />
                 <TextInput
                   value={email}
@@ -499,7 +499,7 @@ export default function RegisterScreen() {
 
             <Pressable
               onPress={handleProceedFromStep1}
-              className="w-full h-9 flex-row items-center justify-center gap-1.5 rounded-lg bg-[#1877f2] hover:bg-[#166fe5] active:bg-[#1565d8] mt-0.5">
+              className="w-full h-9 flex-row items-center justify-center gap-1.5 rounded-lg bg-[#0A66C2] hover:bg-[#166fe5] active:bg-[#1565d8] mt-0.5">
               <Text className="text-white font-bold text-[13px]">
                 {locale === 'bn' ? 'পরবর্তী ধাপে যান' : 'Continue'}
               </Text>
@@ -542,7 +542,7 @@ export default function RegisterScreen() {
                   {locale === 'bn'
                     ? 'আগে থেকেই অ্যাকাউন্ট আছে? '
                     : 'Already have an account? '}
-                  <Text className="font-bold text-[#1877f2] dark:text-[#4a80f5]">
+                  <Text className="font-bold text-[#0A66C2] dark:text-[#4a80f5]">
                     {locale === 'bn' ? 'লগইন করুন' : 'Log In'}
                   </Text>
                 </Text>
@@ -577,7 +577,7 @@ export default function RegisterScreen() {
                 <AppIcon
                   android="lock"
                   size={15}
-                  color={focusedField === 'password' ? '#1877f2' : '#8a8d91'}
+                  color={focusedField === 'password' ? '#0A66C2' : '#8a8d91'}
                 />
                 <TextInput
                   value={password}
@@ -615,7 +615,7 @@ export default function RegisterScreen() {
                   android="lock"
                   size={15}
                   color={
-                    focusedField === 'confirmPassword' ? '#1877f2' : '#8a8d91'
+                    focusedField === 'confirmPassword' ? '#0A66C2' : '#8a8d91'
                   }
                 />
                 <TextInput
@@ -649,7 +649,7 @@ export default function RegisterScreen() {
 
             <Pressable
               onPress={handleProceedFromStep2}
-              className="w-full h-9 flex-row items-center justify-center gap-1.5 rounded-lg bg-[#1877f2] hover:bg-[#166fe5] active:bg-[#1565d8] mt-0.5">
+              className="w-full h-9 flex-row items-center justify-center gap-1.5 rounded-lg bg-[#0A66C2] hover:bg-[#166fe5] active:bg-[#1565d8] mt-0.5">
               <Text className="text-white font-bold text-[13px]">
                 {locale === 'bn' ? 'পরবর্তী ধাপে যান' : 'Continue'}
               </Text>
@@ -692,8 +692,8 @@ export default function RegisterScreen() {
                   }
                   className={`h-[68px] w-[68px] items-center justify-center rounded-full overflow-hidden active:scale-95 ${
                     selectedAvatarUrl
-                      ? 'border-2 border-[#1877f2] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
-                      : 'border-2 border-dashed border-[#1877f2]/60 hover:border-[#1877f2] dark:border-[#4a80f5]/60 bg-[#e6e9ef] dark:bg-[#3a3b3c]'
+                      ? 'border-2 border-[#0A66C2] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
+                      : 'border-2 border-dashed border-[#0A66C2]/60 hover:border-[#0A66C2] dark:border-[#4a80f5]/60 bg-[#e6e9ef] dark:bg-[#3a3b3c]'
                   }`}>
                   {selectedAvatarUrl ? (
                     <Image
@@ -707,9 +707,9 @@ export default function RegisterScreen() {
                         android="photo_camera"
                         ios="camera.fill"
                         size={20}
-                        color="#1877f2"
+                        color="#0A66C2"
                       />
-                      <Text className="text-[10px] font-bold text-[#1877f2] dark:text-[#4a80f5] mt-0.5">
+                      <Text className="text-[10px] font-bold text-[#0A66C2] dark:text-[#4a80f5] mt-0.5">
                         {locale === 'bn' ? 'আপলোড' : 'Upload'}
                       </Text>
                     </>
@@ -733,7 +733,7 @@ export default function RegisterScreen() {
                     <Pressable
                       onPress={handlePickFromDevice}
                       hitSlop={4}
-                      className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-[#1877f2] border border-white dark:border-[#242526] items-center justify-center">
+                      className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-[#0A66C2] border border-white dark:border-[#242526] items-center justify-center">
                       <AppIcon
                         android="photo_camera"
                         ios="camera.fill"
@@ -764,7 +764,7 @@ export default function RegisterScreen() {
                           <View
                             className={`relative h-[58px] w-[58px] rounded-full p-[2px] ${
                               isSelected
-                                ? 'border-2 border-[#1877f2] bg-white dark:bg-[#242526]'
+                                ? 'border-2 border-[#0A66C2] bg-white dark:bg-[#242526]'
                                 : 'border border-[#dddfe2] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
                             }`}>
                             <Image
@@ -773,7 +773,7 @@ export default function RegisterScreen() {
                               resizeMode="cover"
                             />
                             {isSelected && (
-                              <View className="absolute -bottom-0.5 -right-0.5 h-[18px] w-[18px] rounded-full bg-[#1877f2] border-[1.5px] border-white dark:border-[#242526] items-center justify-center">
+                              <View className="absolute -bottom-0.5 -right-0.5 h-[18px] w-[18px] rounded-full bg-[#0A66C2] border-[1.5px] border-white dark:border-[#242526] items-center justify-center">
                                 <AppIcon
                                   android="check"
                                   ios="checkmark"
@@ -815,7 +815,7 @@ export default function RegisterScreen() {
                   setErrorMessage('');
                   setStep(4);
                 }}
-                className="flex-1 h-9 rounded-lg bg-[#1877f2] hover:bg-[#166fe5] active:bg-[#1565d8] items-center justify-center">
+                className="flex-1 h-9 rounded-lg bg-[#0A66C2] hover:bg-[#166fe5] active:bg-[#1565d8] items-center justify-center">
                 <Text className="text-xs font-bold text-white">
                   {locale === 'bn' ? 'পরবর্তী' : 'Next'}
                 </Text>
@@ -921,7 +921,7 @@ export default function RegisterScreen() {
                   setErrorMessage('');
                   setStep(5);
                 }}
-                className="flex-1 h-9 rounded-lg bg-[#1877f2] hover:bg-[#166fe5] active:bg-[#1565d8] items-center justify-center">
+                className="flex-1 h-9 rounded-lg bg-[#0A66C2] hover:bg-[#166fe5] active:bg-[#1565d8] items-center justify-center">
                 <Text className="text-xs font-bold text-white">
                   {locale === 'bn' ? 'পরবর্তী' : 'Next'}
                 </Text>

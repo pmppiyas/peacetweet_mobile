@@ -213,8 +213,8 @@ export default function NotificationsScreen() {
               setIsRefreshing(true);
               loadNotifications(true);
             }}
-            colors={['#1877f2']}
-            tintColor="#1877f2"
+            colors={['#0A66C2']}
+            tintColor="#0A66C2"
             progressViewOffset={60}
           />
         }>
@@ -240,7 +240,7 @@ export default function NotificationsScreen() {
                     android="done_all"
                     ios="checkmark.circle"
                     size={15}
-                    color="#1877f2"
+                    color="#0A66C2"
                   />
                   <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
                     {locale === 'bn' ? 'সব পঠিত করুন' : 'Mark all read'}

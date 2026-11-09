@@ -18,7 +18,7 @@ export interface AuthPromptCardProps {
 export function AuthPromptCard({
   icon = 'lock',
   iconBgColor = 'bg-primary-50 dark:bg-primary-950/60',
-  iconColor = '#1877f2',
+  iconColor = '#0A66C2',
   titleBn,
   titleEn,
   descriptionBn,

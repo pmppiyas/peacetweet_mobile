@@ -75,7 +75,7 @@ export function FullPageLoader({ className = '' }: FullPageLoaderProps) {
             opacity: pulseAnim,
             borderRadius: 24,
             overflow: 'hidden',
-            shadowColor: '#1877f2',
+            shadowColor: '#0A66C2',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.15,
             shadowRadius: 10,
@@ -137,7 +137,7 @@ export function FullPageLoader({ className = '' }: FullPageLoaderProps) {
               Platform.OS === 'web'
                 ? ({
                     backgroundImage:
-                      'linear-gradient(to right, #1565d8, #1877f2, #0d9488)',
+                      'linear-gradient(to right, #1565d8, #0A66C2, #0d9488)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   } as any)

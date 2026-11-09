@@ -283,7 +283,7 @@ export function PostActionMenuModal({
                 <View
                   style={{
                     backgroundColor: hasSaved
-                      ? '#1877f2'
+                      ? '#0A66C2'
                       : isDark
                         ? '#3a3b3c'
                         : '#e6e9ef',

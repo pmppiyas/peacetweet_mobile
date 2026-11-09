@@ -198,7 +198,7 @@ export function EditPostModal({
                 disabled={isSaving || !content.trim()}
                 onPress={handleSave}
                 style={{
-                  backgroundColor: content.trim() ? '#1877f2' : '#93c5fd',
+                  backgroundColor: content.trim() ? '#0A66C2' : '#93c5fd',
                 }}
                 className="px-5 py-2 rounded-xl items-center justify-center flex-row gap-2 active:opacity-80">
                 {isSaving && (

@@ -208,7 +208,7 @@ export default function CategoriesScreen() {
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
-          tintColor={theme === 'dark' ? '#ffffff' : '#1877f2'}
+          tintColor={theme === 'dark' ? '#ffffff' : '#0A66C2'}
           progressViewOffset={60}
         />
       }>

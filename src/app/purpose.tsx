@@ -117,7 +117,7 @@ export default function PurposeScreen() {
 
         {/* Official Contact Footer */}
         <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs items-center text-center">
-          <AppIcon android="mail" size={24} color="#1877f2" />
+          <AppIcon android="mail" size={24} color="#0A66C2" />
           <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] mt-2 mb-1">
             {locale === 'bn' ? 'অফিসিয়াল যোগাযোগ' : 'Official Contact'}
           </Text>

@@ -391,13 +391,13 @@ export function PhotoViewerModal({
                 className="flex-row items-center gap-1.5 py-1 active:scale-95">
                 <ThumbLikeIcon
                   size={22}
-                  color={hasReacted ? '#1877f2' : primaryIconColor}
+                  color={hasReacted ? '#0A66C2' : primaryIconColor}
                   filled={hasReacted}
                 />
                 <Text
                   className={`text-[14px] font-semibold ${
                     hasReacted
-                      ? 'text-[#1877f2]'
+                      ? 'text-[#0A66C2]'
                       : 'text-[#050505] dark:text-white'
                   }`}>
                   {reactionCount}
@@ -431,7 +431,7 @@ export function PhotoViewerModal({
                   <AppIcon
                     android="bookmark"
                     size={20}
-                    color={hasSaved ? '#1877f2' : primaryIconColor}
+                    color={hasSaved ? '#0A66C2' : primaryIconColor}
                     filled={hasSaved}
                   />
                 </Pressable>
@@ -442,7 +442,7 @@ export function PhotoViewerModal({
             <Pressable
               onPress={onToggleReaction}
               className="flex-row items-center active:opacity-80">
-              <View className="h-5 w-5 rounded-full bg-[#1877f2] items-center justify-center border border-white dark:border-black z-30">
+              <View className="h-5 w-5 rounded-full bg-[#0A66C2] items-center justify-center border border-white dark:border-black z-30">
                 <Text className="text-[10px]">👍</Text>
               </View>
               <View className="h-5 w-5 rounded-full bg-rose-500 items-center justify-center border border-white dark:border-black -ml-1.5 z-20">

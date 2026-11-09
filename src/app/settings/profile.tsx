@@ -105,7 +105,7 @@ export default function EditProfileScreen() {
       <AuthPromptScreen
         icon="person"
         iconBgColor="bg-primary-50 dark:bg-primary-950/60"
-        iconColor="#1877f2"
+        iconColor="#0A66C2"
         titleBn="প্রোফাইল সম্পাদনা করতে লগইন করুন"
         titleEn="Sign in to edit your profile"
         descriptionBn="প্রোফাইলের ছবি, কভার, নাম ও তথ্য পরিবর্তন করতে অ্যাকাউন্টে প্রবেশ করুন।"
