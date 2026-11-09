@@ -6,6 +6,8 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
@@ -34,8 +36,8 @@ export default function LoginScreen() {
     if (!identifier.trim() || !password.trim()) {
       setErrorMessage(
         locale === 'bn'
-          ? 'অনুগ্রহ করে আপনার ইমেইল/ইউজারনেম এবং পাসওয়ার্ড প্রদান করুন।'
-          : 'Please provide your email/username and password.'
+          ? 'অনুগ্রহ করে আপনার ইমেইল বা ইউজারনেম এবং পাসওয়ার্ড প্রদান করুন।'
+          : 'Please enter your email or username and password.'
       );
       return;
     }
@@ -72,193 +74,235 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-white dark:bg-[#18191a]"
-      keyboardShouldPersistTaps="handled"
-      contentContainerClassName="flex-grow items-center justify-center px-3 py-3">
-      {/* Compact Brand Header */}
-      <View className="items-center mb-2.5">
-        <Pressable onPress={() => router.push('/')}>
-          <Text className="text-[26px] leading-8 font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
-            PeaceTweet
-          </Text>
-        </Pressable>
-        <Text className="text-xs font-medium text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-          {locale === 'bn'
-            ? 'আপনার অ্যাকাউন্টে লগইন করুন'
-            : 'Sign in to your account'}
-        </Text>
-      </View>
-
-      {/* Compact Login Card */}
-      <View
-        style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: isDark ? 0.25 : 0.06,
-          shadowRadius: 8,
-          elevation: 2,
-        }}
-        className="w-full max-w-[356px] rounded-xl bg-white dark:bg-[#242526] border border-[#dddfe2] dark:border-[#393a3b] p-4 gap-2">
-        {errorMessage !== '' && (
-          <View className="rounded-lg bg-red-50 px-2.5 py-2 border border-red-200 dark:bg-red-950/60 dark:border-red-900">
-            <Text className="text-[11px] leading-4 text-red-600 dark:text-red-300 font-semibold">
-              {errorMessage}
-            </Text>
-          </View>
-        )}
-
-        {/* Identifier Input */}
-        <View className="gap-1">
-          <Text className="text-xs font-semibold text-[#374151] dark:text-[#d1d5db]">
-            {locale === 'bn' ? 'ইমেইল বা ইউজারনেম' : 'Email or Username'}
-          </Text>
-          <View
-            className={`flex-row items-center rounded-lg border px-2.5 h-9 gap-2 ${
-              focusedField === 'identifier'
-                ? 'border-[#0866FF] bg-white dark:bg-[#1f2021]'
-                : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
-            }`}>
-            <AppIcon
-              android="mail"
-              size={15}
-              color={focusedField === 'identifier' ? '#0866FF' : '#8a8d91'}
-            />
-            <TextInput
-              value={identifier}
-              onChangeText={setIdentifier}
-              onFocus={() => setFocusedField('identifier')}
-              onBlur={() =>
-                setFocusedField((prev) => (prev === 'identifier' ? null : prev))
-              }
-              placeholder={
-                locale === 'bn'
-                  ? 'আপনার ইমেইল বা ইউজারনেম'
-                  : 'email@example.com or username'
-              }
-              placeholderTextColor={isDark ? '#b0b3b8' : '#65676b'}
-              className="flex-1 text-[13px] text-[#050505] dark:text-[#e4e6eb] py-0"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              returnKeyType="next"
-            />
-          </View>
-        </View>
-
-        {/* Password Input */}
-        <View className="gap-1">
-          <Text className="text-xs font-semibold text-[#374151] dark:text-[#d1d5db]">
-            {locale === 'bn' ? 'পাসওয়ার্ড' : 'Password'}
-          </Text>
-          <View
-            className={`flex-row items-center rounded-lg border px-2.5 h-9 gap-2 ${
-              focusedField === 'password'
-                ? 'border-[#0866FF] bg-white dark:bg-[#1f2021]'
-                : 'border-[#dddfe2] dark:border-[#393a3b] bg-[#f0f2f5] dark:bg-[#3a3b3c]'
-            }`}>
-            <AppIcon
-              android="lock"
-              size={15}
-              color={focusedField === 'password' ? '#0866FF' : '#8a8d91'}
-            />
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              onFocus={() => setFocusedField('password')}
-              onBlur={() =>
-                setFocusedField((prev) => (prev === 'password' ? null : prev))
-              }
-              secureTextEntry={!showPassword}
-              placeholder="••••••••"
-              placeholderTextColor={isDark ? '#b0b3b8' : '#65676b'}
-              className="flex-1 text-[13px] text-[#050505] dark:text-[#e4e6eb] py-0"
-              returnKeyType="done"
-              onSubmitEditing={handleSubmit}
-            />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      className="flex-1 bg-white dark:bg-[#18191a]">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        className="flex-1">
+        <View className="w-full max-w-[420px] mx-auto px-6 py-10 justify-center">
+          {/* Top Bar with Back Button */}
+          <View className="flex-row items-center justify-between mb-8">
             <Pressable
-              onPress={() => setShowPassword(!showPassword)}
-              hitSlop={6}
-              className="p-0.5">
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace('/');
+                }
+              }}
+              hitSlop={10}
+              accessibilityLabel="Back"
+              accessibilityRole="button"
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#242526] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
               <AppIcon
-                android={showPassword ? 'visibility_off' : 'visibility'}
-                size={15}
-                color="#8a8d91"
+                android="arrow_back"
+                ios="arrow.left"
+                size={20}
+                color={isDark ? '#e4e6eb' : '#1e2329'}
               />
             </Pressable>
+
+            {/* Subtle Brand Tag */}
+            <Pressable onPress={() => router.push('/')}>
+              <Text className="text-[20px] font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
+                PeaceTweet
+              </Text>
+            </Pressable>
+
+            {/* Empty view for symmetrical spacing */}
+            <View className="w-10 h-10" />
           </View>
-        </View>
 
-        {/* Primary Log In Button */}
-        <Pressable
-          onPress={handleSubmit}
-          disabled={isBusy}
-          className={`w-full h-9 rounded-lg bg-[#0866FF] items-center flex-row justify-center gap-2 mt-0.5 ${
-            isBusy ? 'opacity-65' : 'hover:opacity-90 active:opacity-80'
-          }`}>
-          {isLoggingIn && <ActivityIndicator size="small" color="#ffffff" />}
-          <Text className="text-white font-bold text-[13px]">
-            {isLoggingIn
-              ? locale === 'bn'
-                ? 'লগইন হচ্ছে...'
-                : 'Logging in...'
-              : locale === 'bn'
-                ? 'লগইন করুন'
-                : 'Log In'}
-          </Text>
-        </Pressable>
+          {/* Welcoming Header */}
+          <View className="mb-8">
+            <Text className="text-[28px] font-black tracking-tight text-[#1e2329] dark:text-[#e4e6eb]">
+              {locale === 'bn' ? 'স্বাগতম!' : 'Welcome back'}
+            </Text>
+            <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-1.5 leading-relaxed">
+              {locale === 'bn'
+                ? 'আপনার অ্যাকাউন্টে সাইন ইন করুন এবং শান্তির বার্তা ছড়িয়ে দিন।'
+                : 'Sign in to reconnect with authentic duas and reflections.'}
+            </Text>
+          </View>
 
-        {/* Continue with Google Button */}
-        <Pressable
-          onPress={handleGoogleSignIn}
-          disabled={isBusy}
-          className={`w-full h-9 rounded-lg border border-[#dadce0] dark:border-[#4b4c4f] bg-[#f8f9fa] dark:bg-[#3a3b3c] items-center flex-row justify-center gap-2 ${
-            isBusy
-              ? 'opacity-60'
-              : 'hover:bg-[#eef0f2] active:bg-[#e4e6eb] dark:hover:bg-[#464749] dark:active:bg-[#4e4f50]'
-          }`}>
-          {isGoogleLoading ? (
-            <ActivityIndicator size="small" color="#4285F4" />
-          ) : (
-            <GoogleIcon size={16} />
+          {/* Error Message Pill */}
+          {errorMessage !== '' && (
+            <View className="mb-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 p-3.5 flex-row items-center gap-2.5">
+              <AppIcon android="error" size={18} color="#e11d48" />
+              <Text className="flex-1 text-[12.5px] leading-snug text-rose-700 dark:text-rose-300 font-medium">
+                {errorMessage}
+              </Text>
+            </View>
           )}
-          <Text className="text-[13px] font-semibold text-[#1c1e21] dark:text-[#e4e6eb]">
-            {isGoogleLoading
-              ? locale === 'bn'
-                ? 'সংযুক্ত হচ্ছে...'
-                : 'Connecting...'
-              : locale === 'bn'
-                ? 'Google দিয়ে লগইন'
-                : 'Continue with Google'}
-          </Text>
-        </Pressable>
 
-        {/* Single Compact Divider */}
-        <View className="flex-row items-center gap-2.5 py-0.5">
-          <View className="flex-1 h-px bg-[#e4e6eb] dark:bg-[#393a3b]" />
-          <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] font-medium">
-            {locale === 'bn' ? 'বা' : 'or'}
-          </Text>
-          <View className="flex-1 h-px bg-[#e4e6eb] dark:bg-[#393a3b]" />
-        </View>
+          {/* Form Fields - Soft & Borderless */}
+          <View className="space-y-4 gap-4">
+            {/* 1. Identifier Field */}
+            <View>
+              <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                {locale === 'bn' ? 'ইমেইল বা ইউজারনেম' : 'Email or Username'}
+              </Text>
+              <View
+                className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                  focusedField === 'identifier'
+                    ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
+                    : 'bg-[#f0f2f5] dark:bg-[#242526]'
+                }`}>
+                <AppIcon
+                  android="mail"
+                  size={19}
+                  color={focusedField === 'identifier' ? '#0866FF' : '#8a8d91'}
+                />
+                <TextInput
+                  value={identifier}
+                  onChangeText={setIdentifier}
+                  onFocus={() => setFocusedField('identifier')}
+                  onBlur={() =>
+                    setFocusedField((prev) =>
+                      prev === 'identifier' ? null : prev
+                    )
+                  }
+                  placeholder={
+                    locale === 'bn'
+                      ? 'নাম বা ইমেইল লিখুন'
+                      : 'Enter username or email'
+                  }
+                  placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
+                  className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  returnKeyType="next"
+                />
+              </View>
+            </View>
 
-        {/* Create New Account Button (Facebook signature green #42b72a) */}
-        <Pressable
-          onPress={() => router.push('/register')}
-          disabled={isBusy}
-          className="w-full h-9 rounded-lg bg-[#42b72a] hover:bg-[#36a420] active:bg-[#36a420] items-center justify-center">
-          <Text className="text-[13px] font-bold text-white">
+            {/* 2. Password Field */}
+            <View>
+              <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                {locale === 'bn' ? 'পাসওয়ার্ড' : 'Password'}
+              </Text>
+              <View
+                className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                  focusedField === 'password'
+                    ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
+                    : 'bg-[#f0f2f5] dark:bg-[#242526]'
+                }`}>
+                <AppIcon
+                  android="lock"
+                  size={19}
+                  color={focusedField === 'password' ? '#0866FF' : '#8a8d91'}
+                />
+                <TextInput
+                  value={password}
+                  onChangeText={setPassword}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() =>
+                    setFocusedField((prev) =>
+                      prev === 'password' ? null : prev
+                    )
+                  }
+                  secureTextEntry={!showPassword}
+                  placeholder="••••••••"
+                  placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
+                  className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSubmit}
+                />
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={8}
+                  className="p-1">
+                  <AppIcon
+                    android={showPassword ? 'visibility_off' : 'visibility'}
+                    size={18}
+                    color="#8a8d91"
+                  />
+                </Pressable>
+              </View>
+            </View>
+
+            {/* 3. Primary Sign In Button */}
+            <Pressable
+              onPress={handleSubmit}
+              disabled={isBusy}
+              className={`h-12 rounded-2xl bg-[#0866FF] items-center justify-center flex-row gap-2 mt-2 shadow-sm shadow-[#0866FF]/25 ${
+                isBusy ? 'opacity-65' : 'active:opacity-90'
+              }`}>
+              {isLoggingIn && <ActivityIndicator size="small" color="#ffffff" />}
+              <Text className="text-white font-bold text-[15px] select-none">
+                {isLoggingIn
+                  ? locale === 'bn'
+                    ? 'লগইন হচ্ছে...'
+                    : 'Signing in...'
+                  : locale === 'bn'
+                    ? 'লগইন করুন'
+                    : 'Sign In'}
+              </Text>
+            </Pressable>
+
+            {/* 4. Elegant Divider */}
+            <View className="flex-row items-center gap-3 my-1">
+              <View className="flex-1 h-[1px] bg-[#e4e6eb] dark:bg-[#2e2f30]" />
+              <Text className="text-[12px] font-medium text-[#8a8d91] dark:text-[#73767a]">
+                {locale === 'bn' ? 'অথবা' : 'or'}
+              </Text>
+              <View className="flex-1 h-[1px] bg-[#e4e6eb] dark:bg-[#2e2f30]" />
+            </View>
+
+            {/* 5. Google Sign In Button */}
+            <Pressable
+              onPress={handleGoogleSignIn}
+              disabled={isBusy}
+              className={`h-12 rounded-2xl bg-[#f0f2f5] dark:bg-[#242526] items-center justify-center flex-row gap-2.5 active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c] ${
+                isBusy ? 'opacity-60' : ''
+              }`}>
+              {isGoogleLoading ? (
+                <ActivityIndicator size="small" color="#4285F4" />
+              ) : (
+                <GoogleIcon size={18} />
+              )}
+              <Text className="text-[14px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
+                {isGoogleLoading
+                  ? locale === 'bn'
+                    ? 'সংযুক্ত হচ্ছে...'
+                    : 'Connecting...'
+                  : locale === 'bn'
+                    ? 'গুগল দিয়ে প্রবেশ করুন'
+                    : 'Continue with Google'}
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Bottom Switch: Sign Up Prompt */}
+          <View className="flex-row items-center justify-center gap-1.5 mt-8 py-2">
+            <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8]">
+              {locale === 'bn'
+                ? 'অ্যাকাউন্ট নেই?'
+                : "Don't have an account?"}
+            </Text>
+            <Pressable
+              onPress={() => router.push('/register')}
+              hitSlop={8}
+              className="py-1">
+              <Text className="text-[14px] font-bold text-[#0866FF] dark:text-[#36a4fa]">
+                {locale === 'bn'
+                  ? 'নতুন অ্যাকাউন্ট খুলুন'
+                  : 'Create account'}
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Peaceful Platform Tagline */}
+          <Text className="text-[11.5px] text-[#8a8d91] dark:text-[#73767a] text-center mt-6">
             {locale === 'bn'
-              ? 'নতুন অ্যাকাউন্ট তৈরি করুন'
-              : 'Create New Account'}
+              ? 'PeaceTweet • বিশুদ্ধ দোয়া ও পবিত্র সোশ্যাল নেটওয়ার্ক'
+              : 'PeaceTweet • Pure Duas & Peaceful Social Platform'}
           </Text>
-        </Pressable>
-      </View>
-
-      <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] text-center mt-2">
-        {locale === 'bn'
-          ? 'PeaceTweet — বিশুদ্ধ দোয়া ও পবিত্র সোশ্যাল প্ল্যাটফর্ম'
-          : 'PeaceTweet — A Peaceful Islamic Social Platform'}
-      </Text>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
