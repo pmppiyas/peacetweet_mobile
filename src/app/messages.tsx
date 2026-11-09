@@ -220,10 +220,16 @@ export default function MessagesScreen() {
           unreadCount: 0,
         };
         const rest = prev.filter((c) => c.id !== conversationId);
-        return [updatedItem, ...rest];
+        const next = [updatedItem, ...rest];
+        const newTotal = next.reduce(
+          (sum, c) => sum + (c.unreadCount || 0),
+          0
+        );
+        setUnreadMessagesCount(newTotal);
+        return next;
       });
     },
-    [setConversations]
+    [setConversations, setUnreadMessagesCount]
   );
 
   // Real-time Socket.io update for conversations sidebar
@@ -249,13 +255,22 @@ export default function MessagesScreen() {
     };
   }, [handleConversationUpdated]);
 
-  const handleConversationMarkedRead = useCallback((conversationId: string) => {
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === conversationId ? { ...c, unreadCount: 0 } : c
-      )
-    );
-  }, []);
+  const handleConversationMarkedRead = useCallback(
+    (conversationId: string) => {
+      setConversations((prev) => {
+        const next = prev.map((c) =>
+          c.id === conversationId ? { ...c, unreadCount: 0 } : c
+        );
+        const newTotal = next.reduce(
+          (sum, c) => sum + (c.unreadCount || 0),
+          0
+        );
+        setUnreadMessagesCount(newTotal);
+        return next;
+      });
+    },
+    [setUnreadMessagesCount]
+  );
 
   const totalUnreadCount = conversations.reduce(
     (sum, c) => sum + (c.unreadCount || 0),

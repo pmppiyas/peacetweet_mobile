@@ -119,6 +119,7 @@ export function MenuDrawer() {
     setLocale,
     theme,
     toggleTheme,
+    unreadMessagesCount,
   } = useUi();
   const { user, isAuthenticated } = useAuth();
 
@@ -303,6 +304,13 @@ export function MenuDrawer() {
                       >
                         {locale === 'bn' ? item.labelBn : item.labelEn}
                       </Text>
+                      {item.id === 'menu-messages' && unreadMessagesCount > 0 ? (
+                        <View className="h-5 min-w-5 px-1.5 rounded-full bg-red-600 items-center justify-center mr-1">
+                          <Text className="text-[10px] font-bold text-white leading-none">
+                            {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                          </Text>
+                        </View>
+                      ) : null}
                     </View>
                   </Pressable>
                 );

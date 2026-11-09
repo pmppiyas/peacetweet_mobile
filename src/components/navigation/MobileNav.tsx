@@ -1,12 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon, type AndroidSymbol } from '@/components/ui/Icon';
-import { notificationsApi } from '@/features/notifications/api/notifications.api';
-import { initAppSocket } from '@/lib/socket/socket';
-import { queryCache } from '@/lib/cache/queryCache';
 
 interface NavItem {
   id: string;
@@ -35,50 +32,6 @@ export function MobileNav() {
     theme,
   } = useUi();
   const { isAuthenticated } = useAuth();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setUnreadNotificationsCount(0);
-      return;
-    }
-
-    const fetchUnread = () => {
-      notificationsApi
-        .getUnreadCount()
-        .then((count) => setUnreadNotificationsCount(count))
-        .catch(() => {});
-    };
-
-    fetchUnread();
-    const timer = setInterval(fetchUnread, 15000);
-
-    const s = initAppSocket();
-    if (s) {
-      const handleNotif = () => {
-        notificationsApi
-          .getUnreadCount()
-          .then((count) => setUnreadNotificationsCount(count))
-          .catch(() => {});
-        queryCache.invalidate('notifications');
-      };
-      const handleCount = (count: number) => {
-        if (typeof count === 'number') {
-          setUnreadNotificationsCount(count);
-        }
-      };
-
-      s.on('notification:received', handleNotif);
-      s.on('notification:unreadCount', handleCount);
-
-      return () => {
-        clearInterval(timer);
-        s.off('notification:received', handleNotif);
-        s.off('notification:unreadCount', handleCount);
-      };
-    }
-
-    return () => clearInterval(timer);
-  }, [isAuthenticated, setUnreadNotificationsCount]);
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isPostViewerPage = pathname.startsWith('/post/');
@@ -230,10 +183,10 @@ export function MobileNav() {
                   color={iconColor}
                 />
                 {typeof item.badge === 'number' && item.badge > 0 ? (
-                  <View className="absolute -top-1.5 -right-2.5 h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 select-none">
+                  <View className="absolute -top-1.5 -right-2.5 h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 border-2 border-white dark:border-[#242526] select-none shadow-xs">
                     <Text
                       selectable={false}
-                      className="text-[9px] font-bold text-white select-none">
+                      className="text-[9.5px] font-black text-white leading-none select-none">
                       {item.badge > 9 ? '9+' : item.badge}
                     </Text>
                   </View>

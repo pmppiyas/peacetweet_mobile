@@ -26,6 +26,7 @@ export function Navbar() {
     chatSearchQuery,
     setChatSearchQuery,
     activeConversationId,
+    unreadMessagesCount,
     setComposerModalOpen,
     postUploadType,
     theme,
@@ -361,7 +362,36 @@ export function Navbar() {
               />
             </Pressable>
 
-            {/* 3. Menu Drawer Button (Far Right) */}
+            {/* 3. Messenger Button */}
+            <Pressable
+              onPress={() => {
+                if (pathname !== '/messages') {
+                  router.navigate('/messages');
+                }
+              }}
+              hitSlop={4}
+              accessibilityLabel="Messages"
+              accessibilityRole="button"
+              className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50] relative"
+            >
+              <AppIcon
+                android="messenger"
+                size={23}
+                weight="bold"
+                color={iconColor}
+              />
+              {unreadMessagesCount > 0 ? (
+                <View className="absolute -top-1 -right-1 h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 border-2 border-white dark:border-[#242526] select-none shadow-xs">
+                  <Text
+                    selectable={false}
+                    className="text-[9.5px] font-black text-white leading-none select-none">
+                    {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
+                  </Text>
+                </View>
+              ) : null}
+            </Pressable>
+
+            {/* 4. Menu Drawer Button (Far Right) */}
             <Pressable
               onPress={() => setMenuDrawerOpen(true)}
               hitSlop={4}

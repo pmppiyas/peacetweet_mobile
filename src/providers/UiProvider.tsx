@@ -59,9 +59,9 @@ interface UiContextType {
   activeConversationId: string | null;
   setActiveConversationId: (id: string | null) => void;
   unreadMessagesCount: number;
-  setUnreadMessagesCount: (count: number) => void;
+  setUnreadMessagesCount: React.Dispatch<React.SetStateAction<number>>;
   unreadNotificationsCount: number;
-  setUnreadNotificationsCount: (count: number) => void;
+  setUnreadNotificationsCount: React.Dispatch<React.SetStateAction<number>>;
   isUploadingPost: boolean;
   postUploadType: PostUploadType;
   setIsUploadingPost: (val: boolean, type?: PostUploadType) => void;

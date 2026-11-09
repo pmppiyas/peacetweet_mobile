@@ -29,6 +29,7 @@ import { MobileComposerModal } from '@/components/feed/MobileComposerModal';
 import { GlobalPhotoViewerModal } from '@/components/feed/GlobalPhotoViewerModal';
 import { AppSplashLoader } from '@/components/ui/AppSplashLoader';
 import { SearchPageView } from '@/features/search/components/SearchPageView';
+import { useUnreadBadgeSync } from '@/hooks/useUnreadBadgeSync';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -60,6 +61,7 @@ function MainContentSlot({
 }
 
 function AppShell() {
+  useUnreadBadgeSync();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const {
