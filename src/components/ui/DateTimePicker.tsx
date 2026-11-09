@@ -297,8 +297,7 @@ export function DateTimePicker({
         transparent={true}
         animationType="fade"
         onRequestClose={() => setIsOpen(false)}>
-        <Pressable
-          onPress={() => setIsOpen(false)}
+        <View
           style={{
             flex: 1,
             backgroundColor: 'rgba(0, 0, 0, 0.45)',
@@ -307,8 +306,20 @@ export function DateTimePicker({
             padding: 16,
             ...(Platform.OS === 'web' ? ({ zIndex: 99999 } as any) : {}),
           }}>
+          {/* Backdrop Dismiss Area */}
           <Pressable
-            onPress={(e) => e.stopPropagation()}
+            onPress={() => setIsOpen(false)}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+
+          {/* Dialog Card (Non-pressable container so child events are never intercepted!) */}
+          <View
             style={{
               width: 360,
               maxWidth: '95%',
@@ -318,9 +329,9 @@ export function DateTimePicker({
               borderColor: isDark ? '#393a3b' : '#e4e6eb',
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.15,
+              shadowOpacity: isDark ? 0.35 : 0.12,
               shadowRadius: 20,
-              elevation: 10,
+              elevation: 12,
               overflow: 'hidden',
             }}>
             {/* Top Container: Calendar (Left) + Time Picker (Right) */}
@@ -459,23 +470,72 @@ export function DateTimePicker({
 
               {/* Right Side: Time Picker */}
               <View style={{ flex: 1, flexDirection: 'column', height: 236, minWidth: 140 }}>
-                {/* Time Display Header (e.g. 10:24 PM) */}
+                {/* Time Display Header with interactive AM/PM Toggle */}
                 <View
                   style={{
                     height: 36,
                     borderBottomWidth: 1,
-                    borderBottomColor: isDark ? '#393a3b' : '#e4e6eb',
+                    borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
+                    paddingHorizontal: 8,
+                    flexDirection: 'row',
                     alignItems: 'center',
-                    justifyContent: 'center',
+                    justifyContent: 'space-between',
+                    backgroundColor: isDark ? '#242526' : '#ffffff',
                   }}>
                   <Text
                     style={{
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: '700',
                       color: isDark ? '#e4e6eb' : '#0866FF',
                     }}>
-                    {timeHeader}
+                    {String(selectedHour).padStart(2, '0')}:{String(selectedMinute).padStart(2, '0')}
                   </Text>
+
+                  {/* Header AM / PM Toggle Pill */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      backgroundColor: isDark ? '#3a3b3c' : '#f0f2f5',
+                      borderRadius: 6,
+                      padding: 2,
+                    }}>
+                    <Pressable
+                      onPress={() => setSelectedPeriod('AM')}
+                      hitSlop={6}
+                      style={{
+                        paddingHorizontal: 7,
+                        paddingVertical: 2,
+                        borderRadius: 4,
+                        backgroundColor: selectedPeriod === 'AM' ? '#0866FF' : 'transparent',
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '700',
+                          color: selectedPeriod === 'AM' ? '#ffffff' : isDark ? '#b0b3b8' : '#65676b',
+                        }}>
+                        AM
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => setSelectedPeriod('PM')}
+                      hitSlop={6}
+                      style={{
+                        paddingHorizontal: 7,
+                        paddingVertical: 2,
+                        borderRadius: 4,
+                        backgroundColor: selectedPeriod === 'PM' ? '#0866FF' : 'transparent',
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '700',
+                          color: selectedPeriod === 'PM' ? '#ffffff' : isDark ? '#b0b3b8' : '#65676b',
+                        }}>
+                        PM
+                      </Text>
+                    </Pressable>
+                  </View>
                 </View>
 
                 {/* 3 Strict Columns: Hour, Minute, AM/PM with 196px fixed height */}
@@ -590,20 +650,19 @@ export function DateTimePicker({
                   />
 
                   {/* AM/PM Column */}
-                  <View style={{ width: 38, paddingVertical: 4, paddingHorizontal: 2 }}>
+                  <View style={{ width: 44, paddingVertical: 8, paddingHorizontal: 3, gap: 6 }}>
                     {(['AM', 'PM'] as const).map((p) => {
                       const isSelected = selectedPeriod === p;
                       return (
                         <Pressable
                           key={p}
                           onPress={() => setSelectedPeriod(p)}
+                          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                           style={{
-                            height: 28,
-                            marginVertical: 1,
-                            marginHorizontal: 3,
+                            height: 34,
                             alignItems: 'center',
                             justifyContent: 'center',
-                            borderRadius: 4,
+                            borderRadius: 8,
                             backgroundColor: isSelected
                               ? isDark
                                 ? 'rgba(8, 102, 255, 0.25)'
@@ -613,7 +672,7 @@ export function DateTimePicker({
                           <Text
                             numberOfLines={1}
                             style={{
-                              fontSize: 11.5,
+                              fontSize: 12,
                               fontWeight: isSelected ? '700' : '600',
                               color: isSelected
                                 ? isDark
@@ -621,7 +680,7 @@ export function DateTimePicker({
                                   : '#0866FF'
                                 : isDark
                                 ? '#e4e6eb'
-                                : '#050505',
+                                : '#65676b',
                             }}>
                             {p}
                           </Text>
@@ -672,8 +731,8 @@ export function DateTimePicker({
                 </Text>
               </Pressable>
             </View>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </View>
   );
