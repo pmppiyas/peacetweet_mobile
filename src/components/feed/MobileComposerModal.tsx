@@ -148,7 +148,33 @@ export function MobileComposerModal() {
       Boolean(composerEditingPost?.duaId));
 
   // Mode & Content
-  const [postType, setPostType] = useState<ComposerMode>('TEXT');
+  const [postType, setPostType] = useState<ComposerMode>(
+    () => composerInitialMode || 'TEXT'
+  );
+
+  // Synchronously sync initial mode on modal open before any UI is rendered to prevent flashing
+  const [prevModalOpen, setPrevModalOpen] = useState(false);
+  if (isComposerModalOpen && !prevModalOpen) {
+    setPrevModalOpen(true);
+    const targetMode = composerEditingPost
+      ? (composerEditingPost.type === 'BLOOD_REQUEST' ||
+         Boolean(composerEditingPost.bloodRequest) ||
+         Boolean(composerEditingPost.bloodRequestId))
+        ? 'BLOOD_REQUEST'
+        : (composerEditingPost.type === 'DUA' ||
+           Boolean(composerEditingPost.dua) ||
+           Boolean(composerEditingPost.duaId))
+        ? 'DUA'
+        : 'TEXT'
+      : composerInitialMode || 'TEXT';
+
+    if (postType !== targetMode) {
+      setPostType(targetMode);
+    }
+  } else if (!isComposerModalOpen && prevModalOpen) {
+    setPrevModalOpen(false);
+  }
+
   const [content, setContent] = useState('');
   const [contentHeight, setContentHeight] = useState(44);
   const contentInputRef = useRef<any>(null);
