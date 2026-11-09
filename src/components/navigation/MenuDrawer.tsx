@@ -161,12 +161,15 @@ export function MenuDrawer() {
 
             <Pressable
               onPress={() => setMenuDrawerOpen(false)}
-              className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c]"
+              hitSlop={4}
+              accessibilityLabel="Close menu drawer"
+              accessibilityRole="button"
+              className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="close"
                 ios="xmark"
-                size={20}
+                size={27}
                 weight="bold"
                 color={theme === 'dark' ? '#e4e6eb' : '#1e2329'}
               />
