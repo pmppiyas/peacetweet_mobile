@@ -26,7 +26,7 @@ const MONTH_NAMES = [
 const WEEK_DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 export interface DateTimePickerProps {
-  value?: string; // ISO string or YYYY-MM-DD hh:mm AM/PM
+  value?: string; // ISO string or YYYY-MM-DD HH:mm
   onChange: (isoString: string) => void;
   label?: string;
   placeholder?: string;
@@ -38,7 +38,7 @@ export function DateTimePicker({
   value,
   onChange,
   label,
-  placeholder = 'YYYY-MM-DD hh:mm AM/PM',
+  placeholder = 'YYYY-MM-DD HH:mm',
   required = false,
   error,
 }: DateTimePickerProps) {
@@ -73,32 +73,16 @@ export function DateTimePicker({
   const [viewMonth, setViewMonth] = useState(initialDate.getMonth());
   const [selectedDate, setSelectedDate] = useState(initialDate.getDate());
 
-  // Time state (12-hour format)
-  const getInitialTime = (d: Date) => {
-    const h24 = d.getHours();
-    const period: 'AM' | 'PM' = h24 >= 12 ? 'PM' : 'AM';
-    let h12 = h24 % 12;
-    if (h12 === 0) h12 = 12;
-    return {
-      hour: h12,
-      minute: d.getMinutes(),
-      period,
-    };
-  };
-
-  const initialTime = useMemo(() => getInitialTime(initialDate), [initialDate]);
-
-  const [selectedHour, setSelectedHour] = useState(initialTime.hour);
-  const [selectedMinute, setSelectedMinute] = useState(initialTime.minute);
-  const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>(initialTime.period);
+  // Time state: Pure 24-hour format (00..23, 00..59)
+  const [selectedHour, setSelectedHour] = useState(initialDate.getHours());
+  const [selectedMinute, setSelectedMinute] = useState(initialDate.getMinutes());
 
   // Auto-scroll time columns to selected positions on open
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
-        const itemH = 28;
-        const hourIdx = Math.max(0, selectedHour - 1);
-        hourScrollRef.current?.scrollTo({ y: Math.max(0, hourIdx * itemH - 40), animated: false });
+        const itemH = 32;
+        hourScrollRef.current?.scrollTo({ y: Math.max(0, selectedHour * itemH - 40), animated: false });
         minuteScrollRef.current?.scrollTo({ y: Math.max(0, selectedMinute * itemH - 40), animated: false });
       }, 60);
       return () => clearTimeout(timer);
@@ -111,14 +95,12 @@ export function DateTimePicker({
     setViewYear(d.getFullYear());
     setViewMonth(d.getMonth());
     setSelectedDate(d.getDate());
-    const t = getInitialTime(d);
-    setSelectedHour(t.hour);
-    setSelectedMinute(t.minute);
-    setSelectedPeriod(t.period);
+    setSelectedHour(d.getHours());
+    setSelectedMinute(d.getMinutes());
     setIsOpen(true);
   };
 
-  // Format string for input: 12-hour format (e.g. 2026-11-20 11:03 PM)
+  // Format string for input: 24-hour format (e.g. 2026-11-20 14:30)
   const displayValue = useMemo(() => {
     if (!value) return '';
     const d = new Date(value);
@@ -126,13 +108,9 @@ export function DateTimePicker({
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
-    const h24 = d.getHours();
-    const period = h24 >= 12 ? 'PM' : 'AM';
-    let h12 = h24 % 12;
-    if (h12 === 0) h12 = 12;
-    const hh = String(h12).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}:${min} ${period}`;
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
   }, [value]);
 
   // Calendar 42 cells matrix (6 rows x 7 cols)
@@ -143,7 +121,7 @@ export function DateTimePicker({
 
     const cells: { day: number; isCurrentMonth: boolean; monthOffset: number }[] = [];
 
-    // Preceding month overflow
+    // Prev month padding
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       cells.push({
         day: daysInPrevMonth - i,
@@ -161,7 +139,7 @@ export function DateTimePicker({
       });
     }
 
-    // Following month overflow
+    // Next month padding to fill 42 cells
     const remaining = 42 - cells.length;
     for (let i = 1; i <= remaining; i++) {
       cells.push({
@@ -177,6 +155,7 @@ export function DateTimePicker({
   // Navigation handlers
   const handlePrevYear = () => setViewYear((y) => y - 1);
   const handleNextYear = () => setViewYear((y) => y + 1);
+
   const handlePrevMonth = () => {
     setViewMonth((m) => {
       if (m === 0) {
@@ -186,6 +165,7 @@ export function DateTimePicker({
       return m - 1;
     });
   };
+
   const handleNextMonth = () => {
     setViewMonth((m) => {
       if (m === 11) {
@@ -211,29 +191,19 @@ export function DateTimePicker({
     setViewYear(now.getFullYear());
     setViewMonth(now.getMonth());
     setSelectedDate(now.getDate());
-    const t = getInitialTime(now);
-    setSelectedHour(t.hour);
-    setSelectedMinute(t.minute);
-    setSelectedPeriod(t.period);
+    setSelectedHour(now.getHours());
+    setSelectedMinute(now.getMinutes());
 
-    // Scroll to current time
     setTimeout(() => {
-      const itemH = 28;
-      const hourIdx = Math.max(0, t.hour - 1);
-      hourScrollRef.current?.scrollTo({ y: Math.max(0, hourIdx * itemH - 40), animated: true });
-      minuteScrollRef.current?.scrollTo({ y: Math.max(0, t.minute * itemH - 40), animated: true });
+      const itemH = 32;
+      hourScrollRef.current?.scrollTo({ y: Math.max(0, now.getHours() * itemH - 40), animated: true });
+      minuteScrollRef.current?.scrollTo({ y: Math.max(0, now.getMinutes() * itemH - 40), animated: true });
     }, 40);
   };
 
   // "OK" action
   const handleConfirm = () => {
-    let h24 = selectedHour;
-    if (selectedPeriod === 'AM') {
-      if (h24 === 12) h24 = 0;
-    } else {
-      if (h24 !== 12) h24 += 12;
-    }
-    const finalDate = new Date(viewYear, viewMonth, selectedDate, h24, selectedMinute, 0);
+    const finalDate = new Date(viewYear, viewMonth, selectedDate, selectedHour, selectedMinute, 0);
     onChange(finalDate.toISOString());
     setIsOpen(false);
   };
@@ -241,9 +211,6 @@ export function DateTimePicker({
   const handleClear = () => {
     onChange('');
   };
-
-  // Time header string (e.g. 10:24 PM)
-  const timeHeader = `${String(selectedHour).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')} ${selectedPeriod}`;
 
   return (
     <View className="w-full">
@@ -334,9 +301,9 @@ export function DateTimePicker({
               elevation: 12,
               overflow: 'hidden',
             }}>
-            {/* Top Container: Calendar (Left) + Time Picker (Right) */}
-            <View style={{ flexDirection: 'row', height: 236 }}>
-              {/* Left Side: Calendar */}
+            {/* Top Container: Calendar (Left) + 24H Time Picker (Right) */}
+            <View style={{ flexDirection: 'row', height: 242 }}>
+              {/* Left Side: Calendar (196px) */}
               <View style={{ width: 196, paddingHorizontal: 6, paddingVertical: 8, justifyContent: 'space-between' }}>
                 {/* Calendar Header: <<  <  Month Year  >  >> */}
                 <View
@@ -347,7 +314,7 @@ export function DateTimePicker({
                     marginBottom: 6,
                     paddingHorizontal: 2,
                   }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                     <Pressable
                       onPress={handlePrevYear}
                       hitSlop={8}
@@ -368,14 +335,14 @@ export function DateTimePicker({
 
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 12.5,
                       fontWeight: '700',
                       color: isDark ? '#e4e6eb' : '#050505',
                     }}>
                     {MONTH_NAMES[viewMonth]} {viewYear}
                   </Text>
 
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                     <Pressable
                       onPress={handleNextMonth}
                       hitSlop={8}
@@ -396,14 +363,14 @@ export function DateTimePicker({
                 </View>
 
                 {/* Week Day Labels (Su Mo Tu We Th Fr Sa) */}
-                <View style={{ flexDirection: 'row', marginBottom: 4 }}>
+                <View style={{ flexDirection: 'row', marginBottom: 3 }}>
                   {WEEK_DAYS.map((wd) => (
                     <View key={wd} style={{ width: '14.28%', alignItems: 'center' }}>
                       <Text
                         style={{
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: '600',
-                          color: isDark ? '#65676b' : '#8a8d91',
+                          color: isDark ? '#8a8d91' : '#65676b',
                         }}>
                         {wd}
                       </Text>
@@ -422,7 +389,7 @@ export function DateTimePicker({
                         key={idx}
                         style={{
                           width: '14.28%',
-                          height: 27,
+                          height: 26,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}>
@@ -448,7 +415,7 @@ export function DateTimePicker({
                                   : '#050505'
                                 : isDark
                                 ? '#4e4f50'
-                                : '#c4c7cc',
+                                : '#bcc0c4',
                             }}>
                             {cell.day}
                           </Text>
@@ -464,19 +431,19 @@ export function DateTimePicker({
                 style={{
                   width: 1,
                   height: '100%',
-                  backgroundColor: isDark ? '#393a3b' : '#e4e6eb',
+                  backgroundColor: isDark ? '#393a3b' : '#f0f2f5',
                 }}
               />
 
-              {/* Right Side: Time Picker */}
-              <View style={{ flex: 1, flexDirection: 'column', height: 236, minWidth: 140 }}>
-                {/* Time Display Header with interactive AM/PM Toggle */}
+              {/* Right Side: 24H Time Picker (Hours 00..23 + Minutes 00..59) */}
+              <View style={{ flex: 1, flexDirection: 'column', height: 242 }}>
+                {/* Time Display Header */}
                 <View
                   style={{
-                    height: 36,
+                    height: 38,
                     borderBottomWidth: 1,
                     borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
-                    paddingHorizontal: 8,
+                    paddingHorizontal: 12,
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -484,81 +451,66 @@ export function DateTimePicker({
                   }}>
                   <Text
                     style={{
-                      fontSize: 13,
+                      fontSize: 11,
+                      fontWeight: '600',
+                      color: isDark ? '#8a8d91' : '#65676b',
+                    }}>
+                    {locale === 'bn' ? 'সময় (২৪ ঘণ্টা)' : 'Time (24h)'}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 14,
                       fontWeight: '700',
-                      color: isDark ? '#e4e6eb' : '#0866FF',
+                      color: isDark ? '#36a4fa' : '#0866FF',
                     }}>
                     {String(selectedHour).padStart(2, '0')}:{String(selectedMinute).padStart(2, '0')}
                   </Text>
+                </View>
 
-                  {/* Header AM / PM Toggle Pill */}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      backgroundColor: isDark ? '#3a3b3c' : '#f0f2f5',
-                      borderRadius: 6,
-                      padding: 2,
-                    }}>
-                    <Pressable
-                      onPress={() => setSelectedPeriod('AM')}
-                      hitSlop={6}
-                      style={{
-                        paddingHorizontal: 7,
-                        paddingVertical: 2,
-                        borderRadius: 4,
-                        backgroundColor: selectedPeriod === 'AM' ? '#0866FF' : 'transparent',
-                      }}>
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          fontWeight: '700',
-                          color: selectedPeriod === 'AM' ? '#ffffff' : isDark ? '#b0b3b8' : '#65676b',
-                        }}>
-                        AM
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => setSelectedPeriod('PM')}
-                      hitSlop={6}
-                      style={{
-                        paddingHorizontal: 7,
-                        paddingVertical: 2,
-                        borderRadius: 4,
-                        backgroundColor: selectedPeriod === 'PM' ? '#0866FF' : 'transparent',
-                      }}>
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          fontWeight: '700',
-                          color: selectedPeriod === 'PM' ? '#ffffff' : isDark ? '#b0b3b8' : '#65676b',
-                        }}>
-                        PM
-                      </Text>
-                    </Pressable>
+                {/* Column Headers (Hour | Minute) */}
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    borderBottomWidth: 1,
+                    borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
+                    paddingVertical: 3,
+                    backgroundColor: isDark ? '#1f2022' : '#fafbfc',
+                  }}>
+                  <View style={{ flex: 1, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: isDark ? '#8a8d91' : '#65676b' }}>
+                      {locale === 'bn' ? 'ঘণ্টা' : 'HR'}
+                    </Text>
+                  </View>
+                  <View style={{ width: 1, height: '100%', backgroundColor: isDark ? '#393a3b' : '#f0f2f5' }} />
+                  <View style={{ flex: 1, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: isDark ? '#8a8d91' : '#65676b' }}>
+                      {locale === 'bn' ? 'মিনিট' : 'MIN'}
+                    </Text>
                   </View>
                 </View>
 
-                {/* 3 Strict Columns: Hour, Minute, AM/PM with 196px fixed height */}
-                <View style={{ flex: 1, flexDirection: 'row', height: 200, maxHeight: 200 }}>
-                  {/* Hours Column (1..12) */}
+                {/* 2 Wide Columns: Hours (00..23) & Minutes (00..59) */}
+                <View style={{ flex: 1, flexDirection: 'row', height: 180, maxHeight: 180 }}>
+                  {/* Hours Column (00..23) */}
                   <ScrollView
                     ref={hourScrollRef}
                     showsVerticalScrollIndicator={false}
-                    style={{ flex: 1, height: 200, maxHeight: 200 }}
+                    style={{ flex: 1, height: 180, maxHeight: 180 }}
                     contentContainerStyle={{ paddingVertical: 4 }}>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => {
+                    {Array.from({ length: 24 }, (_, i) => i).map((h) => {
                       const isSelected = selectedHour === h;
+                      const formattedH = String(h).padStart(2, '0');
                       return (
                         <Pressable
                           key={h}
                           onPress={() => setSelectedHour(h)}
                           style={{
-                            height: 28,
+                            height: 30,
                             marginVertical: 1,
-                            marginHorizontal: 3,
+                            marginHorizontal: 8,
                             alignItems: 'center',
                             justifyContent: 'center',
-                            borderRadius: 4,
+                            borderRadius: 6,
                             backgroundColor: isSelected
                               ? isDark
                                 ? 'rgba(8, 102, 255, 0.25)'
@@ -568,7 +520,7 @@ export function DateTimePicker({
                           <Text
                             numberOfLines={1}
                             style={{
-                              fontSize: 12,
+                              fontSize: 13,
                               fontWeight: isSelected ? '700' : '500',
                               color: isSelected
                                 ? isDark
@@ -578,7 +530,7 @@ export function DateTimePicker({
                                 ? '#e4e6eb'
                                 : '#050505',
                             }}>
-                            {h}
+                            {formattedH}
                           </Text>
                         </Pressable>
                       );
@@ -590,7 +542,7 @@ export function DateTimePicker({
                     style={{
                       width: 1,
                       height: '100%',
-                      backgroundColor: isDark ? '#393a3b' : '#e6e9ef',
+                      backgroundColor: isDark ? '#393a3b' : '#f0f2f5',
                     }}
                   />
 
@@ -598,7 +550,7 @@ export function DateTimePicker({
                   <ScrollView
                     ref={minuteScrollRef}
                     showsVerticalScrollIndicator={false}
-                    style={{ flex: 1, height: 200, maxHeight: 200 }}
+                    style={{ flex: 1, height: 180, maxHeight: 180 }}
                     contentContainerStyle={{ paddingVertical: 4 }}>
                     {Array.from({ length: 60 }, (_, i) => i).map((m) => {
                       const isSelected = selectedMinute === m;
@@ -608,12 +560,12 @@ export function DateTimePicker({
                           key={m}
                           onPress={() => setSelectedMinute(m)}
                           style={{
-                            height: 28,
+                            height: 30,
                             marginVertical: 1,
-                            marginHorizontal: 3,
+                            marginHorizontal: 8,
                             alignItems: 'center',
                             justifyContent: 'center',
-                            borderRadius: 4,
+                            borderRadius: 6,
                             backgroundColor: isSelected
                               ? isDark
                                 ? 'rgba(8, 102, 255, 0.25)'
@@ -623,7 +575,7 @@ export function DateTimePicker({
                           <Text
                             numberOfLines={1}
                             style={{
-                              fontSize: 12,
+                              fontSize: 13,
                               fontWeight: isSelected ? '700' : '500',
                               color: isSelected
                                 ? isDark
@@ -639,55 +591,6 @@ export function DateTimePicker({
                       );
                     })}
                   </ScrollView>
-
-                  {/* Vertical Column Divider */}
-                  <View
-                    style={{
-                      width: 1,
-                      height: '100%',
-                      backgroundColor: isDark ? '#393a3b' : '#e6e9ef',
-                    }}
-                  />
-
-                  {/* AM/PM Column */}
-                  <View style={{ width: 44, paddingVertical: 8, paddingHorizontal: 3, gap: 6 }}>
-                    {(['AM', 'PM'] as const).map((p) => {
-                      const isSelected = selectedPeriod === p;
-                      return (
-                        <Pressable
-                          key={p}
-                          onPress={() => setSelectedPeriod(p)}
-                          hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                          style={{
-                            height: 34,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: 8,
-                            backgroundColor: isSelected
-                              ? isDark
-                                ? 'rgba(8, 102, 255, 0.25)'
-                                : '#e7f0ff'
-                              : 'transparent',
-                          }}>
-                          <Text
-                            numberOfLines={1}
-                            style={{
-                              fontSize: 12,
-                              fontWeight: isSelected ? '700' : '600',
-                              color: isSelected
-                                ? isDark
-                                  ? '#36a4fa'
-                                  : '#0866FF'
-                                : isDark
-                                ? '#e4e6eb'
-                                : '#65676b',
-                            }}>
-                            {p}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
                 </View>
               </View>
             </View>
@@ -695,24 +598,25 @@ export function DateTimePicker({
             {/* Bottom Footer Bar: Now (Left) & OK (Right) */}
             <View
               style={{
-                height: 42,
+                height: 44,
                 borderTopWidth: 1,
-                borderTopColor: isDark ? '#393a3b' : '#e4e6eb',
+                borderTopColor: isDark ? '#393a3b' : '#f0f2f5',
                 paddingHorizontal: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                backgroundColor: isDark ? '#1f2022' : '#fafbfc',
+                backgroundColor: isDark ? '#1f2022' : '#f8f9fa',
               }}>
               <Pressable
                 onPress={handleNow}
                 hitSlop={8}
-                style={{ paddingVertical: 4, paddingHorizontal: 6, borderRadius: 4 }}>
+                style={{ paddingVertical: 5, paddingHorizontal: 8, borderRadius: 6 }}
+                className="active:opacity-70">
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 12.5,
                     fontWeight: '600',
-                    color: isDark ? '#e4e6eb' : '#050505',
+                    color: isDark ? '#e4e6eb' : '#65676b',
                   }}>
                   {locale === 'bn' ? 'এখন (Now)' : 'Now'}
                 </Text>
@@ -720,13 +624,14 @@ export function DateTimePicker({
 
               <Pressable
                 onPress={handleConfirm}
+                className="active:scale-95"
                 style={{
                   backgroundColor: '#0866FF',
-                  paddingHorizontal: 16,
-                  paddingVertical: 6,
-                  borderRadius: 6,
+                  paddingHorizontal: 18,
+                  paddingVertical: 7,
+                  borderRadius: 8,
                 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#ffffff' }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#ffffff' }}>
                   {locale === 'bn' ? 'ঠিক আছে (OK)' : 'OK'}
                 </Text>
               </Pressable>
