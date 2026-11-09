@@ -243,16 +243,10 @@ export default function MessagesScreen() {
           unreadCount: nextUnread,
         };
         const rest = prev.filter((c) => c.id !== conversationId);
-        const next = [updatedItem, ...rest];
-        const newTotal = next.reduce(
-          (sum, c) => sum + (c.unreadCount || 0),
-          0
-        );
-        setUnreadMessagesCount(newTotal);
-        return next;
+        return [updatedItem, ...rest];
       });
     },
-    [user?.id, setConversations, setUnreadMessagesCount]
+    [user?.id, setConversations]
   );
 
   // Real-time Socket.io update for conversations sidebar
@@ -285,24 +279,23 @@ export default function MessagesScreen() {
   const handleConversationMarkedRead = useCallback(
     (conversationId: string) => {
       setConversations((prev) => {
-        const next = prev.map((c) =>
+        return prev.map((c) =>
           c.id === conversationId ? { ...c, unreadCount: 0 } : c
         );
-        const newTotal = next.reduce(
-          (sum, c) => sum + (c.unreadCount || 0),
-          0
-        );
-        setUnreadMessagesCount(newTotal);
-        return next;
       });
     },
-    [setUnreadMessagesCount]
+    [setConversations]
   );
 
   const totalUnreadCount = conversations.reduce(
     (sum, c) => sum + (c.unreadCount || 0),
     0
   );
+
+  // Safely sync unread badge count to UiProvider outside setState updaters
+  useEffect(() => {
+    setUnreadMessagesCount(totalUnreadCount);
+  }, [totalUnreadCount, setUnreadMessagesCount]);
   const isChatActive = Boolean(selectedConversation);
 
   return (
