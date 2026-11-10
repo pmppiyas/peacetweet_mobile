@@ -1,5 +1,14 @@
-import React from 'react';
-import { Modal, View, Text, Pressable, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Modal,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  Animated,
+  Platform,
+  StatusBar,
+} from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUi } from '@/providers/UiProvider';
@@ -111,6 +120,11 @@ const MENU_ITEMS: MenuItem[] = [
 
 export function MenuDrawer() {
   const insets = useSafeAreaInsets();
+  const appTopStart = Math.max(
+    insets.top || 0,
+    Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
+  );
+  const appBottomEnd = insets.bottom || 0;
   const pathname = usePathname();
   const {
     isMenuDrawerOpen,
@@ -123,35 +137,113 @@ export function MenuDrawer() {
   } = useUi();
   const { user, isAuthenticated } = useAuth();
 
-  if (!isMenuDrawerOpen) return null;
+  const [isModalVisible, setIsModalVisible] = useState(isMenuDrawerOpen);
+  const slideAnim = useRef(new Animated.Value(380)).current;
+  const backdropAnim = useRef(new Animated.Value(0)).current;
 
-  const closeAndNavigate = (href: string) => {
+  useEffect(() => {
+    if (isMenuDrawerOpen) {
+      setIsModalVisible(true);
+      slideAnim.setValue(380);
+      backdropAnim.setValue(0);
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          damping: 25,
+          stiffness: 220,
+          mass: 0.8,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ]).start();
+    } else if (isModalVisible) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 380,
+          duration: 180,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 0,
+          duration: 180,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ]).start(() => {
+        setIsModalVisible(false);
+      });
+    }
+  }, [isMenuDrawerOpen, slideAnim, backdropAnim, isModalVisible]);
+
+  const closeDrawer = useCallback(() => {
     setMenuDrawerOpen(false);
-    if (pathname === href) return;
-    router.navigate(href as any);
-  };
+  }, [setMenuDrawerOpen]);
+
+  const closeAndNavigate = useCallback(
+    (href: string) => {
+      setMenuDrawerOpen(false);
+      if (pathname === href) return;
+      router.navigate(href as any);
+    },
+    [pathname, setMenuDrawerOpen]
+  );
+
+  if (!isModalVisible && !isMenuDrawerOpen) return null;
 
   return (
     <Modal
-      visible={isMenuDrawerOpen}
+      visible={isModalVisible}
       transparent
       statusBarTranslucent
       navigationBarTranslucent
-      animationType="fade"
-      onRequestClose={() => setMenuDrawerOpen(false)}
+      animationType="none"
+      onRequestClose={closeDrawer}
     >
-      <View className="flex-1 flex-row justify-end bg-black/60">
-        {/* Backdrop tap area */}
-        <Pressable
-          className="flex-1"
-          onPress={() => setMenuDrawerOpen(false)}
-        />
+      <View style={{ flex: 1 }}>
+        {/* Top outside area: Status bar / Network bar (Tap to close) */}
+        {appTopStart > 0 ? (
+          <Pressable
+            style={{ height: appTopStart }}
+            onPress={closeDrawer}
+            accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
+          />
+        ) : null}
 
-        {/* Drawer Panel matching peacetweet_frontend MenuDrawer */}
-        <View
-          style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
-          className="w-[88%] sm:w-[380px] max-w-[90%] h-full bg-white dark:bg-[#242526] border-l border-[#e4e6eb] dark:border-[#393a3b] flex-col select-none"
+        {/* App Viewport Container */}
+        <Animated.View
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            backgroundColor: backdropAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)'],
+            }),
+          }}
         >
+          {/* Backdrop tap area */}
+          <Pressable
+            className="flex-1"
+            onPress={closeDrawer}
+            accessibilityLabel={
+              locale === 'bn' ? 'মেনু ড্রয়ার বন্ধ করুন' : 'Close menu drawer'
+            }
+          />
+
+          {/* Drawer Panel matching ProfileView */}
+          <Animated.View
+            style={[
+              {
+                transform: [{ translateX: slideAnim }],
+                backgroundColor: theme === 'dark' ? '#242526' : '#ffffff',
+                height: '100%',
+              },
+            ]}
+            className="w-[88%] sm:w-[380px] max-w-[90%] border-l border-t border-b border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none rounded-tl-2xl rounded-bl-2xl overflow-hidden"
+          >
           {/* Drawer Header */}
           <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#e4e6eb] dark:border-[#393a3b] select-none">
             <Text
@@ -162,7 +254,7 @@ export function MenuDrawer() {
             </Text>
 
             <Pressable
-              onPress={() => setMenuDrawerOpen(false)}
+              onPress={closeDrawer}
               hitSlop={4}
               accessibilityLabel="Close menu drawer"
               accessibilityRole="button"
@@ -419,7 +511,17 @@ export function MenuDrawer() {
               </View>
             </View>
           </ScrollView>
-        </View>
+          </Animated.View>
+        </Animated.View>
+
+        {/* Bottom outside area: System navigation / gesture bar (Tap to close) */}
+        {appBottomEnd > 0 ? (
+          <Pressable
+            style={{ height: appBottomEnd }}
+            onPress={closeDrawer}
+            accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
+          />
+        ) : null}
       </View>
     </Modal>
   );
