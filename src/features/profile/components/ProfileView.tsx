@@ -1505,19 +1505,13 @@ export function ProfileView({
 
         {/* FRIENDS TAB */}
         {activeTab === 'friends' && (
-          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5 flex-1">
-            <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
-              <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
-                {locale === 'bn' ? 'সকল বন্ধু' : 'All Friends'} ({totalFriends})
-              </Text>
-            </View>
-
+          <View className="bg-white dark:bg-[#18191a] flex-1">
             {isFriendsLoading ? (
-              <View className="space-y-2 gap-2">
+              <View className="p-4 space-y-2 gap-2">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <View
                     key={i}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50"
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef]/60 dark:bg-[#3a3b3c]/40"
                   >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <Skeleton className="h-11 w-11 rounded-full" />
@@ -1530,50 +1524,60 @@ export function ProfileView({
                 ))}
               </View>
             ) : friends.length === 0 ? (
-              <View className="flex-1 min-h-[280px] items-center justify-center py-10">
+              <View className="flex-1 min-h-[320px] bg-white dark:bg-[#18191a] p-8 items-center justify-center">
                 <AppIcon android="group" size={38} color="#65676b" />
-                <Text className="text-[15px] text-[#65676b] dark:text-[#b0b3b8] mt-3 font-semibold text-center">
+                <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] mt-3">
+                  {locale === 'bn' ? 'কোনো বন্ধু নেই' : 'No Friends Found'}
+                </Text>
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center mt-1">
                   {locale === 'bn'
-                    ? 'কোনো বন্ধু পাওয়া যায়নি।'
+                    ? 'এখনো কোনো বন্ধু যুক্ত নেই।'
                     : 'No connected friends found.'}
                 </Text>
               </View>
             ) : (
-              <View className="space-y-2 gap-2">
-                {friends.map((item) => (
-                  <Pressable
-                    key={item.id}
-                    onPress={() => router.push(`/${item.user.username}` as any)}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 active:opacity-80"
-                  >
-                    <View className="flex-row items-center gap-3 flex-1 pr-2">
-                      <UserAvatar
-                        avatarUrl={
-                          item.user.avatar || (item.user as any).avatarUrl
-                        }
-                        name={item.user.name}
-                        size="md"
-                      />
-                      <View className="flex-1 min-w-0">
-                        <Text
-                          numberOfLines={1}
-                          className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]"
-                        >
-                          {item.user.name}
-                        </Text>
-                        <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
-                          @{item.user.username}
-                          {item.user.location ? ` • ${item.user.location}` : ''}
-                        </Text>
+              <View className="p-4 sm:p-5">
+                <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+                  <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
+                    {locale === 'bn' ? 'সকল বন্ধু' : 'All Friends'} ({totalFriends})
+                  </Text>
+                </View>
+                <View className="space-y-1.5 gap-1.5">
+                  {friends.map((item) => (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => router.push(`/${item.user.username}` as any)}
+                      className="flex-row items-center justify-between p-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#2e2f30]"
+                    >
+                      <View className="flex-row items-center gap-3 flex-1 pr-2">
+                        <UserAvatar
+                          avatarUrl={
+                            item.user.avatar || (item.user as any).avatarUrl
+                          }
+                          name={item.user.name}
+                          size="md"
+                        />
+                        <View className="flex-1 min-w-0">
+                          <Text
+                            numberOfLines={1}
+                            className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]"
+                          >
+                            {item.user.name}
+                          </Text>
+                          <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
+                            @{item.user.username}
+                            {item.user.location ? ` • ${item.user.location}` : ''}
+                          </Text>
+                        </View>
                       </View>
-                    </View>
-                    <AppIcon
-                      android="chevron_right"
-                      size={18}
-                      color="#65676b"
-                    />
-                  </Pressable>
-                ))}
+                      <AppIcon
+                        android="chevron_right"
+                        size={18}
+                        color="#65676b"
+                      />
+                    </Pressable>
+                  ))}
+                </View>
               </View>
             )}
           </View>
@@ -1581,19 +1585,13 @@ export function ProfileView({
 
         {/* GROUPS TAB */}
         {activeTab === 'groups' && (
-          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5 flex-1">
-            <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
-              <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
-                {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} ({groups.length})
-              </Text>
-            </View>
-
+          <View className="bg-white dark:bg-[#18191a] flex-1">
             {isGroupsLoading ? (
-              <View className="space-y-2 gap-2">
+              <View className="p-4 space-y-2 gap-2">
                 {[1, 2, 3, 4].map((i) => (
                   <View
                     key={i}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50"
+                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef]/60 dark:bg-[#3a3b3c]/40"
                   >
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <Skeleton className="h-11 w-11 rounded-xl" />
@@ -1606,63 +1604,73 @@ export function ProfileView({
                 ))}
               </View>
             ) : groups.length === 0 ? (
-              <View className="flex-1 min-h-[280px] items-center justify-center py-10">
+              <View className="flex-1 min-h-[320px] bg-white dark:bg-[#18191a] p-8 items-center justify-center">
                 <AppIcon android="groups" size={38} color="#65676b" />
-                <Text className="text-[15px] text-[#65676b] dark:text-[#b0b3b8] mt-3 font-semibold text-center">
+                <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] mt-3">
+                  {locale === 'bn' ? 'কোনো গ্রুপ নেই' : 'No Groups Found'}
+                </Text>
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center mt-1">
                   {locale === 'bn'
-                    ? 'কোনো গ্রুপ পাওয়া যায়নি।'
-                    : 'No groups joined yet.'}
+                    ? 'এই ব্যবহারকারী এখনো কোনো গ্রুপে যুক্ত হননি।'
+                    : 'This user has not joined any groups yet.'}
                 </Text>
               </View>
             ) : (
-              <View className="space-y-2 gap-2">
-                {groups.map((g) => (
-                  <Pressable
-                    key={g.id}
-                    onPress={() => router.push('/groups')}
-                    className="flex-row items-center justify-between p-2.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 active:opacity-80"
-                  >
-                    <View className="flex-row items-center gap-3 flex-1 pr-2">
-                      <View className="h-11 w-11 rounded-xl bg-teal-500 items-center justify-center overflow-hidden">
-                        {g.avatarUrl ? (
-                          <Image
-                            source={{ uri: g.avatarUrl }}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Text className="text-white font-bold text-sm">
-                            {g.name?.charAt(0) || 'G'}
+              <View className="p-4 sm:p-5">
+                <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+                  <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
+                    {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} ({groups.length})
+                  </Text>
+                </View>
+                <View className="space-y-1.5 gap-1.5">
+                  {groups.map((g) => (
+                    <Pressable
+                      key={g.id}
+                      onPress={() => router.push('/groups')}
+                      className="flex-row items-center justify-between p-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#2e2f30]"
+                    >
+                      <View className="flex-row items-center gap-3 flex-1 pr-2">
+                        <View className="h-12 w-12 rounded-2xl bg-teal-500 items-center justify-center overflow-hidden border border-[#e4e6eb] dark:border-[#393a3b]">
+                          {g.avatarUrl ? (
+                            <Image
+                              source={{ uri: g.avatarUrl }}
+                              className="w-full h-full"
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <Text className="text-white font-bold text-base">
+                              {g.name?.charAt(0) || 'G'}
+                            </Text>
+                          )}
+                        </View>
+                        <View className="flex-1 min-w-0">
+                          <Text
+                            numberOfLines={1}
+                            className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]"
+                          >
+                            {g.name}
                           </Text>
-                        )}
+                          <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
+                            {g.memberCount}{' '}
+                            {locale === 'bn' ? 'জন সদস্য' : 'members'} •{' '}
+                            {g.visibility === 'PUBLIC'
+                              ? locale === 'bn'
+                                ? 'পাবলিক'
+                                : 'Public'
+                              : locale === 'bn'
+                                ? 'প্রাইভেট'
+                                : 'Private'}
+                          </Text>
+                        </View>
                       </View>
-                      <View className="flex-1 min-w-0">
-                        <Text
-                          numberOfLines={1}
-                          className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]"
-                        >
-                          {g.name}
-                        </Text>
-                        <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
-                          {g.memberCount}{' '}
-                          {locale === 'bn' ? 'জন সদস্য' : 'members'} •{' '}
-                          {g.visibility === 'PUBLIC'
-                            ? locale === 'bn'
-                              ? 'পাবলিক'
-                              : 'Public'
-                            : locale === 'bn'
-                              ? 'প্রাইভেট'
-                              : 'Private'}
-                        </Text>
-                      </View>
-                    </View>
-                    <AppIcon
-                      android="chevron_right"
-                      size={18}
-                      color="#65676b"
-                    />
-                  </Pressable>
-                ))}
+                      <AppIcon
+                        android="chevron_right"
+                        size={18}
+                        color="#65676b"
+                      />
+                    </Pressable>
+                  ))}
+                </View>
               </View>
             )}
           </View>
@@ -1670,30 +1678,13 @@ export function ProfileView({
 
         {/* SAVED TAB (Owner only) */}
         {activeTab === 'saved' && isOwner && (
-          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5 flex-1">
-            <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
-              <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
-                {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} (
-                {savedItems.length})
-              </Text>
-              {savedItems.length > 0 && (
-                <Pressable
-                  onPress={() => router.push('/saved')}
-                  className="px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-950/60"
-                >
-                  <Text className="text-[13px] font-bold text-primary-600 dark:text-primary-400">
-                    {locale === 'bn' ? 'সম্পূর্ণ পাতা' : 'Full Page'}
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-
+          <View className="bg-white dark:bg-[#18191a] flex-1">
             {isSavedLoading ? (
-              <View className="space-y-2.5 gap-2.5">
+              <View className="p-4 space-y-2.5 gap-2.5">
                 {[1, 2, 3].map((i) => (
                   <View
                     key={i}
-                    className="p-3 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b] space-y-2 gap-2"
+                    className="p-3 rounded-xl bg-[#e6e9ef]/60 dark:bg-[#3a3b3c]/40 border border-[#e4e6eb] dark:border-[#393a3b] space-y-2 gap-2"
                   >
                     <View className="flex-row items-center justify-between">
                       <Skeleton className="h-3.5 w-16 rounded-md" />
@@ -1704,54 +1695,73 @@ export function ProfileView({
                 ))}
               </View>
             ) : savedItems.length === 0 ? (
-              <View className="flex-1 min-h-[280px] items-center justify-center py-10">
+              <View className="flex-1 min-h-[320px] bg-white dark:bg-[#18191a] p-8 items-center justify-center">
                 <AppIcon android="bookmark" size={38} color="#65676b" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-3 font-medium text-center">
+                <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] mt-3">
+                  {locale === 'bn' ? 'কোনো সংরক্ষিত আইটেম নেই' : 'No Saved Items'}
+                </Text>
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center mt-1">
                   {locale === 'bn'
-                    ? 'কোনো সংরক্ষিত আইটেম নেই।'
-                    : 'No saved items found.'}
+                    ? 'আপনার সংরক্ষিত কোনো আইটেম পাওয়া যায়নি।'
+                    : 'You have not saved any items yet.'}
                 </Text>
               </View>
             ) : (
-              <View className="space-y-2.5 gap-2.5">
-                {savedItems.map((item) => (
+              <View className="p-4 sm:p-5">
+                <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+                  <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
+                    {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} (
+                    {savedItems.length})
+                  </Text>
                   <Pressable
-                    key={item.id}
                     onPress={() => router.push('/saved')}
-                    className="p-3 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 border border-[#e4e6eb] dark:border-[#393a3b]"
+                    className="px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-950/60"
                   >
-                    <View className="flex-row items-center justify-between mb-1">
-                      <View className="flex-row items-center gap-1.5">
-                        <AppIcon
-                          android={
-                            item.type === 'DUA' ? 'menu_book' : 'article'
-                          }
-                          size={14}
-                          color="#0866FF"
-                        />
-                        <Text className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
-                          {item.type}
-                        </Text>
-                      </View>
-                      {item.timeSlot && (
-                        <View className="rounded-full bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5">
-                          <Text className="text-[10px] font-bold text-purple-700 dark:text-purple-300">
-                            {item.timeSlot}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text
-                      numberOfLines={2}
-                      className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mt-0.5"
-                    >
-                      {item.dua?.title ||
-                        item.content ||
-                        item.dua?.meaning ||
-                        'Saved item'}
+                    <Text className="text-[13px] font-bold text-primary-600 dark:text-primary-400">
+                      {locale === 'bn' ? 'সম্পূর্ণ পাতা' : 'Full Page'}
                     </Text>
                   </Pressable>
-                ))}
+                </View>
+                <View className="space-y-2.5 gap-2.5">
+                  {savedItems.map((item) => (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => router.push('/saved')}
+                      className="p-3.5 rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#f0f2f5] dark:active:bg-[#2e2f30]"
+                    >
+                      <View className="flex-row items-center justify-between mb-1">
+                        <View className="flex-row items-center gap-1.5">
+                          <AppIcon
+                            android={
+                              item.type === 'DUA' ? 'menu_book' : 'article'
+                            }
+                            size={14}
+                            color="#0866FF"
+                          />
+                          <Text className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
+                            {item.type}
+                          </Text>
+                        </View>
+                        {item.timeSlot && (
+                          <View className="rounded-full bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5">
+                            <Text className="text-[10px] font-bold text-purple-700 dark:text-purple-300">
+                              {item.timeSlot}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text
+                        numberOfLines={2}
+                        className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb] mt-0.5"
+                      >
+                        {item.dua?.title ||
+                          item.content ||
+                          item.dua?.meaning ||
+                          'Saved item'}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
               </View>
             )}
           </View>
