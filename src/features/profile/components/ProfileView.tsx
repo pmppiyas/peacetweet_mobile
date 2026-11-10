@@ -127,6 +127,11 @@ export function ProfileView({
 }: ProfileViewProps) {
   const { locale, theme } = useUi();
   const insets = useSafeAreaInsets();
+  const appTopStart = Math.max(
+    insets.top || 0,
+    Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
+  );
+  const appBottomEnd = insets.bottom || 0;
   const { user: authUser, isAuthenticated, setUser } = useAuth();
   const { items: feedItems, refreshFeed } = useFeed();
 
@@ -1851,44 +1856,48 @@ export function ProfileView({
         animationType="none"
         onRequestClose={closeManagementDrawer}
       >
-        <Animated.View
-          style={{
-            flex: 1,
-            flexDirection: 'row',
-            justifyContent: 'flex-end',
-            backgroundColor: backdropAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)'],
-            }),
-          }}
-        >
-          {/* Backdrop Tap Area */}
-          <Pressable
-            className="flex-1"
-            onPress={closeManagementDrawer}
-            accessibilityLabel={
-              locale === 'bn' ? 'ড্রয়ার বন্ধ করুন' : 'Close drawer'
-            }
-          />
+        <View style={{ flex: 1 }}>
+          {/* Top outside area: Status bar / Network bar (Tap to close) */}
+          {appTopStart > 0 ? (
+            <Pressable
+              style={{ height: appTopStart }}
+              onPress={closeManagementDrawer}
+              accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
+            />
+          ) : null}
 
-          {/* Right Sliding Drawer Panel */}
+          {/* App Viewport Container: starts below network bar, ends above bottom bar */}
           <Animated.View
-            style={[
-              {
-                paddingTop: Math.max(
-                  insets.top || 0,
-                  Platform.OS === 'android'
-                    ? ((StatusBar.currentHeight || 28) + 8)
-                    : 20
-                ),
-                paddingBottom: Math.max(insets.bottom || 0, 16),
-                transform: [{ translateX: slideAnim }],
-                backgroundColor: theme === 'dark' ? '#242526' : '#ffffff',
-                height: '100%',
-              },
-            ]}
-            className="w-[86%] sm:w-[380px] max-w-[92%] border-l border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none"
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              backgroundColor: backdropAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)'],
+              }),
+            }}
           >
+            {/* Backdrop Tap Area */}
+            <Pressable
+              className="flex-1"
+              onPress={closeManagementDrawer}
+              accessibilityLabel={
+                locale === 'bn' ? 'ড্রয়ার বন্ধ করুন' : 'Close drawer'
+              }
+            />
+
+            {/* Right Sliding Drawer Panel (Bounded strictly to visible App Height) */}
+            <Animated.View
+              style={[
+                {
+                  transform: [{ translateX: slideAnim }],
+                  backgroundColor: theme === 'dark' ? '#242526' : '#ffffff',
+                  height: '100%',
+                },
+              ]}
+              className="w-[86%] sm:w-[380px] max-w-[92%] border-l border-t border-b border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none rounded-tl-2xl rounded-bl-2xl overflow-hidden"
+            >
             {/* Drawer Header */}
             <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#e4e6eb] dark:border-[#393a3b]">
               <View className="flex-row items-center gap-2">
@@ -2234,7 +2243,17 @@ export function ProfileView({
             </ScrollView>
           </Animated.View>
         </Animated.View>
-      </Modal>
+
+        {/* Bottom outside area: System navigation / gesture bar (Tap to close) */}
+        {appBottomEnd > 0 ? (
+          <Pressable
+            style={{ height: appBottomEnd }}
+            onPress={closeManagementDrawer}
+            accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
+          />
+        ) : null}
+      </View>
+    </Modal>
     </ScrollView>
   );
 }
