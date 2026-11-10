@@ -27,10 +27,8 @@ import {
 import { matchUserLocationToGeo } from '@/constants/bangladeshGeo';
 import { BloodGroup, User } from '@/types/user.types';
 import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
-import {
-  PhotoEditorModal,
-  PhotoEditorMode,
-} from '@/features/profile/components/PhotoEditorModal';
+import * as ImagePicker from 'expo-image-picker';
+import { UploadableImage } from '@/features/uploads/api/uploads.api';
 
 const BLOOD_GROUPS: { value: BloodGroup | 'NONE'; label: string }[] = [
   { value: 'NONE', label: 'None' },
@@ -81,12 +79,6 @@ export default function EditProfileScreen() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
 
-  // Interactive Photo Editor Modal (Reposition & Resize)
-  const [photoEditorMode, setPhotoEditorMode] =
-    useState<PhotoEditorMode>('cover');
-  const [photoEditorSrc, setPhotoEditorSrc] = useState<string | null>(null);
-  const [isPhotoEditorOpen, setIsPhotoEditorOpen] = useState(false);
-
   // Submit States
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -121,81 +113,121 @@ export default function EditProfileScreen() {
     );
   }
 
-  // Direct Photo Picker -> opens PhotoEditorModal for reposition & resize
-  const handlePickPhoto = (type: PhotoEditorMode) => {
-    if (typeof document === 'undefined') return;
-
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.style.display = 'none';
-
-    input.onchange = (e: any) => {
-      const file = e.target?.files?.[0];
-      if (!file) return;
-
-      const previewUrl = URL.createObjectURL(file);
-      setPhotoEditorMode(type);
-      setPhotoEditorSrc(previewUrl);
-      setIsPhotoEditorOpen(true);
-    };
-
-    document.body.appendChild(input);
-    input.click();
-    setTimeout(() => {
-      if (input.parentNode) {
-        input.parentNode.removeChild(input);
-      }
-    }, 1000);
-  };
-
-  // Open existing photo in PhotoEditorModal to reposition & resize
-  const openRepositionEditor = (type: PhotoEditorMode) => {
-    const existingUrl = type === 'avatar' ? avatarUrl : coverUrl;
-    if (!existingUrl) {
-      handlePickPhoto(type);
-      return;
-    }
-    setPhotoEditorMode(type);
-    setPhotoEditorSrc(normalizeMediaUrl(existingUrl));
-    setIsPhotoEditorOpen(true);
-  };
-
-  // Upload cropped/resized photo from PhotoEditorModal
-  const handleSaveEditedPhoto = async (
-    croppedFile: File | Blob,
-    filename: string
-  ) => {
-    const type = photoEditorMode;
-    const previewUrl = URL.createObjectURL(croppedFile);
-
-    if (type === 'avatar') {
-      setAvatarUrl(previewUrl);
-      setIsUploadingAvatar(true);
-    } else {
-      setCoverUrl(previewUrl);
-      setIsUploadingCover(true);
-    }
-    setIsPhotoEditorOpen(false);
+  // Universal Photo Picker: Web file input & Native Expo ImagePicker
+  const handlePickPhoto = async (type: 'avatar' | 'cover') => {
     setErrorMessage(null);
 
-    try {
-      const result = await uploadsApi.uploadImage(croppedFile, filename);
-      if (result?.url) {
-        if (type === 'avatar') {
-          setAvatarUrl(result.url);
-        } else {
-          setCoverUrl(result.url);
+    // 1. Web Fallback
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.style.display = 'none';
+
+      input.onchange = async (e: any) => {
+        const file = e.target?.files?.[0];
+        if (!file) return;
+
+        if (file.size > 10 * 1024 * 1024) {
+          setErrorMessage(
+            locale === 'bn'
+              ? 'ছবির সাইজ সর্বোচ্চ ১০ মেগাবাইট (10MB) হতে পারবে।'
+              : 'Image size must be less than 10MB.'
+          );
+          return;
         }
+
+        const previewUrl = URL.createObjectURL(file);
+        if (type === 'avatar') {
+          setAvatarUrl(previewUrl);
+          setIsUploadingAvatar(true);
+        } else {
+          setCoverUrl(previewUrl);
+          setIsUploadingCover(true);
+        }
+
+        try {
+          const res = await uploadsApi.uploadImage(file, file.name);
+          if (res?.url) {
+            if (type === 'avatar') setAvatarUrl(res.url);
+            else setCoverUrl(res.url);
+          }
+        } catch {
+          setErrorMessage(
+            locale === 'bn'
+              ? 'ছবি আপলোড করতে ব্যর্থ হয়েছে।'
+              : 'Failed to upload photo.'
+          );
+        } finally {
+          if (type === 'avatar') setIsUploadingAvatar(false);
+          else setIsUploadingCover(false);
+        }
+      };
+
+      document.body.appendChild(input);
+      input.click();
+      setTimeout(() => {
+        if (input.parentNode) input.parentNode.removeChild(input);
+      }, 1000);
+      return;
+    }
+
+    // 2. Native Mobile (Android & iOS)
+    try {
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setErrorMessage(
+          locale === 'bn'
+            ? 'গ্যালারি থেকে ছবি নির্বাচন করতে পারমিশন প্রয়োজন।'
+            : 'Permission is required to select photos from gallery.'
+        );
+        return;
       }
-    } catch (err: any) {
-      console.warn('Image upload notice:', err?.message);
-    } finally {
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: type === 'avatar' ? [1, 1] : [16, 9],
+        quality: 0.85,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+
+      const asset = result.assets[0];
+      const filename =
+        asset.fileName ||
+        `${type}_${Date.now()}.${asset.mimeType?.split('/')[1] || 'jpg'}`;
+      const mimeType = asset.mimeType || 'image/jpeg';
+
+      const fileObj: UploadableImage = {
+        uri: asset.uri,
+        name: filename,
+        type: mimeType,
+      };
+
       if (type === 'avatar') {
-        setIsUploadingAvatar(false);
+        setAvatarUrl(asset.uri);
+        setIsUploadingAvatar(true);
       } else {
-        setIsUploadingCover(false);
+        setCoverUrl(asset.uri);
+        setIsUploadingCover(true);
       }
+
+      const res = await uploadsApi.uploadImage(fileObj, filename);
+      if (res?.url) {
+        if (type === 'avatar') setAvatarUrl(res.url);
+        else setCoverUrl(res.url);
+      }
+    } catch {
+      setErrorMessage(
+        locale === 'bn'
+          ? 'গ্যালারি থেকে ছবি নির্বাচন করা যায়নি।'
+          : 'Could not select photo from device.'
+      );
+    } finally {
+      if (type === 'avatar') setIsUploadingAvatar(false);
+      else setIsUploadingCover(false);
     }
   };
 
@@ -381,35 +413,21 @@ export default function EditProfileScreen() {
               <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'প্রোফাইল ছবি' : 'Profile picture'}
               </Text>
-              <View className="flex-row items-center gap-2">
-                {avatarUrl ? (
-                  <Pressable
-                    onPress={() => openRepositionEditor('avatar')}
-                    disabled={isUploadingAvatar}
-                    className="flex-row items-center gap-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1 active:opacity-70"
-                  >
-                    <AppIcon android="crop" size={13} color="#059669" />
-                    <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
-                      {locale === 'bn' ? 'পজিশন' : 'Reposition'}
-                    </Text>
-                  </Pressable>
-                ) : null}
-                <Pressable
-                  onPress={() => handlePickPhoto('avatar')}
-                  disabled={isUploadingAvatar}
-                  className="rounded-full bg-primary-50 dark:bg-primary-950/40 px-3 py-1 active:opacity-70"
-                >
-                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
-                    {isUploadingAvatar
-                      ? locale === 'bn'
-                        ? 'আপলোড হচ্ছে...'
-                        : 'Uploading...'
-                      : locale === 'bn'
-                        ? 'সম্পাদনা'
-                        : 'Edit'}
-                  </Text>
-                </Pressable>
-              </View>
+              <Pressable
+                onPress={() => handlePickPhoto('avatar')}
+                disabled={isUploadingAvatar}
+                className="rounded-full bg-primary-50 dark:bg-primary-950/40 px-3 py-1 active:opacity-70"
+              >
+                <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                  {isUploadingAvatar
+                    ? locale === 'bn'
+                      ? 'আপলোড হচ্ছে...'
+                      : 'Uploading...'
+                    : locale === 'bn'
+                      ? 'সম্পাদনা'
+                      : 'Edit'}
+                </Text>
+              </Pressable>
             </View>
 
             <View className="items-center py-4">
@@ -459,35 +477,21 @@ export default function EditProfileScreen() {
               <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'কভার ছবি' : 'Cover photo'}
               </Text>
-              <View className="flex-row items-center gap-2">
-                {coverUrl ? (
-                  <Pressable
-                    onPress={() => openRepositionEditor('cover')}
-                    disabled={isUploadingCover}
-                    className="flex-row items-center gap-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-3 py-1 active:opacity-70"
-                  >
-                    <AppIcon android="crop" size={13} color="#059669" />
-                    <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
-                      {locale === 'bn' ? 'পজিশন' : 'Reposition'}
-                    </Text>
-                  </Pressable>
-                ) : null}
-                <Pressable
-                  onPress={() => handlePickPhoto('cover')}
-                  disabled={isUploadingCover}
-                  className="rounded-full bg-primary-50 dark:bg-primary-950/40 px-3 py-1 active:opacity-70"
-                >
-                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
-                    {isUploadingCover
-                      ? locale === 'bn'
-                        ? 'আপলোড হচ্ছে...'
-                        : 'Uploading...'
-                      : locale === 'bn'
-                        ? 'সম্পাদনা'
-                        : 'Edit'}
-                  </Text>
-                </Pressable>
-              </View>
+              <Pressable
+                onPress={() => handlePickPhoto('cover')}
+                disabled={isUploadingCover}
+                className="rounded-full bg-primary-50 dark:bg-primary-950/40 px-3 py-1 active:opacity-70"
+              >
+                <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                  {isUploadingCover
+                    ? locale === 'bn'
+                      ? 'আপলোড হচ্ছে...'
+                      : 'Uploading...'
+                    : locale === 'bn'
+                      ? 'সম্পাদনা'
+                      : 'Edit'}
+                </Text>
+              </Pressable>
             </View>
 
             <View className="pt-3">
@@ -772,17 +776,6 @@ export default function EditProfileScreen() {
           </Pressable>
         </View>
       </ScrollView>
-
-      {/* Interactive Cover & Profile Photo Editor Modal (Reposition & Resize) */}
-      <PhotoEditorModal
-        isOpen={isPhotoEditorOpen}
-        mode={photoEditorMode}
-        imageSrc={photoEditorSrc}
-        isSaving={isUploadingAvatar || isUploadingCover}
-        onClose={() => setIsPhotoEditorOpen(false)}
-        onPickAnother={() => handlePickPhoto(photoEditorMode)}
-        onSave={handleSaveEditedPhoto}
-      />
     </View>
   );
 }
