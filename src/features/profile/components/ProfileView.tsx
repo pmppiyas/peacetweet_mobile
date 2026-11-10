@@ -736,7 +736,7 @@ export function ProfileView({
       </View>
 
       {/* 2. Profile Details & Bio & Action Buttons (Hero Card) */}
-      <View className="w-full max-w-[768px] mx-auto bg-white dark:bg-[#242526] px-4 pb-4 border-b border-[#e4e6eb] dark:border-[#393a3b] items-center relative z-20">
+      <View className="w-full max-w-[768px] mx-auto bg-white dark:bg-[#18191a] px-4 pb-4 border-b border-[#e4e6eb]/70 dark:border-[#393a3b]/70 items-center relative z-20">
         {/* Centered Avatar overlapping Cover Banner */}
         <View className="-mt-14 relative z-40 items-center">
           <View className="relative h-28 w-28">
@@ -1051,32 +1051,36 @@ export function ProfileView({
               } as any)
             : undefined
         }
-        className="bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-2 py-2"
+        className="bg-white dark:bg-[#18191a] border-b border-[#e4e6eb]/70 dark:border-[#393a3b]/70 py-2.5"
       >
-        <View className="w-full max-w-[768px] mx-auto flex-row items-center justify-between gap-1">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            gap: 8,
+            alignItems: 'center',
+          }}
+          className="w-full max-w-[768px] mx-auto"
+        >
           {/* Overview Tab */}
           <Pressable
             key="profile-tab-overview"
             onPress={() => setActiveTab('overview')}
-            className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
+            className={`px-4 py-1.5 rounded-full active:opacity-80 ${
               activeTab === 'overview'
-                ? 'bg-[#0866FF]'
+                ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
                 : 'bg-transparent'
             }`}
           >
-            <AppIcon
-              android="person"
-              size={16.5}
-              color={activeTab === 'overview' ? '#ffffff' : '#65676b'}
-            />
             <Text
-              className={`text-[13.5px] sm:text-[14px] font-bold ${
+              className={`text-[14px] font-bold ${
                 activeTab === 'overview'
-                  ? 'text-white'
-                  : 'text-[#65676b] dark:text-[#b0b3b8]'
+                  ? 'text-[#0064E0] dark:text-[#2D88FF]'
+                  : 'text-[#65676B] dark:text-[#B0B3B8]'
               }`}
             >
-              {locale === 'bn' ? 'পরিচিতি' : 'Overview'}
+              {locale === 'bn' ? 'এক নজরে' : 'Overview'}
             </Text>
           </Pressable>
 
@@ -1084,22 +1088,17 @@ export function ProfileView({
           <Pressable
             key="profile-tab-posts"
             onPress={() => setActiveTab('posts')}
-            className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
+            className={`px-4 py-1.5 rounded-full active:opacity-80 ${
               activeTab === 'posts'
-                ? 'bg-[#0866FF]'
+                ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
                 : 'bg-transparent'
             }`}
           >
-            <AppIcon
-              android="article"
-              size={16.5}
-              color={activeTab === 'posts' ? '#ffffff' : '#65676b'}
-            />
             <Text
-              className={`text-[13.5px] sm:text-[14px] font-bold ${
+              className={`text-[14px] font-bold ${
                 activeTab === 'posts'
-                  ? 'text-white'
-                  : 'text-[#65676b] dark:text-[#b0b3b8]'
+                  ? 'text-[#0064E0] dark:text-[#2D88FF]'
+                  : 'text-[#65676B] dark:text-[#B0B3B8]'
               }`}
             >
               {locale === 'bn' ? 'পোস্ট' : 'Posts'}
@@ -1110,59 +1109,40 @@ export function ProfileView({
           <Pressable
             key="profile-tab-friends"
             onPress={() => setActiveTab('friends')}
-            className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
+            className={`px-4 py-1.5 rounded-full active:opacity-80 ${
               activeTab === 'friends'
-                ? 'bg-[#0866FF]'
+                ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
                 : 'bg-transparent'
             }`}
           >
-            <AppIcon
-              android="group"
-              size={16.5}
-              color={activeTab === 'friends' ? '#ffffff' : '#65676b'}
-            />
             <Text
-              className={`text-[13.5px] sm:text-[14px] font-bold ${
+              className={`text-[14px] font-bold ${
                 activeTab === 'friends'
-                  ? 'text-white'
-                  : 'text-[#65676b] dark:text-[#b0b3b8]'
+                  ? 'text-[#0064E0] dark:text-[#2D88FF]'
+                  : 'text-[#65676B] dark:text-[#B0B3B8]'
               }`}
             >
-              {locale === 'bn' ? 'বন্ধু' : 'Friends'}
+              {locale === 'bn'
+                ? `বন্ধু ${totalFriends > 0 ? `(${totalFriends})` : ''}`
+                : `Friends ${totalFriends > 0 ? `(${totalFriends})` : ''}`}
             </Text>
-            {totalFriends > 0 && (
-              <Text
-                className={`text-[12px] font-bold ${
-                  activeTab === 'friends'
-                    ? 'text-white/90'
-                    : 'text-[#65676b] dark:text-[#b0b3b8]'
-                }`}
-              >
-                ({totalFriends})
-              </Text>
-            )}
           </Pressable>
 
           {/* Groups Tab */}
           <Pressable
             key="profile-tab-groups"
             onPress={() => setActiveTab('groups')}
-            className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
+            className={`px-4 py-1.5 rounded-full active:opacity-80 ${
               activeTab === 'groups'
-                ? 'bg-[#0866FF]'
+                ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
                 : 'bg-transparent'
             }`}
           >
-            <AppIcon
-              android="groups"
-              size={16.5}
-              color={activeTab === 'groups' ? '#ffffff' : '#65676b'}
-            />
             <Text
-              className={`text-[13.5px] sm:text-[14px] font-bold ${
+              className={`text-[14px] font-bold ${
                 activeTab === 'groups'
-                  ? 'text-white'
-                  : 'text-[#65676b] dark:text-[#b0b3b8]'
+                  ? 'text-[#0064E0] dark:text-[#2D88FF]'
+                  : 'text-[#65676B] dark:text-[#B0B3B8]'
               }`}
             >
               {locale === 'bn' ? 'গ্রুপ' : 'Groups'}
@@ -1174,49 +1154,67 @@ export function ProfileView({
             <Pressable
               key="profile-tab-saved"
               onPress={() => setActiveTab('saved')}
-              className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
+              className={`px-4 py-1.5 rounded-full active:opacity-80 ${
                 activeTab === 'saved'
-                  ? 'bg-[#0866FF]'
-                  : 'bg-transparent'
+                  ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
+                : 'bg-transparent'
               }`}
             >
-              <AppIcon
-                android="bookmark"
-                size={16.5}
-                color={activeTab === 'saved' ? '#ffffff' : '#65676b'}
-              />
               <Text
-                className={`text-[13.5px] sm:text-[14px] font-bold ${
+                className={`text-[14px] font-bold ${
                   activeTab === 'saved'
-                    ? 'text-white'
-                    : 'text-[#65676b] dark:text-[#b0b3b8]'
+                    ? 'text-[#0064E0] dark:text-[#2D88FF]'
+                    : 'text-[#65676B] dark:text-[#B0B3B8]'
                 }`}
               >
                 {locale === 'bn' ? 'সংরক্ষিত' : 'Saved'}
               </Text>
             </Pressable>
           )}
-        </View>
+        </ScrollView>
       </View>
 
       {/* 4. Tab Contents */}
-      <View className="w-full max-w-[768px] mx-auto px-0 pb-3 mt-2">
+      <View className="w-full max-w-[768px] mx-auto px-0 pb-3 mt-1">
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
-          <View className="space-y-2 gap-2">
-            {/* Intro Details Card */}
-            <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-              <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white mb-3.5 tracking-tight">
-                {locale === 'bn' ? 'পরিচিতি' : 'Introduce'}
-              </Text>
+          <View className="bg-white dark:bg-[#18191a] pb-6">
+            {/* 1. At a glance / Intro */}
+            <View className="px-4 py-4">
+              <View className="flex-row items-center justify-between mb-3.5">
+                <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
+                  {locale === 'bn' ? 'এক নজরে' : 'At a glance'}
+                </Text>
+                {isOwner ? (
+                  <Pressable
+                    onPress={() => router.push('/settings/profile')}
+                    hitSlop={8}
+                    className="active:opacity-70"
+                  >
+                    <Text className="text-[14px] font-semibold text-[#0064E0] dark:text-[#2D88FF]">
+                      {locale === 'bn' ? 'সম্পাদনা' : 'See all'}
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <Pressable
+                    hitSlop={8}
+                    className="active:opacity-70"
+                  >
+                    <Text className="text-[14px] font-semibold text-[#0064E0] dark:text-[#2D88FF]">
+                      {locale === 'bn' ? 'সব দেখুন' : 'See all'}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
 
               <View className="space-y-3 gap-3">
                 {/* Location */}
                 {displayUser.location && (
                   <View className="flex-row items-center gap-3">
-                    <AppIcon android="location_on" size={19} color="#e11d48" />
-                    <Text className="text-[15px] sm:text-[15.5px] text-[#1e2329] dark:text-[#e4e6eb]">
-                      <Text className="font-semibold">{displayUser.location}</Text>
+                    <AppIcon android="location_on" size={20} color="#65676B" />
+                    <Text className="text-[15px] sm:text-[15.5px] text-[#050505] dark:text-[#e4e6eb]">
+                      {locale === 'bn' ? 'বাসস্থান ' : 'Lives in '}
+                      <Text className="font-bold">{displayUser.location}</Text>
                     </Text>
                   </View>
                 )}
@@ -1224,8 +1222,8 @@ export function ProfileView({
                 {/* Blood Group */}
                 {bloodGroupLabel && (
                   <View className="flex-row items-center gap-3">
-                    <AppIcon android="water_drop" size={19} color="#e11d48" />
-                    <Text className="text-[15px] sm:text-[15.5px] text-[#65676b] dark:text-[#b0b3b8]">
+                    <AppIcon android="water_drop" size={20} color="#e11d48" />
+                    <Text className="text-[15px] sm:text-[15.5px] text-[#050505] dark:text-[#e4e6eb]">
                       {locale === 'bn' ? 'রক্তের গ্রুপ: ' : 'Blood Group: '}
                       <Text className="font-bold text-rose-600 dark:text-rose-400">
                         {bloodGroupLabel}
@@ -1236,52 +1234,45 @@ export function ProfileView({
 
                 {/* Joined Date */}
                 <View className="flex-row items-center gap-3">
-                  <AppIcon android="schedule" size={19} color="#65676b" />
-                  <Text className="text-[15px] sm:text-[15.5px] text-[#65676b] dark:text-[#b0b3b8]">
-                    {locale === 'bn' ? 'যুক্ত হয়েছেন: ' : 'Joined: '}
-                    <Text className="font-semibold text-[#1e2329] dark:text-[#e4e6eb]">
+                  <AppIcon android="schedule" size={20} color="#65676B" />
+                  <Text className="text-[15px] sm:text-[15.5px] text-[#050505] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'যুক্ত হয়েছেন ' : 'Joined '}
+                    <Text className="font-bold">
                       {formatProfileDate(displayUser.createdAt, locale)}
                     </Text>
                   </Text>
                 </View>
               </View>
-
-              {isOwner && (
-                <Pressable
-                  onPress={() => router.push('/settings/profile')}
-                  className="mt-4 pt-3 border-t border-[#e6e9ef] dark:border-[#393a3b] items-center justify-center active:scale-98"
-                >
-                  <Text className="text-[14px] font-bold text-primary-600 dark:text-primary-400">
-                    {locale === 'bn'
-                      ? 'প্রোফাইল তথ্য সম্পাদনা করুন'
-                      : 'Edit profile details'}
-                  </Text>
-                </Pressable>
-              )}
             </View>
 
-            {/* Friends Preview (Grid of 6) */}
-            <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-              <View className="flex-row items-center justify-between pb-2.5 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+            {/* Divider */}
+            <View className="h-[1px] bg-[#e4e6eb]/70 dark:bg-[#393a3b]/70 mx-4 my-1" />
+
+            {/* 2. Friends Section (Horizontal Circular Avatars) */}
+            <View className="px-4 py-3">
+              <View className="flex-row items-center justify-between mb-3.5">
                 <View>
                   <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                     {locale === 'bn' ? 'বন্ধুরা' : 'Friends'}
                   </Text>
-                  <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-                    {totalFriends}{' '}
-                    {locale === 'bn'
-                      ? 'জন বন্ধু'
-                      : totalFriends === 1
-                        ? 'friend'
-                        : 'friends'}
-                  </Text>
+                  {totalFriends > 0 && (
+                    <Text className="text-[12.5px] text-[#65676B] dark:text-[#B0B3B8] mt-0.5">
+                      {totalFriends}{' '}
+                      {locale === 'bn'
+                        ? 'জন বন্ধু'
+                        : totalFriends === 1
+                          ? 'friend'
+                          : 'friends'}
+                    </Text>
+                  )}
                 </View>
                 {friends.length > 0 && (
                   <Pressable
                     onPress={() => setActiveTab('friends')}
-                    className="px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+                    hitSlop={8}
+                    className="active:opacity-70"
                   >
-                    <Text className="text-[13px] font-bold text-primary-600 dark:text-primary-400">
+                    <Text className="text-[14px] font-semibold text-[#0064E0] dark:text-[#2D88FF]">
                       {locale === 'bn' ? 'সব দেখুন' : 'See all'}
                     </Text>
                   </Pressable>
@@ -1289,13 +1280,17 @@ export function ProfileView({
               </View>
 
               {isFriendsLoading ? (
-                <View className="flex-row flex-wrap justify-between gap-2 pt-1">
-                  <Skeleton className="w-[30%] aspect-square rounded-xl" />
-                  <Skeleton className="w-[30%] aspect-square rounded-xl" />
-                  <Skeleton className="w-[30%] aspect-square rounded-xl" />
+                <View className="flex-row gap-3.5 pt-1">
+                  {[1, 2, 3, 4].map((i) => (
+                    <View key={i} className="items-center space-y-1.5 gap-1.5" style={{ width: 78 }}>
+                      <Skeleton className="h-18 w-18 rounded-full" />
+                      <Skeleton className="h-3 w-16 rounded-md" />
+                      <Skeleton className="h-2.5 w-12 rounded-md" />
+                    </View>
+                  ))}
                 </View>
               ) : friends.length === 0 ? (
-                <View className="py-6 items-center justify-center">
+                <View className="py-4 items-center justify-center">
                   <AppIcon android="group" size={28} color="#65676b" />
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
                     {locale === 'bn'
@@ -1304,14 +1299,20 @@ export function ProfileView({
                   </Text>
                 </View>
               ) : (
-                <View className="flex-row flex-wrap justify-between gap-2 pt-1">
-                  {friends.slice(0, 6).map((f) => (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 14, paddingRight: 16 }}
+                  className="pt-1 pb-1"
+                >
+                  {friends.slice(0, 10).map((f) => (
                     <Pressable
                       key={f.id}
                       onPress={() => router.push(`/${f.user.username}` as any)}
-                      className="w-[30%] items-center mb-2 active:opacity-80"
+                      className="items-center active:opacity-80"
+                      style={{ width: 78 }}
                     >
-                      <View className="w-full aspect-square rounded-xl bg-primary-500 overflow-hidden items-center justify-center shadow-xs border border-[#e4e6eb] dark:border-[#393a3b]">
+                      <View className="h-18 w-18 rounded-full bg-primary-100 dark:bg-primary-900/40 border border-[#e4e6eb] dark:border-[#393a3b] overflow-hidden items-center justify-center">
                         {f.user.avatar || (f.user as any).avatarUrl ? (
                           <Image
                             source={{
@@ -1319,135 +1320,128 @@ export function ProfileView({
                                 f.user.avatar || (f.user as any).avatarUrl
                               ),
                             }}
-                            className="w-full h-full"
+                            className="w-full h-full rounded-full"
                             resizeMode="cover"
                           />
                         ) : (
-                          <Text className="text-white font-bold text-base">
+                          <Text className="text-primary-700 dark:text-primary-300 font-bold text-lg">
                             {f.user.name?.charAt(0) || 'U'}
                           </Text>
                         )}
                       </View>
                       <Text
-                        numberOfLines={1}
-                        className="text-[13px] font-semibold text-[#050505] dark:text-[#e4e6eb] mt-1.5 text-center w-full"
+                        numberOfLines={2}
+                        className="text-[13px] font-semibold text-[#050505] dark:text-[#e4e6eb] mt-1.5 text-center leading-tight w-full"
                       >
                         {f.user.name}
                       </Text>
+                      <Text
+                        numberOfLines={1}
+                        className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] text-center w-full mt-0.5"
+                      >
+                        @{f.user.username}
+                      </Text>
                     </Pressable>
                   ))}
-                </View>
+                </ScrollView>
               )}
             </View>
 
-            {/* Groups Preview */}
-            <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-              <View className="flex-row items-center justify-between pb-2.5 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
-                <View>
-                  <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
-                    {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'}
-                  </Text>
-                  <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-                    {groups.length}{' '}
-                    {locale === 'bn'
-                      ? 'টি গ্রুপ'
-                      : groups.length === 1
-                        ? 'group'
-                        : 'groups'}
-                  </Text>
-                </View>
-                {groups.length > 0 && (
-                  <Pressable
-                    onPress={() => setActiveTab('groups')}
-                    className="px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-950/60"
-                  >
-                    <Text className="text-[13px] font-bold text-primary-600 dark:text-primary-400">
-                      {locale === 'bn' ? 'সব দেখুন' : 'See all'}
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
+            {/* Divider */}
+            <View className="h-[1px] bg-[#e4e6eb]/70 dark:bg-[#393a3b]/70 mx-4 my-1" />
 
-              {isGroupsLoading ? (
-                <View className="space-y-2 gap-2 pt-1">
-                  <View className="flex-row items-center gap-3 p-2 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50">
-                    <Skeleton className="h-10 w-10 rounded-xl" />
-                    <View className="flex-1 space-y-1.5 gap-1.5">
-                      <Skeleton className="h-3.5 w-32 rounded-md" />
-                      <Skeleton className="h-2.5 w-20 rounded-md" />
+            {/* 3. Groups Section */}
+            {groups.length > 0 && (
+              <>
+                <View className="px-4 py-3">
+                  <View className="flex-row items-center justify-between mb-3.5">
+                    <View>
+                      <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
+                        {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'}
+                      </Text>
+                      <Text className="text-[12.5px] text-[#65676B] dark:text-[#B0B3B8] mt-0.5">
+                        {groups.length}{' '}
+                        {locale === 'bn'
+                          ? 'টি গ্রুপ'
+                          : groups.length === 1
+                            ? 'group'
+                            : 'groups'}
+                      </Text>
                     </View>
-                  </View>
-                  <View className="flex-row items-center gap-3 p-2 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50">
-                    <Skeleton className="h-10 w-10 rounded-xl" />
-                    <View className="flex-1 space-y-1.5 gap-1.5">
-                      <Skeleton className="h-3.5 w-28 rounded-md" />
-                      <Skeleton className="h-2.5 w-16 rounded-md" />
-                    </View>
-                  </View>
-                </View>
-              ) : groups.length === 0 ? (
-                <View className="py-6 items-center justify-center">
-                  <AppIcon android="groups" size={28} color="#65676b" />
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
-                    {locale === 'bn'
-                      ? 'কোনো গ্রুপে যুক্ত হননি'
-                      : 'No groups joined yet'}
-                  </Text>
-                </View>
-              ) : (
-                <View className="space-y-2 gap-2 pt-1">
-                  {groups.slice(0, 3).map((group) => (
                     <Pressable
-                      key={group.id}
-                      onPress={() => router.push('/groups')}
-                      className="flex-row items-center gap-3 p-2 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/50 active:opacity-80"
+                      onPress={() => setActiveTab('groups')}
+                      hitSlop={8}
+                      className="active:opacity-70"
                     >
-                      <View className="h-10 w-10 rounded-xl bg-teal-500 items-center justify-center overflow-hidden">
-                        {group.avatarUrl ? (
-                          <Image
-                            source={{ uri: group.avatarUrl }}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Text className="text-white font-bold text-sm">
-                            {group.name?.charAt(0) || 'G'}
-                          </Text>
-                        )}
-                      </View>
-                      <View className="flex-1 min-w-0">
+                      <Text className="text-[14px] font-semibold text-[#0064E0] dark:text-[#2D88FF]">
+                        {locale === 'bn' ? 'সব দেখুন' : 'See all'}
+                      </Text>
+                    </Pressable>
+                  </View>
+
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ gap: 14, paddingRight: 16 }}
+                    className="pt-1 pb-1"
+                  >
+                    {groups.slice(0, 8).map((group) => (
+                      <Pressable
+                        key={group.id}
+                        onPress={() => router.push('/groups')}
+                        className="items-center active:opacity-80"
+                        style={{ width: 80 }}
+                      >
+                        <View className="h-16 w-16 rounded-2xl bg-teal-500 overflow-hidden items-center justify-center border border-[#e4e6eb] dark:border-[#393a3b]">
+                          {group.avatarUrl ? (
+                            <Image
+                              source={{ uri: group.avatarUrl }}
+                              className="w-full h-full"
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <Text className="text-white font-bold text-base">
+                              {group.name?.charAt(0) || 'G'}
+                            </Text>
+                          )}
+                        </View>
                         <Text
                           numberOfLines={1}
-                          className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]"
+                          className="text-[13px] font-semibold text-[#050505] dark:text-[#e4e6eb] mt-1.5 text-center w-full"
                         >
                           {group.name}
                         </Text>
-                        <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-                          {group.memberCount}{' '}
-                          {locale === 'bn' ? 'জন সদস্য' : 'members'}
+                        <Text
+                          numberOfLines={1}
+                          className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] text-center w-full mt-0.5"
+                        >
+                          {group.memberCount} {locale === 'bn' ? 'সদস্য' : 'members'}
                         </Text>
-                      </View>
-                    </Pressable>
-                  ))}
+                      </Pressable>
+                    ))}
+                  </ScrollView>
                 </View>
-              )}
-            </View>
 
-            {/* Recent Posts Section inside Overview */}
-            <View className="mt-0">
-              <View className="bg-white dark:bg-[#242526] px-4 py-3.5 border-y border-[#e4e6eb] dark:border-[#393a3b] mb-2">
+                {/* Divider */}
+                <View className="h-[1px] bg-[#e4e6eb]/70 dark:bg-[#393a3b]/70 mx-4 my-1" />
+              </>
+            )}
+
+            {/* 4. Recent Posts Section */}
+            <View className="mt-2">
+              <View className="px-4 py-2.5">
                 <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                   {locale === 'bn' ? 'সাম্প্রতিক পোস্ট' : 'Recent Posts'}
                 </Text>
               </View>
 
               {isPostsLoading ? (
-                <View className="space-y-2 gap-2">
+                <View className="space-y-2 gap-2 mt-1">
                   <PostCardSkeleton />
                   <PostCardSkeleton />
                 </View>
               ) : posts.length === 0 ? (
-                <View className="bg-white dark:bg-[#242526] p-6 border-y border-[#e4e6eb] dark:border-[#393a3b] items-center justify-center">
+                <View className="p-6 items-center justify-center">
                   <AppIcon android="article" size={28} color="#65676b" />
                   <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
                     {locale === 'bn'
@@ -1456,11 +1450,11 @@ export function ProfileView({
                   </Text>
                 </View>
               ) : (
-                <View className="space-y-2 gap-2">
+                <View className="space-y-2 gap-2 mt-1">
                   {posts.slice(0, 5).map((post) => (
                     <View
                       key={post.id}
-                      className="border-y border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden"
+                      className="border-y border-[#e4e6eb]/70 dark:border-[#393a3b]/70 bg-white dark:bg-[#18191a] overflow-hidden"
                     >
                       <FeedPostCard post={post} />
                     </View>
@@ -1473,7 +1467,7 @@ export function ProfileView({
 
         {/* POSTS TAB */}
         {activeTab === 'posts' && (
-          <View className="space-y-2 gap-2">
+          <View className="space-y-2 gap-2 bg-white dark:bg-[#18191a]">
             {isPostsLoading ? (
               <>
                 <PostCardSkeleton />
@@ -1481,7 +1475,7 @@ export function ProfileView({
                 <PostCardSkeleton />
               </>
             ) : posts.length === 0 ? (
-              <View className="bg-white dark:bg-[#242526] p-8 border-y border-[#e4e6eb] dark:border-[#393a3b] items-center justify-center">
+              <View className="bg-white dark:bg-[#18191a] p-8 items-center justify-center">
                 <AppIcon android="article" size={32} color="#65676b" />
                 <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] mt-3">
                   {locale === 'bn' ? 'কোনো পোস্ট নেই' : 'No Posts Found'}
@@ -1496,7 +1490,7 @@ export function ProfileView({
               posts.map((post) => (
                 <View
                   key={post.id}
-                  className="border-y border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] overflow-hidden"
+                  className="border-y border-[#e4e6eb]/70 dark:border-[#393a3b]/70 bg-white dark:bg-[#18191a] overflow-hidden"
                 >
                   <FeedPostCard post={post} />
                 </View>
@@ -1507,7 +1501,7 @@ export function ProfileView({
 
         {/* FRIENDS TAB */}
         {activeTab === 'friends' && (
-          <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5">
             <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
               <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                 {locale === 'bn' ? 'সকল বন্ধু' : 'All Friends'} ({totalFriends})
@@ -1583,7 +1577,7 @@ export function ProfileView({
 
         {/* GROUPS TAB */}
         {activeTab === 'groups' && (
-          <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5">
             <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
               <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                 {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} ({groups.length})
@@ -1672,7 +1666,7 @@ export function ProfileView({
 
         {/* SAVED TAB (Owner only) */}
         {activeTab === 'saved' && isOwner && (
-          <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5">
             <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
               <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                 {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} (
