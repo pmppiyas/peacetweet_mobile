@@ -13,3 +13,11 @@ body > div:has([aria-modal="true"]),
 [aria-modal="true"] {
   z-index: 9999999 !important;
 }
+
+html,
+body,
+div[style*="overflow-y"] {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+}

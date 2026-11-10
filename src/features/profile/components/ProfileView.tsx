@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Share,
   Modal,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
@@ -619,7 +620,22 @@ export function ProfileView({
   return (
     <ScrollView
       className="flex-1 bg-white dark:bg-[#18191a]"
-      stickyHeaderIndices={[2]}
+      stickyHeaderIndices={Platform.OS === 'web' ? undefined : [2]}
+      scrollEventThrottle={16}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      nestedScrollEnabled={true}
+      overScrollMode="always"
+      bounces={true}
+      style={
+        Platform.OS === 'web'
+          ? ({
+              scrollBehavior: 'smooth',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehaviorY: 'contain',
+            } as any)
+          : undefined
+      }
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -1023,7 +1039,18 @@ export function ProfileView({
       </View>
 
       {/* 3. Sticky Segmented Tab Switcher */}
-      <View className="bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-2 py-2">
+      <View
+        style={
+          Platform.OS === 'web'
+            ? ({
+                position: 'sticky',
+                top: 0,
+                zIndex: 40,
+              } as any)
+            : undefined
+        }
+        className="bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-2 py-2"
+      >
         <View className="w-full max-w-[768px] mx-auto flex-row items-center justify-between gap-1">
           {/* Overview Tab */}
           <Pressable
