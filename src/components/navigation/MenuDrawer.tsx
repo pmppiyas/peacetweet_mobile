@@ -246,26 +246,33 @@ export function MenuDrawer() {
           >
           {/* Drawer Header */}
           <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#e4e6eb] dark:border-[#393a3b] select-none">
-            <Text
-              selectable={false}
-              className="text-[20px] font-bold text-[#1e2329] dark:text-[#e4e6eb] select-none"
-            >
-              {locale === 'bn' ? 'মেনু ও সেটিংস' : 'Menu & Settings'}
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <AppIcon
+                android="menu"
+                size={20}
+                color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+              />
+              <Text
+                selectable={false}
+                className="text-[17.5px] font-bold text-[#050505] dark:text-[#e4e6eb] select-none"
+              >
+                {locale === 'bn' ? 'মেনু ও সেটিংস' : 'Menu & Settings'}
+              </Text>
+            </View>
 
             <Pressable
               onPress={closeDrawer}
-              hitSlop={4}
+              hitSlop={6}
               accessibilityLabel="Close menu drawer"
               accessibilityRole="button"
-              className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+              className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="close"
                 ios="xmark"
-                size={27}
+                size={20}
                 weight="bold"
-                color={theme === 'dark' ? '#e4e6eb' : '#1e2329'}
+                color={theme === 'dark' ? '#e4e6eb' : '#050505'}
               />
             </Pressable>
           </View>
@@ -389,7 +396,7 @@ export function MenuDrawer() {
                         />
                       </View>
                       <Text
-                        className={`text-[16px] leading-snug flex-1 ${
+                        className={`text-[15px] leading-snug flex-1 ${
                           isActive
                             ? 'font-bold text-primary-700 dark:text-primary-400'
                             : 'font-semibold text-[#1e2329] dark:text-[#e4e6eb]'

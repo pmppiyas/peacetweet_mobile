@@ -187,9 +187,9 @@ export function Navbar() {
             onPress={closeSearchBar}
             hitSlop={8}
             accessibilityLabel="Close search"
-            className="h-10 w-10 items-center justify-center rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+            className="h-9 w-9 items-center justify-center rounded-full active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
           >
-            <AppIcon android="arrow_back" ios="arrow.left" size={22} color={iconColor} />
+            <AppIcon android="arrow_back" ios="arrow.left" size={20} color={iconColor} />
           </Pressable>
 
           <View
@@ -319,11 +319,11 @@ export function Navbar() {
               className="flex-row items-center gap-1.5 select-none"
             >
               {isBloodRoute ? (
-                <AppIcon android="water_drop" size={26} color="#e11d48" />
+                <AppIcon android="water_drop" size={22} color="#e11d48" />
               ) : null}
               <Text
                 selectable={false}
-                className={`text-[30px] leading-none font-black tracking-[-0.8px] select-none ${
+                className={`text-[24px] leading-none font-black tracking-[-0.6px] select-none ${
                   isBloodRoute
                     ? 'text-rose-600 dark:text-rose-500'
                     : 'text-[#0866FF] dark:text-[#36a4fa]'
@@ -342,11 +342,11 @@ export function Navbar() {
               hitSlop={4}
               accessibilityLabel="Create post"
               accessibilityRole="button"
-              className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+              className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="add_box"
-                size={28}
+                size={20}
                 weight="bold"
                 color={iconColor}
               />
@@ -358,12 +358,12 @@ export function Navbar() {
               hitSlop={4}
               accessibilityLabel="Search"
               accessibilityRole="button"
-              className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+              className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="search"
                 ios="magnifyingglass"
-                size={27}
+                size={20}
                 weight="bold"
                 color={iconColor}
               />
@@ -375,11 +375,11 @@ export function Navbar() {
               hitSlop={4}
               accessibilityLabel="Open menu drawer"
               accessibilityRole="button"
-              className="h-[42px] w-[42px] items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+              className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
             >
               <AppIcon
                 android="menu"
-                size={28}
+                size={20}
                 weight="bold"
                 color={iconColor}
               />
