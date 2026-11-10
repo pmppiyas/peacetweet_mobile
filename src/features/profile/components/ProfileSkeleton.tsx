@@ -77,9 +77,7 @@ export function ProfileSkeleton() {
 
         {/* Badges Row */}
         <View className="flex-row flex-wrap items-center justify-center gap-1.5 mt-2.5">
-          <Skeleton className="h-6 w-20 rounded-full" />
           <Skeleton className="h-6 w-28 rounded-full" />
-          <Skeleton className="h-6 w-22 rounded-full" />
         </View>
 
         {/* Bio Section */}

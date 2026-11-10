@@ -814,15 +814,14 @@ export function ProfileView({
           @{displayUser.username || 'user'}
         </Text>
 
-        {/* Badges Row (Special Badges & Blood Group only) */}
-        {((displayUser.badges &&
+        {/* Badges Row (Special Badges only) */}
+        {displayUser.badges &&
           displayUser.badges.some(
             (b: UserBadge) =>
               b.name !== 'STANDARD MEMBER' &&
               b.name !== 'NON VERIFIED' &&
               b.name !== 'VERIFIED'
-          )) ||
-          Boolean(bloodGroupLabel)) && (
+          ) && (
           <View className="flex-row flex-wrap items-center justify-center gap-1.5 mt-2.5">
             {/* Dynamic Badges */}
             {displayUser.badges
@@ -842,16 +841,6 @@ export function ProfileView({
                   </Text>
                 </View>
               ))}
-
-            {/* Blood Group */}
-            {bloodGroupLabel && (
-              <View className="flex-row items-center gap-1 rounded-full bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 border border-rose-200 dark:border-rose-900">
-                <AppIcon android="water_drop" size={13} color="#e11d48" />
-                <Text className="text-[11px] font-bold text-rose-600 dark:text-rose-300">
-                  Blood: {bloodGroupLabel}
-                </Text>
-              </View>
-            )}
           </View>
         )}
 
