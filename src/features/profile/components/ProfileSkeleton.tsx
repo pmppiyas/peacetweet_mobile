@@ -69,7 +69,7 @@ export function ProfileSkeleton() {
         {/* Name & Verified Badge */}
         <View className="flex-row items-center justify-center gap-1.5 mt-3">
           <Skeleton className="h-7 w-48 rounded-lg" />
-          <View style={{ transform: [{ translateY: 2 }] }}>
+          <View style={{ transform: [{ translateY: 1 }] }}>
             <Skeleton className="h-4.5 w-4.5 rounded-full" />
           </View>
         </View>

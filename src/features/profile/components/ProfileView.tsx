@@ -810,7 +810,7 @@ export function ProfileView({
           <Text className="text-2xl sm:text-3xl font-black text-[#050505] dark:text-[#e4e6eb] tracking-tight text-center">
             {displayUser.name}
           </Text>
-          <View style={{ transform: [{ translateY: 2 }] }}>
+          <View style={{ transform: [{ translateY: 1 }] }}>
             <AppIcon
               android="verified_user"
               size={18}
