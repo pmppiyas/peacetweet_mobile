@@ -323,6 +323,8 @@ export function LocationSelector({
         visible={activePicker !== null}
         animationType="fade"
         transparent={true}
+        statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={() => setActivePicker(null)}>
         <SafeAreaView
           style={{

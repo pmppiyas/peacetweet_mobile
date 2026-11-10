@@ -743,9 +743,9 @@ export function ProfileView({
         </Pressable>
 
         {/* Edit Cover Action Menu & Button for Owner */}
-        {isOwner && (
+        {isOwner ? (
           <>
-            {photoMenuType === 'cover' && resolvedCoverUrl && (
+            {photoMenuType === 'cover' && Boolean(resolvedCoverUrl) ? (
               <View className="absolute bottom-12 right-3 z-40 rounded-xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl overflow-hidden min-w-[190px]">
                 <Pressable
                   onPress={() => triggerPhotoPicker('cover')}
@@ -766,7 +766,7 @@ export function ProfileView({
                   </Text>
                 </Pressable>
               </View>
-            )}
+            ) : null}
 
             <Pressable
               onPress={() => handlePhotoActionPress('cover')}
@@ -775,7 +775,7 @@ export function ProfileView({
               <AppIcon android="photo_camera" size={14} color="#ffffff" />
             </Pressable>
           </>
-        )}
+        ) : null}
       </View>
 
       {/* 2. Profile Details & Bio & Action Buttons (Hero Card) */}
@@ -817,7 +817,7 @@ export function ProfileView({
           </View>
 
           {/* Floating Avatar Action Menu for Owner (absolute so it NEVER pushes content down) */}
-          {isOwner && photoMenuType === 'avatar' && resolvedAvatarUrl && (
+          {isOwner && photoMenuType === 'avatar' && Boolean(resolvedAvatarUrl) ? (
             <View
               style={{
                 position: 'absolute',
@@ -845,7 +845,7 @@ export function ProfileView({
                 </Text>
               </Pressable>
             </View>
-          )}
+          ) : null}
         </View>
 
         {/* Name & Verification Badge */}
@@ -1252,7 +1252,7 @@ export function ProfileView({
 
               <View className="space-y-3 gap-3">
                 {/* Location */}
-                {displayUser.location && (
+                {Boolean(displayUser.location) ? (
                   <View className="flex-row items-center gap-3">
                     <AppIcon android="location_on" size={20} color="#65676B" />
                     <Text className="text-[15px] sm:text-[15.5px] text-[#050505] dark:text-[#e4e6eb]">
@@ -1260,10 +1260,10 @@ export function ProfileView({
                       <Text className="font-bold">{displayUser.location}</Text>
                     </Text>
                   </View>
-                )}
+                ) : null}
 
                 {/* Blood Group */}
-                {bloodGroupLabel && (
+                {Boolean(bloodGroupLabel) ? (
                   <View className="flex-row items-center gap-3">
                     <AppIcon android="water_drop" size={20} color="#e11d48" />
                     <Text className="text-[15px] sm:text-[15.5px] text-[#050505] dark:text-[#e4e6eb]">
@@ -1273,7 +1273,7 @@ export function ProfileView({
                       </Text>
                     </Text>
                   </View>
-                )}
+                ) : null}
 
                 {/* Joined Date */}
                 <View className="flex-row items-center gap-3">
@@ -1784,13 +1784,13 @@ export function ProfileView({
                             {item.type}
                           </Text>
                         </View>
-                        {item.timeSlot && (
+                        {Boolean(item.timeSlot) ? (
                           <View className="rounded-full bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5">
                             <Text className="text-[10px] font-bold text-purple-700 dark:text-purple-300">
                               {item.timeSlot}
                             </Text>
                           </View>
-                        )}
+                        ) : null}
                       </View>
                       <Text
                         numberOfLines={2}
@@ -1847,6 +1847,7 @@ export function ProfileView({
         visible={isManagementDrawerOpen}
         transparent
         statusBarTranslucent
+        navigationBarTranslucent
         animationType="none"
         onRequestClose={closeManagementDrawer}
       >

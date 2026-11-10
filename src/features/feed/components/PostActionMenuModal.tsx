@@ -152,6 +152,8 @@ export function PostActionMenuModal({
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="none"
       onRequestClose={closeWithSlideDown}>
       <View

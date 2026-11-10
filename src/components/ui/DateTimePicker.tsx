@@ -320,6 +320,8 @@ export function DateTimePicker({
       <Modal
         visible={isOpen}
         transparent={true}
+        statusBarTranslucent
+        navigationBarTranslucent
         animationType="fade"
         onRequestClose={() => setIsOpen(false)}
       >

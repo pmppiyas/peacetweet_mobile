@@ -20,6 +20,11 @@
       },
       "predictiveBackGestureEnabled": false
     },
+    "androidNavigationBar": {
+      "visible": "always",
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff"
+    },
     "web": {
       "output": "single",
       "favicon": "./assets/images/favicon.png"

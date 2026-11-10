@@ -207,6 +207,8 @@ export function PostShareModal({ visible, onClose, post }: PostShareModalProps) 
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="none"
       onRequestClose={closeWithSlideDown}>
       <View

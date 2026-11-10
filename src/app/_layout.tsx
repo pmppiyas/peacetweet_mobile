@@ -12,6 +12,7 @@ import { router, Slot, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
+import { NavigationBar } from 'expo-navigation-bar';
 import * as WebBrowser from 'expo-web-browser';
 import {
   SafeAreaProvider,
@@ -256,6 +257,11 @@ function AppShell() {
         style={isPhotoViewerActive || isDark ? 'light' : 'dark'}
         animated
       />
+      {Platform.OS === 'android' ? (
+        <NavigationBar
+          style={isDark || isPhotoViewerActive ? 'dark' : 'light'}
+        />
+      ) : null}
       <AppSplashLoader />
 
       {/* Top Safe Area Inset seamlessly matches Navbar / active screen surface */}

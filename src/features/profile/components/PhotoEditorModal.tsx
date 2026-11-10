@@ -271,6 +271,8 @@ export function PhotoEditorModal({
     <Modal
       visible={isOpen}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={isSaving ? undefined : onClose}>
       <Pressable

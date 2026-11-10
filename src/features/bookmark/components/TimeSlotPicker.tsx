@@ -31,6 +31,8 @@ export function TimeSlotPicker({
     <Modal
       visible={isOpen}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={onClose}>
       <Pressable

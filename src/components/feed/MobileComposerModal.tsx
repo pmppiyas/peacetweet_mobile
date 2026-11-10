@@ -690,6 +690,7 @@ export function MobileComposerModal() {
       visible={isComposerModalOpen}
       transparent
       statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={handleClose}>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
@@ -1769,6 +1770,8 @@ export function MobileComposerModal() {
         <Modal
           visible={showFeelingPicker}
           transparent
+          statusBarTranslucent
+          navigationBarTranslucent
           animationType="fade"
           onRequestClose={() => setShowFeelingPicker(false)}>
           <Pressable

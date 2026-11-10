@@ -30,6 +30,8 @@ export function BloodDonateConfirmModal({
     <Modal
       visible={isOpen}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={isLoading ? undefined : onClose}
     >

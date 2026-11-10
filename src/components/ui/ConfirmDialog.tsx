@@ -80,6 +80,8 @@ export function ConfirmDialog({
     <Modal
       visible={isOpen}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={onClose}
     >

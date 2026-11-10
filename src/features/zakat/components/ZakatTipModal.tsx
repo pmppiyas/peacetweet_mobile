@@ -22,6 +22,8 @@ export function ZakatTipModal({
     <Modal
       visible={Boolean(tip)}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={onClose}>
       <Pressable

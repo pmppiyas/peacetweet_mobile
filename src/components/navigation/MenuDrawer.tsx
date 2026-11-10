@@ -136,6 +136,7 @@ export function MenuDrawer() {
       visible={isMenuDrawerOpen}
       transparent
       statusBarTranslucent
+      navigationBarTranslucent
       animationType="fade"
       onRequestClose={() => setMenuDrawerOpen(false)}
     >

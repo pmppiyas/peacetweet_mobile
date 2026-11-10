@@ -286,6 +286,8 @@ export function PhotoViewerModal({
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       animationType="none"
       onRequestClose={handleAnimatedClose}>
       <Animated.View
