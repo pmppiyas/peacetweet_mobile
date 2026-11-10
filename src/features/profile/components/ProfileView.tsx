@@ -1876,15 +1876,21 @@ export function ProfileView({
                 paddingTop: insets.top,
                 paddingBottom: insets.bottom,
                 transform: [{ translateX: slideAnim }],
+                backgroundColor: theme === 'dark' ? '#242526' : '#ffffff',
+                height: '100%',
               },
             ]}
-            className="w-[86%] sm:w-[380px] max-w-[92%] h-full bg-white dark:bg-[#242526] border-l border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none"
+            className="w-[86%] sm:w-[380px] max-w-[92%] border-l border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none"
           >
             {/* Drawer Header */}
             <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#e4e6eb] dark:border-[#393a3b]">
               <View className="flex-row items-center gap-2">
-                <AppIcon android="more_vert" size={20} color="#0866FF" />
-                <Text className="text-[17.5px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
+                <AppIcon
+                  android="more_vert"
+                  size={20}
+                  color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                />
+                <Text className="text-[17.5px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                   {locale === 'bn' ? 'প্রোফাইল পরিচালনা' : 'Profile Management'}
                 </Text>
               </View>
@@ -1896,52 +1902,12 @@ export function ProfileView({
                 className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
                 accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
               >
-                <AppIcon android="close" size={20} color="#65676b" />
-              </Pressable>
-            </View>
-
-            {/* Profile User Snapshot Card */}
-            <View className="p-4 border-b border-[#e4e6eb]/80 dark:border-[#393a3b]/80 bg-[#f7f8fa] dark:bg-[#1c1d1e]">
-              <View className="flex-row items-center gap-3">
-                <UserAvatar
-                  name={displayUser.name}
-                  avatarUrl={resolvedAvatarUrl}
-                  size="md"
+                <AppIcon
+                  android="close"
+                  size={20}
+                  color={theme === 'dark' ? '#e4e6eb' : '#050505'}
                 />
-                <View className="flex-1 min-w-0">
-                  <View className="flex-row items-center gap-1.5">
-                    <Text
-                      numberOfLines={1}
-                      className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]"
-                    >
-                      {displayUser.name}
-                    </Text>
-                    {displayUser.userStatus && (
-                      <View style={{ transform: [{ translateY: 1 }] }}>
-                        <AppIcon
-                          android="verified_user"
-                          size={15}
-                          color={
-                            displayUser.userStatus === 'VERIFIED'
-                              ? '#0866FF'
-                              : displayUser.userStatus === 'PREMIUM'
-                                ? '#d97706'
-                                : theme === 'dark'
-                                  ? '#b0b3b8'
-                                  : '#65676b'
-                          }
-                        />
-                      </View>
-                    )}
-                  </View>
-                  <Text
-                    numberOfLines={1}
-                    className="text-xs font-semibold text-[#0064E0] dark:text-[#2D88FF] mt-0.5"
-                  >
-                    @{displayUser.username}
-                  </Text>
-                </View>
-              </View>
+              </Pressable>
             </View>
 
             {/* Scrollable Actions List */}
@@ -1960,8 +1926,12 @@ export function ProfileView({
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
-                    <View className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-950/60 items-center justify-center">
-                      <AppIcon android="edit" size={20} color="#0866FF" />
+                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
+                      <AppIcon
+                        android="edit"
+                        size={20}
+                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                      />
                     </View>
                     <View className="flex-1 min-w-0">
                       <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -1975,7 +1945,11 @@ export function ProfileView({
                           : 'Update bio, name, location & blood group'}
                       </Text>
                     </View>
-                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                    <AppIcon
+                      android="chevron_right"
+                      size={18}
+                      color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
+                    />
                   </Pressable>
 
                   {/* Option: Change Profile Picture */}
@@ -1986,11 +1960,11 @@ export function ProfileView({
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
-                    <View className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-950/60 items-center justify-center">
+                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
                       <AppIcon
                         android="photo_camera"
                         size={20}
-                        color="#059669"
+                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
                       />
                     </View>
                     <View className="flex-1 min-w-0">
@@ -2005,7 +1979,11 @@ export function ProfileView({
                           : 'Upload and adjust new avatar'}
                       </Text>
                     </View>
-                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                    <AppIcon
+                      android="chevron_right"
+                      size={18}
+                      color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
+                    />
                   </Pressable>
 
                   {/* Option: Change Cover Banner */}
@@ -2016,11 +1994,11 @@ export function ProfileView({
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
-                    <View className="h-10 w-10 rounded-full bg-teal-100 dark:bg-teal-950/60 items-center justify-center">
+                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
                       <AppIcon
                         android="photo_camera"
                         size={20}
-                        color="#0d9488"
+                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
                       />
                     </View>
                     <View className="flex-1 min-w-0">
@@ -2035,7 +2013,11 @@ export function ProfileView({
                           : 'Upload and reposition cover banner'}
                       </Text>
                     </View>
-                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                    <AppIcon
+                      android="chevron_right"
+                      size={18}
+                      color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
+                    />
                   </Pressable>
 
                   {/* Option: Share Profile Link */}
@@ -2045,17 +2027,11 @@ export function ProfileView({
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
-                    <View
-                      className={`h-10 w-10 rounded-full items-center justify-center ${
-                        copiedLink
-                          ? 'bg-emerald-100 dark:bg-emerald-950/60'
-                          : 'bg-purple-100 dark:bg-purple-950/60'
-                      }`}
-                    >
+                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
                       <AppIcon
                         android={copiedLink ? 'check' : 'share'}
                         size={20}
-                        color={copiedLink ? '#059669' : '#8b5cf6'}
+                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
                       />
                     </View>
                     <View className="flex-1 min-w-0">
@@ -2079,8 +2055,8 @@ export function ProfileView({
                       </Text>
                     </View>
                     {copiedLink ? (
-                      <View className="px-2 py-0.5 rounded-full bg-emerald-500/10">
-                        <Text className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <View className="px-2 py-0.5 rounded-full bg-[#e4e6eb] dark:bg-[#3a3b3c]">
+                        <Text className="text-[11px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                           {locale === 'bn' ? 'কপি হয়েছে' : 'Copied'}
                         </Text>
                       </View>
@@ -2088,7 +2064,7 @@ export function ProfileView({
                       <AppIcon
                         android="chevron_right"
                         size={18}
-                        color="#8a8d91"
+                        color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
                       />
                     )}
                   </Pressable>
@@ -2101,8 +2077,12 @@ export function ProfileView({
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
-                    <View className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-950/60 items-center justify-center">
-                      <AppIcon android="bookmark" size={20} color="#d97706" />
+                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
+                      <AppIcon
+                        android="bookmark"
+                        size={20}
+                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                      />
                     </View>
                     <View className="flex-1 min-w-0">
                       <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -2116,7 +2096,11 @@ export function ProfileView({
                           : 'View all saved posts and duas'}
                       </Text>
                     </View>
-                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                    <AppIcon
+                      android="chevron_right"
+                      size={18}
+                      color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
+                    />
                   </Pressable>
 
                   {/* Option: Account Settings & Privacy */}
@@ -2127,8 +2111,12 @@ export function ProfileView({
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
-                    <View className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center">
-                      <AppIcon android="settings" size={20} color="#64748b" />
+                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
+                      <AppIcon
+                        android="settings"
+                        size={20}
+                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                      />
                     </View>
                     <View className="flex-1 min-w-0">
                       <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -2142,7 +2130,11 @@ export function ProfileView({
                           : 'Password, notifications & theme'}
                       </Text>
                     </View>
-                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                    <AppIcon
+                      android="chevron_right"
+                      size={18}
+                      color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
+                    />
                   </Pressable>
                 </>
               ) : (
@@ -2155,17 +2147,11 @@ export function ProfileView({
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
-                    <View
-                      className={`h-10 w-10 rounded-full items-center justify-center ${
-                        copiedLink
-                          ? 'bg-emerald-100 dark:bg-emerald-950/60'
-                          : 'bg-purple-100 dark:bg-purple-950/60'
-                      }`}
-                    >
+                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
                       <AppIcon
                         android={copiedLink ? 'check' : 'share'}
                         size={20}
-                        color={copiedLink ? '#059669' : '#8b5cf6'}
+                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
                       />
                     </View>
                     <View className="flex-1 min-w-0">
@@ -2189,8 +2175,8 @@ export function ProfileView({
                       </Text>
                     </View>
                     {copiedLink ? (
-                      <View className="px-2 py-0.5 rounded-full bg-emerald-500/10">
-                        <Text className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <View className="px-2 py-0.5 rounded-full bg-[#e4e6eb] dark:bg-[#3a3b3c]">
+                        <Text className="text-[11px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                           {locale === 'bn' ? 'কপি হয়েছে' : 'Copied'}
                         </Text>
                       </View>
@@ -2198,7 +2184,7 @@ export function ProfileView({
                       <AppIcon
                         android="chevron_right"
                         size={18}
-                        color="#8a8d91"
+                        color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
                       />
                     )}
                   </Pressable>
@@ -2211,8 +2197,12 @@ export function ProfileView({
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
-                    <View className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-950/60 items-center justify-center">
-                      <AppIcon android="chat" size={20} color="#0866FF" />
+                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
+                      <AppIcon
+                        android="chat"
+                        size={20}
+                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                      />
                     </View>
                     <View className="flex-1 min-w-0">
                       <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -2224,7 +2214,11 @@ export function ProfileView({
                           : 'Start a direct conversation'}
                       </Text>
                     </View>
-                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                    <AppIcon
+                      android="chevron_right"
+                      size={18}
+                      color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
+                    />
                   </Pressable>
 
                   {/* Option: Unfriend (if currently friends) */}
@@ -2234,13 +2228,17 @@ export function ProfileView({
                         closeManagementDrawer();
                         setUnfriendConfirmVisible(true);
                       }}
-                      className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-rose-50 dark:active:bg-rose-950/30"
+                      className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                     >
-                      <View className="h-10 w-10 rounded-full bg-rose-100 dark:bg-rose-950/60 items-center justify-center">
-                        <AppIcon android="close" size={20} color="#e11d48" />
+                      <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
+                        <AppIcon
+                          android="close"
+                          size={20}
+                          color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                        />
                       </View>
                       <View className="flex-1 min-w-0">
-                        <Text className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                        <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
                           {locale === 'bn'
                             ? 'বন্ধু তালিকা থেকে বাদ দিন'
                             : 'Remove Friend'}
@@ -2254,7 +2252,7 @@ export function ProfileView({
                       <AppIcon
                         android="chevron_right"
                         size={18}
-                        color="#8a8d91"
+                        color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
                       />
                     </Pressable>
                   )}
@@ -2265,13 +2263,17 @@ export function ProfileView({
                       closeManagementDrawer();
                       router.push('/feedback');
                     }}
-                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-rose-50 dark:active:bg-rose-950/30"
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
-                    <View className="h-10 w-10 rounded-full bg-rose-100 dark:bg-rose-950/60 items-center justify-center">
-                      <AppIcon android="flag" size={20} color="#e11d48" />
+                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
+                      <AppIcon
+                        android="flag"
+                        size={20}
+                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
+                      />
                     </View>
                     <View className="flex-1 min-w-0">
-                      <Text className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
                         {locale === 'bn'
                           ? 'প্রোফাইল রিপোর্ট করুন'
                           : 'Report Profile'}
@@ -2285,7 +2287,7 @@ export function ProfileView({
                     <AppIcon
                       android="chevron_right"
                       size={18}
-                      color="#8a8d91"
+                      color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
                     />
                   </Pressable>
                 </>
