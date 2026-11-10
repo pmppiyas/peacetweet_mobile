@@ -1,6 +1,9 @@
+import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/constants/api';
 import { resolvePrimaryApiUrl } from '@/config/api';
+import { tokenStorage } from '@/lib/storage/secureStorage';
 
 export interface UploadImageResult {
   url: string;
@@ -14,82 +17,6 @@ export interface NativeUploadFile {
 }
 
 export type UploadableImage = File | Blob | NativeUploadFile;
-
-async function appendUploadFile(
-  formData: FormData,
-  fieldName: string,
-  file: UploadableImage,
-  fallbackFilename: string
-): Promise<void> {
-  // 1. If it's already a standard Blob or File
-  if (typeof Blob !== 'undefined' && file instanceof Blob) {
-    const filename = (file as any).name || fallbackFilename || 'photo.jpg';
-    formData.append(fieldName, file, filename);
-    return;
-  }
-
-  // 2. If it's a native asset with a uri
-  if (
-    typeof file === 'object' &&
-    file !== null &&
-    'uri' in file &&
-    typeof (file as NativeUploadFile).uri === 'string'
-  ) {
-    const nativeFile = file as NativeUploadFile;
-    const uri = nativeFile.uri;
-    let mime = (nativeFile.type || '').trim().toLowerCase();
-    if (!mime || mime === 'image/jpg') mime = 'image/jpeg';
-
-    let filename = (nativeFile.name || fallbackFilename || 'photo.jpg').trim();
-    if (!filename.includes('.')) {
-      const ext = mime.split('/')[1] || 'jpg';
-      filename = `${filename}.${ext === 'jpeg' ? 'jpg' : ext}`;
-    }
-
-    // Modern Expo WinterCG fetch / FormData strictly expects standard Blob/File objects.
-    // Passing React Native's legacy { uri, name, type } triggers "Unsupported FormDataPart implementation".
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      formData.append(fieldName, blob, filename);
-      return;
-    } catch (err) {
-      console.warn(
-        '[uploadsApi] fetch(uri) -> blob conversion failed, trying XHR fallback:',
-        err
-      );
-    }
-
-    try {
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.onload = () => resolve(xhr.response as Blob);
-        xhr.onerror = () =>
-          reject(new Error('XMLHttpRequest failed to read file URI'));
-        xhr.responseType = 'blob';
-        xhr.open('GET', uri, true);
-        xhr.send(null);
-      });
-      formData.append(fieldName, blob, filename);
-      return;
-    } catch (xhrErr) {
-      console.warn(
-        '[uploadsApi] XHR fallback failed, trying legacy RN object format:',
-        xhrErr
-      );
-    }
-
-    // Fallback for older React Native runtimes that don't support Blob inside FormData
-    formData.append(fieldName, {
-      uri: nativeFile.uri,
-      name: filename,
-      type: mime,
-    } as any);
-    return;
-  }
-
-  formData.append(fieldName, file as Blob, fallbackFilename);
-}
 
 export function normalizeMediaUrl(url?: string | null): string {
   if (!url) return '';
@@ -111,8 +38,68 @@ export const uploadsApi = {
     file: UploadableImage,
     filename = 'photo.jpg'
   ): Promise<UploadImageResult> => {
+    // 1. Native Mobile (Android & iOS): Use native FileSystem.uploadAsync
+    // This avoids JS networking/FormDataPart/whatwg-fetch crashes on mobile completely.
+    if (
+      Platform.OS !== 'web' &&
+      typeof file === 'object' &&
+      file !== null &&
+      'uri' in file &&
+      typeof (file as NativeUploadFile).uri === 'string'
+    ) {
+      const nativeFile = file as NativeUploadFile;
+      const primaryUrl = resolvePrimaryApiUrl();
+      const endpoint = API_ENDPOINTS.UPLOADS.IMAGE;
+      const cleanBase = primaryUrl.replace(/\/+$/, '');
+      const cleanPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      const uploadUrl = `${cleanBase}${cleanPath}`;
+      const token = tokenStorage.getAccessToken();
+
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+      };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const res = await FileSystem.uploadAsync(uploadUrl, nativeFile.uri, {
+        httpMethod: 'POST',
+        uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+        fieldName: 'file',
+        headers,
+      });
+
+      if (res.status >= 200 && res.status < 300) {
+        let parsed: any = {};
+        try {
+          parsed = JSON.parse(res.body);
+        } catch {
+          parsed = { url: res.body };
+        }
+        const data = parsed?.data || parsed;
+        const rawUrl = data?.url || '';
+        return {
+          url: normalizeMediaUrl(rawUrl),
+          publicId: data?.publicId,
+        };
+      } else {
+        let errMsg = `Upload failed with status ${res.status}`;
+        try {
+          const errBody = JSON.parse(res.body);
+          errMsg = errBody?.message || errMsg;
+        } catch {}
+        throw new Error(errMsg);
+      }
+    }
+
+    // 2. Web browser or standard Blob upload via FormData
     const formData = new FormData();
-    await appendUploadFile(formData, 'file', file, filename);
+    if (typeof Blob !== 'undefined' && file instanceof Blob) {
+      const name = (file as any).name || filename || 'photo.jpg';
+      formData.append('file', file, name);
+    } else {
+      formData.append('file', file as any, filename);
+    }
 
     const res = await apiClient.post<any>(
       API_ENDPOINTS.UPLOADS.IMAGE,
@@ -130,28 +117,6 @@ export const uploadsApi = {
     files: UploadableImage[]
   ): Promise<string[]> => {
     if (files.length === 0) return [];
-    try {
-      const formData = new FormData();
-      for (let idx = 0; idx < files.length; idx++) {
-        await appendUploadFile(
-          formData,
-          'files',
-          files[idx],
-          `photo_${Date.now()}_${idx}.jpg`
-        );
-      }
-
-      const res = await apiClient.post<any>('/uploads/images', formData);
-      const data = res?.data?.data || res?.data;
-      if (Array.isArray(data)) {
-        return data
-          .map((item) => normalizeMediaUrl(item?.url || item))
-          .filter(Boolean);
-      }
-    } catch {
-      // Fallback: parallel uploads
-    }
-
     const results = await Promise.allSettled(
       files.map((file, idx) =>
         uploadsApi.uploadImage(file, `photo_${Date.now()}_${idx}.jpg`)
