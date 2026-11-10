@@ -790,13 +790,13 @@ export function ProfileView({
         </View>
 
         {/* Name & Verification Badge */}
-        <View className="flex-row items-center justify-center gap-1.5 mt-2.5">
-          <Text className="text-xl sm:text-2xl font-black text-[#050505] dark:text-[#e4e6eb] tracking-tight text-center">
+        <View className="flex-row items-center justify-center gap-2 mt-3">
+          <Text className="text-2xl sm:text-3xl font-black text-[#050505] dark:text-[#e4e6eb] tracking-tight text-center">
             {displayUser.name}
           </Text>
           <AppIcon
             android="verified_user"
-            size={15}
+            size={18}
             color={
               displayUser.userStatus === 'VERIFIED'
                 ? '#0866FF'
@@ -810,7 +810,7 @@ export function ProfileView({
         </View>
 
         {/* @username */}
-        <Text className="text-xs sm:text-sm font-semibold text-primary-600 dark:text-primary-400 mt-0.5">
+        <Text className="text-[14.5px] sm:text-[15px] font-semibold text-primary-600 dark:text-primary-400 mt-1">
           @{displayUser.username || 'user'}
         </Text>
 
@@ -836,7 +836,7 @@ export function ProfileView({
                   key={b.id || b.name}
                   className="flex-row items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 border border-emerald-200 dark:border-emerald-800">
                   <AppIcon android="how_to_reg" size={13} color="#059669" />
-                  <Text className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                  <Text className="text-[12px] font-bold text-emerald-700 dark:text-emerald-300">
                     {b.name}
                   </Text>
                 </View>
@@ -845,48 +845,44 @@ export function ProfileView({
         )}
 
         {/* Bio Section */}
-        <View className="w-full max-w-md mt-3 items-center">
+        <View className="w-full max-w-md mt-2.5 items-center">
           {isEditingBio && isOwner ? (
             <View className="w-full rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c]/60 p-3 border border-[#e4e6eb] dark:border-[#393a3b]">
               <TextInput
                 value={bioInput}
                 onChangeText={setBioInput}
                 maxLength={160}
-                placeholder={
-                  locale === 'bn'
-                    ? 'নিজের সম্পর্কে কিছু লিখুন...'
-                    : 'Describe yourself in a few words...'
-                }
+                placeholder="Spreading peace, one good deed at a time."
                 placeholderTextColor="#65676b"
                 multiline
                 numberOfLines={3}
-                className="w-full rounded-xl border border-primary-300 dark:border-primary-700 bg-white dark:bg-[#242526] p-2.5 text-xs text-[#050505] dark:text-[#e4e6eb] text-center"
+                className="w-full rounded-xl border border-primary-300 dark:border-primary-700 bg-white dark:bg-[#242526] p-3 text-[14.5px] text-[#050505] dark:text-[#e4e6eb] text-center"
               />
               <View className="flex-row items-center justify-between mt-2 px-1">
-                <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
                   {bioInput.length}/160
                 </Text>
                 <View className="flex-row items-center gap-2">
                   <Pressable
                     onPress={handleCancelBio}
                     disabled={isSavingBio}
-                    className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] px-3 py-1.5 bg-white dark:bg-[#242526]"
+                    className="rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] px-3.5 py-1.5 bg-white dark:bg-[#242526]"
                   >
-                    <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8]">
+                    <Text className="text-[13px] font-bold text-[#65676b] dark:text-[#b0b3b8]">
                       {locale === 'bn' ? 'বাতিল' : 'Cancel'}
                     </Text>
                   </Pressable>
                   <Pressable
                     onPress={handleSaveBio}
                     disabled={isSavingBio}
-                    className="rounded-xl px-3.5 py-1.5 bg-primary-600 flex-row items-center gap-1 shadow-sm"
+                    className="rounded-xl px-4 py-1.5 bg-primary-600 flex-row items-center gap-1 shadow-sm"
                   >
                     {isSavingBio ? (
                       <ActivityIndicator size="small" color="#ffffff" />
                     ) : (
                       <>
-                        <AppIcon android="check" size={14} color="#ffffff" />
-                        <Text className="text-xs font-bold text-white">
+                        <AppIcon android="check" size={15} color="#ffffff" />
+                        <Text className="text-[13px] font-bold text-white">
                           {locale === 'bn' ? 'সংরক্ষণ' : 'Save'}
                         </Text>
                       </>
@@ -895,10 +891,11 @@ export function ProfileView({
                 </View>
               </View>
             </View>
-          ) : displayUser.bio ? (
-            <View className="items-center px-4">
-              <Text className="text-xs sm:text-sm text-[#050505] dark:text-[#e4e6eb] text-center leading-relaxed font-normal">
-                {displayUser.bio}
+          ) : (
+            <View className="flex-row items-center justify-center flex-wrap gap-1.5 px-4">
+              <Text className="text-[15px] sm:text-[16px] text-[#1e2329] dark:text-[#e4e6eb] text-center leading-[23px] font-normal">
+                {displayUser.bio?.trim() ||
+                  'Spreading peace, one good deed at a time.'}
               </Text>
               {isOwner && (
                 <Pressable
@@ -906,29 +903,14 @@ export function ProfileView({
                     setBioInput(displayUser.bio || '');
                     setIsEditingBio(true);
                   }}
-                  className="mt-1.5 flex-row items-center gap-1 rounded-full bg-primary-50 dark:bg-primary-950/60 px-3 py-1 border border-primary-200 dark:border-primary-800"
+                  hitSlop={8}
+                  className="p-1 rounded-full active:scale-90"
                 >
-                  <AppIcon android="edit" size={12} color="#0866FF" />
-                  <Text className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
-                    {locale === 'bn' ? 'বায়ো সম্পাদনা' : 'Edit Bio'}
-                  </Text>
+                  <AppIcon android="edit" size={14} color="#0866FF" />
                 </Pressable>
               )}
             </View>
-          ) : isOwner ? (
-            <Pressable
-              onPress={() => {
-                setBioInput('');
-                setIsEditingBio(true);
-              }}
-              className="flex-row items-center gap-1.5 rounded-full border border-dashed border-primary-400 dark:border-primary-600 bg-primary-50/60 dark:bg-primary-950/40 px-4 py-1.5"
-            >
-              <AppIcon android="add" size={14} color="#0866FF" />
-              <Text className="text-xs font-bold text-primary-600 dark:text-primary-300">
-                {locale === 'bn' ? 'বায়ো যুক্ত করুন' : 'Add Bio'}
-              </Text>
-            </Pressable>
-          ) : null}
+          )}
         </View>
 
         {/* Visitor Profile: Friendship & Message Action Buttons */}
@@ -1041,13 +1023,13 @@ export function ProfileView({
       </View>
 
       {/* 3. Sticky Segmented Tab Switcher */}
-      <View className="bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-2 py-1.5">
+      <View className="bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-2 py-2">
         <View className="w-full max-w-[768px] mx-auto flex-row items-center justify-between gap-1">
           {/* Overview Tab */}
           <Pressable
             key="profile-tab-overview"
             onPress={() => setActiveTab('overview')}
-            className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+            className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
               activeTab === 'overview'
                 ? 'bg-[#0866FF]'
                 : 'bg-transparent'
@@ -1055,11 +1037,11 @@ export function ProfileView({
           >
             <AppIcon
               android="person"
-              size={15}
+              size={16.5}
               color={activeTab === 'overview' ? '#ffffff' : '#65676b'}
             />
             <Text
-              className={`text-xs font-bold ${
+              className={`text-[13.5px] sm:text-[14px] font-bold ${
                 activeTab === 'overview'
                   ? 'text-white'
                   : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -1073,7 +1055,7 @@ export function ProfileView({
           <Pressable
             key="profile-tab-posts"
             onPress={() => setActiveTab('posts')}
-            className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+            className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
               activeTab === 'posts'
                 ? 'bg-[#0866FF]'
                 : 'bg-transparent'
@@ -1081,11 +1063,11 @@ export function ProfileView({
           >
             <AppIcon
               android="article"
-              size={15}
+              size={16.5}
               color={activeTab === 'posts' ? '#ffffff' : '#65676b'}
             />
             <Text
-              className={`text-xs font-bold ${
+              className={`text-[13.5px] sm:text-[14px] font-bold ${
                 activeTab === 'posts'
                   ? 'text-white'
                   : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -1099,7 +1081,7 @@ export function ProfileView({
           <Pressable
             key="profile-tab-friends"
             onPress={() => setActiveTab('friends')}
-            className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+            className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
               activeTab === 'friends'
                 ? 'bg-[#0866FF]'
                 : 'bg-transparent'
@@ -1107,11 +1089,11 @@ export function ProfileView({
           >
             <AppIcon
               android="group"
-              size={15}
+              size={16.5}
               color={activeTab === 'friends' ? '#ffffff' : '#65676b'}
             />
             <Text
-              className={`text-xs font-bold ${
+              className={`text-[13.5px] sm:text-[14px] font-bold ${
                 activeTab === 'friends'
                   ? 'text-white'
                   : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -1121,9 +1103,9 @@ export function ProfileView({
             </Text>
             {totalFriends > 0 && (
               <Text
-                className={`text-[10px] font-bold ${
+                className={`text-[12px] font-bold ${
                   activeTab === 'friends'
-                    ? 'text-white/80'
+                    ? 'text-white/90'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
                 }`}
               >
@@ -1136,7 +1118,7 @@ export function ProfileView({
           <Pressable
             key="profile-tab-groups"
             onPress={() => setActiveTab('groups')}
-            className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+            className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
               activeTab === 'groups'
                 ? 'bg-[#0866FF]'
                 : 'bg-transparent'
@@ -1144,11 +1126,11 @@ export function ProfileView({
           >
             <AppIcon
               android="groups"
-              size={15}
+              size={16.5}
               color={activeTab === 'groups' ? '#ffffff' : '#65676b'}
             />
             <Text
-              className={`text-xs font-bold ${
+              className={`text-[13.5px] sm:text-[14px] font-bold ${
                 activeTab === 'groups'
                   ? 'text-white'
                   : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -1163,7 +1145,7 @@ export function ProfileView({
             <Pressable
               key="profile-tab-saved"
               onPress={() => setActiveTab('saved')}
-              className={`flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1 ${
+              className={`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
                 activeTab === 'saved'
                   ? 'bg-[#0866FF]'
                   : 'bg-transparent'
@@ -1171,11 +1153,11 @@ export function ProfileView({
             >
               <AppIcon
                 android="bookmark"
-                size={15}
+                size={16.5}
                 color={activeTab === 'saved' ? '#ffffff' : '#65676b'}
               />
               <Text
-                className={`text-xs font-bold ${
+                className={`text-[13.5px] sm:text-[14px] font-bold ${
                   activeTab === 'saved'
                     ? 'text-white'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -1194,27 +1176,27 @@ export function ProfileView({
         {activeTab === 'overview' && (
           <View className="space-y-2 gap-2">
             {/* Intro Details Card */}
-            <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-              <Text className="text-base font-bold text-[#050505] dark:text-white mb-3">
+            <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+              <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white mb-3.5 tracking-tight">
                 {locale === 'bn' ? 'পরিচিতি' : 'Introduce'}
               </Text>
 
-              <View className="space-y-2.5 gap-2.5">
+              <View className="space-y-3 gap-3">
                 {/* Location */}
                 {displayUser.location && (
-                  <View className="flex-row items-center gap-2.5">
-                    <AppIcon android="location_on" size={18} color="#e11d48" />
-                    <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
-                      <Text className="font-bold">{displayUser.location}</Text>
+                  <View className="flex-row items-center gap-3">
+                    <AppIcon android="location_on" size={19} color="#e11d48" />
+                    <Text className="text-[15px] sm:text-[15.5px] text-[#1e2329] dark:text-[#e4e6eb]">
+                      <Text className="font-semibold">{displayUser.location}</Text>
                     </Text>
                   </View>
                 )}
 
                 {/* Blood Group */}
                 {bloodGroupLabel && (
-                  <View className="flex-row items-center gap-2.5">
-                    <AppIcon android="water_drop" size={18} color="#e11d48" />
-                    <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+                  <View className="flex-row items-center gap-3">
+                    <AppIcon android="water_drop" size={19} color="#e11d48" />
+                    <Text className="text-[15px] sm:text-[15.5px] text-[#65676b] dark:text-[#b0b3b8]">
                       {locale === 'bn' ? 'রক্তের গ্রুপ: ' : 'Blood Group: '}
                       <Text className="font-bold text-rose-600 dark:text-rose-400">
                         {bloodGroupLabel}
@@ -1224,11 +1206,11 @@ export function ProfileView({
                 )}
 
                 {/* Joined Date */}
-                <View className="flex-row items-center gap-2.5">
-                  <AppIcon android="schedule" size={18} color="#65676b" />
-                  <Text className="text-xs text-[#050505] dark:text-[#e4e6eb]">
+                <View className="flex-row items-center gap-3">
+                  <AppIcon android="schedule" size={19} color="#65676b" />
+                  <Text className="text-[15px] sm:text-[15.5px] text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn' ? 'যুক্ত হয়েছেন: ' : 'Joined: '}
-                    <Text className="font-bold">
+                    <Text className="font-semibold text-[#1e2329] dark:text-[#e4e6eb]">
                       {formatProfileDate(displayUser.createdAt, locale)}
                     </Text>
                   </Text>
@@ -1238,9 +1220,9 @@ export function ProfileView({
               {isOwner && (
                 <Pressable
                   onPress={() => router.push('/settings/profile')}
-                  className="mt-3.5 pt-3 border-t border-[#e6e9ef] dark:border-[#393a3b] items-center justify-center active:scale-98"
+                  className="mt-4 pt-3 border-t border-[#e6e9ef] dark:border-[#393a3b] items-center justify-center active:scale-98"
                 >
-                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                  <Text className="text-[14px] font-bold text-primary-600 dark:text-primary-400">
                     {locale === 'bn'
                       ? 'প্রোফাইল তথ্য সম্পাদনা করুন'
                       : 'Edit profile details'}
@@ -1250,13 +1232,13 @@ export function ProfileView({
             </View>
 
             {/* Friends Preview (Grid of 6) */}
-            <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-              <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+            <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+              <View className="flex-row items-center justify-between pb-2.5 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
                 <View>
-                  <Text className="text-base font-bold text-[#050505] dark:text-white">
+                  <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                     {locale === 'bn' ? 'বন্ধুরা' : 'Friends'}
                   </Text>
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                     {totalFriends}{' '}
                     {locale === 'bn'
                       ? 'জন বন্ধু'
@@ -1268,9 +1250,9 @@ export function ProfileView({
                 {friends.length > 0 && (
                   <Pressable
                     onPress={() => setActiveTab('friends')}
-                    className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+                    className="px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-950/60"
                   >
-                    <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                    <Text className="text-[13px] font-bold text-primary-600 dark:text-primary-400">
                       {locale === 'bn' ? 'সব দেখুন' : 'See all'}
                     </Text>
                   </Pressable>
@@ -1319,7 +1301,7 @@ export function ProfileView({
                       </View>
                       <Text
                         numberOfLines={1}
-                        className="text-[11px] font-bold text-[#050505] dark:text-[#e4e6eb] mt-1 text-center w-full"
+                        className="text-[13px] font-semibold text-[#050505] dark:text-[#e4e6eb] mt-1.5 text-center w-full"
                       >
                         {f.user.name}
                       </Text>
@@ -1330,13 +1312,13 @@ export function ProfileView({
             </View>
 
             {/* Groups Preview */}
-            <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-              <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+            <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+              <View className="flex-row items-center justify-between pb-2.5 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
                 <View>
-                  <Text className="text-base font-bold text-[#050505] dark:text-white">
+                  <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                     {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'}
                   </Text>
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                     {groups.length}{' '}
                     {locale === 'bn'
                       ? 'টি গ্রুপ'
@@ -1348,9 +1330,9 @@ export function ProfileView({
                 {groups.length > 0 && (
                   <Pressable
                     onPress={() => setActiveTab('groups')}
-                    className="px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+                    className="px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-950/60"
                   >
-                    <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                    <Text className="text-[13px] font-bold text-primary-600 dark:text-primary-400">
                       {locale === 'bn' ? 'সব দেখুন' : 'See all'}
                     </Text>
                   </Pressable>
@@ -1407,11 +1389,11 @@ export function ProfileView({
                       <View className="flex-1 min-w-0">
                         <Text
                           numberOfLines={1}
-                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]"
+                          className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]"
                         >
                           {group.name}
                         </Text>
-                        <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                           {group.memberCount}{' '}
                           {locale === 'bn' ? 'জন সদস্য' : 'members'}
                         </Text>
@@ -1424,8 +1406,8 @@ export function ProfileView({
 
             {/* Recent Posts Section inside Overview */}
             <View className="mt-0">
-              <View className="bg-white dark:bg-[#242526] px-4 py-3 border-y border-[#e4e6eb] dark:border-[#393a3b] mb-2">
-                <Text className="text-base font-bold text-[#050505] dark:text-white">
+              <View className="bg-white dark:bg-[#242526] px-4 py-3.5 border-y border-[#e4e6eb] dark:border-[#393a3b] mb-2">
+                <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                   {locale === 'bn' ? 'সাম্প্রতিক পোস্ট' : 'Recent Posts'}
                 </Text>
               </View>
@@ -1496,9 +1478,9 @@ export function ProfileView({
 
         {/* FRIENDS TAB */}
         {activeTab === 'friends' && (
-          <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
-              <Text className="text-base font-bold text-[#050505] dark:text-white">
+          <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+              <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                 {locale === 'bn' ? 'সকল বন্ধু' : 'All Friends'} ({totalFriends})
               </Text>
             </View>
@@ -1523,7 +1505,7 @@ export function ProfileView({
             ) : friends.length === 0 ? (
               <View className="py-8 items-center justify-center">
                 <AppIcon android="group" size={32} color="#65676b" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+                <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
                   {locale === 'bn'
                     ? 'কোনো বন্ধু পাওয়া যায়নি।'
                     : 'No connected friends found.'}
@@ -1548,11 +1530,11 @@ export function ProfileView({
                       <View className="flex-1 min-w-0">
                         <Text
                           numberOfLines={1}
-                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]"
+                          className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]"
                         >
                           {item.user.name}
                         </Text>
-                        <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] truncate">
+                        <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
                           @{item.user.username}
                           {item.user.location ? ` • ${item.user.location}` : ''}
                         </Text>
@@ -1560,7 +1542,7 @@ export function ProfileView({
                     </View>
                     <AppIcon
                       android="chevron_right"
-                      size={16}
+                      size={18}
                       color="#65676b"
                     />
                   </Pressable>
@@ -1572,9 +1554,9 @@ export function ProfileView({
 
         {/* GROUPS TAB */}
         {activeTab === 'groups' && (
-          <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
-              <Text className="text-base font-bold text-[#050505] dark:text-white">
+          <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+              <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                 {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} ({groups.length})
               </Text>
             </View>
@@ -1599,7 +1581,7 @@ export function ProfileView({
             ) : groups.length === 0 ? (
               <View className="py-8 items-center justify-center">
                 <AppIcon android="groups" size={32} color="#65676b" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+                <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
                   {locale === 'bn'
                     ? 'কোনো গ্রুপ পাওয়া যায়নি।'
                     : 'No groups joined yet.'}
@@ -1630,11 +1612,11 @@ export function ProfileView({
                       <View className="flex-1 min-w-0">
                         <Text
                           numberOfLines={1}
-                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]"
+                          className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]"
                         >
                           {g.name}
                         </Text>
-                        <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] truncate">
+                        <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
                           {g.memberCount}{' '}
                           {locale === 'bn' ? 'জন সদস্য' : 'members'} •{' '}
                           {g.visibility === 'PUBLIC'
@@ -1649,7 +1631,7 @@ export function ProfileView({
                     </View>
                     <AppIcon
                       android="chevron_right"
-                      size={16}
+                      size={18}
                       color="#65676b"
                     />
                   </Pressable>
@@ -1661,18 +1643,18 @@ export function ProfileView({
 
         {/* SAVED TAB (Owner only) */}
         {activeTab === 'saved' && isOwner && (
-          <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-            <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
-              <Text className="text-base font-bold text-[#050505] dark:text-white">
+          <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+            <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+              <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                 {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} (
                 {savedItems.length})
               </Text>
               {savedItems.length > 0 && (
                 <Pressable
                   onPress={() => router.push('/saved')}
-                  className="px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-950/60"
+                  className="px-3 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-950/60"
                 >
-                  <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                  <Text className="text-[13px] font-bold text-primary-600 dark:text-primary-400">
                     {locale === 'bn' ? 'সম্পূর্ণ পাতা' : 'Full Page'}
                   </Text>
                 </Pressable>

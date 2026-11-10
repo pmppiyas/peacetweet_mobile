@@ -67,13 +67,13 @@ export function ProfileSkeleton() {
         </View>
 
         {/* Name & Verified Badge */}
-        <View className="flex-row items-center justify-center gap-1.5 mt-2.5">
-          <Skeleton className="h-6 w-44 rounded-lg" />
+        <View className="flex-row items-center justify-center gap-2 mt-3">
+          <Skeleton className="h-7 w-48 rounded-lg" />
           <Skeleton className="h-5 w-5 rounded-full" />
         </View>
 
         {/* @username handle */}
-        <Skeleton className="h-3.5 w-24 rounded-md mt-1" />
+        <Skeleton className="h-4 w-28 rounded-md mt-1" />
 
         {/* Badges Row */}
         <View className="flex-row flex-wrap items-center justify-center gap-1.5 mt-2.5">
@@ -81,9 +81,8 @@ export function ProfileSkeleton() {
         </View>
 
         {/* Bio Section */}
-        <View className="w-full max-w-md mt-3 items-center space-y-1.5 gap-1.5 px-4">
-          <Skeleton className="h-3.5 w-4/5 rounded-md" />
-          <Skeleton className="h-3.5 w-3/5 rounded-md" />
+        <View className="w-full max-w-md mt-2.5 items-center space-y-1.5 gap-1.5 px-4">
+          <Skeleton className="h-4 w-4/5 rounded-md" />
         </View>
 
         {/* Action Buttons (Add Friend / Message) */}
@@ -94,27 +93,27 @@ export function ProfileSkeleton() {
       </View>
 
       {/* 3. Sticky Segmented Tab Switcher */}
-      <View className="bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-2 py-1.5">
+      <View className="bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-2 py-2">
         <View className="w-full max-w-[768px] mx-auto flex-row items-center justify-between gap-1">
           {/* Active Tab (Overview) */}
-          <View className="flex-1 py-2 rounded-lg bg-primary-50 dark:bg-primary-950/50 items-center justify-center flex-row gap-1.5">
-            <Skeleton className="h-3.5 w-3.5 rounded-full bg-primary-300 dark:bg-primary-700" />
-            <Skeleton className="h-3.5 w-14 rounded-md bg-primary-300 dark:bg-primary-700" />
+          <View className="flex-1 py-2 rounded-xl bg-primary-50 dark:bg-primary-950/50 items-center justify-center flex-row gap-1.5">
+            <Skeleton className="h-4 w-4 rounded-full bg-primary-300 dark:bg-primary-700" />
+            <Skeleton className="h-4 w-16 rounded-md bg-primary-300 dark:bg-primary-700" />
           </View>
           {/* Tab 2 (Posts) */}
-          <View className="flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1.5">
-            <Skeleton className="h-3.5 w-3.5 rounded-full" />
-            <Skeleton className="h-3.5 w-10 rounded-md" />
+          <View className="flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5">
+            <Skeleton className="h-4 w-4 rounded-full" />
+            <Skeleton className="h-4 w-12 rounded-md" />
           </View>
           {/* Tab 3 (Friends) */}
-          <View className="flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1.5">
-            <Skeleton className="h-3.5 w-3.5 rounded-full" />
-            <Skeleton className="h-3.5 w-12 rounded-md" />
+          <View className="flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5">
+            <Skeleton className="h-4 w-4 rounded-full" />
+            <Skeleton className="h-4 w-14 rounded-md" />
           </View>
           {/* Tab 4 (Groups) */}
-          <View className="flex-1 py-2 rounded-lg items-center justify-center flex-row gap-1.5">
-            <Skeleton className="h-3.5 w-3.5 rounded-full" />
-            <Skeleton className="h-3.5 w-10 rounded-md" />
+          <View className="flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5">
+            <Skeleton className="h-4 w-4 rounded-full" />
+            <Skeleton className="h-4 w-12 rounded-md" />
           </View>
         </View>
       </View>
@@ -122,35 +121,35 @@ export function ProfileSkeleton() {
       {/* 4. Overview Tab Content */}
       <View className="w-full max-w-[768px] mx-auto px-0 pb-6 mt-2 space-y-2 gap-2">
         {/* Intro Details Card */}
-        <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b] space-y-3 gap-3">
-          <Skeleton className="h-4 w-20 rounded-md" />
-          <View className="space-y-2.5 gap-2.5">
+        <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b] space-y-3.5 gap-3.5">
+          <Skeleton className="h-5 w-24 rounded-md mb-1" />
+          <View className="space-y-3 gap-3">
             {/* Location row */}
-            <View className="flex-row items-center gap-2.5">
-              <Skeleton className="h-4.5 w-4.5 rounded-full shrink-0" />
-              <Skeleton className="h-3.5 w-36 rounded-md" />
+            <View className="flex-row items-center gap-3">
+              <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+              <Skeleton className="h-4 w-36 rounded-md" />
             </View>
             {/* Blood Group row */}
-            <View className="flex-row items-center gap-2.5">
-              <Skeleton className="h-4.5 w-4.5 rounded-full shrink-0" />
-              <Skeleton className="h-3.5 w-28 rounded-md" />
+            <View className="flex-row items-center gap-3">
+              <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+              <Skeleton className="h-4 w-28 rounded-md" />
             </View>
             {/* Joined Date row */}
-            <View className="flex-row items-center gap-2.5">
-              <Skeleton className="h-4.5 w-4.5 rounded-full shrink-0" />
-              <Skeleton className="h-3.5 w-40 rounded-md" />
+            <View className="flex-row items-center gap-3">
+              <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+              <Skeleton className="h-4 w-40 rounded-md" />
             </View>
           </View>
         </View>
 
         {/* Friends Preview Card */}
-        <View className="bg-white dark:bg-[#242526] p-4 border-y border-[#e4e6eb] dark:border-[#393a3b]">
-          <View className="flex-row items-center justify-between pb-2 mb-2 border-b border-[#e6e9ef] dark:border-[#393a3b]">
+        <View className="bg-white dark:bg-[#242526] p-4 sm:p-5 border-y border-[#e4e6eb] dark:border-[#393a3b]">
+          <View className="flex-row items-center justify-between pb-2.5 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
             <View className="space-y-1 gap-1">
-              <Skeleton className="h-4 w-16 rounded-md" />
-              <Skeleton className="h-2.5 w-14 rounded-md" />
+              <Skeleton className="h-5 w-20 rounded-md" />
+              <Skeleton className="h-3 w-16 rounded-md" />
             </View>
-            <Skeleton className="h-6 w-16 rounded-lg" />
+            <Skeleton className="h-7 w-18 rounded-lg" />
           </View>
           <View className="flex-row justify-between gap-2 pt-1">
             <View className="w-[30%] items-center space-y-1.5 gap-1.5">
