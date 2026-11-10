@@ -796,7 +796,7 @@ export function ProfileView({
           </Text>
           <AppIcon
             android="verified_user"
-            size={18}
+            size={15}
             color={
               displayUser.userStatus === 'VERIFIED'
                 ? '#0866FF'
