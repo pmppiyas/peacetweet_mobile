@@ -806,23 +806,25 @@ export function ProfileView({
         </View>
 
         {/* Name & Verification Badge */}
-        <View className="flex-row items-center justify-center gap-2 mt-3">
+        <View className="flex-row items-center justify-center gap-1.5 mt-3">
           <Text className="text-2xl sm:text-3xl font-black text-[#050505] dark:text-[#e4e6eb] tracking-tight text-center">
             {displayUser.name}
           </Text>
-          <AppIcon
-            android="verified_user"
-            size={18}
-            color={
-              displayUser.userStatus === 'VERIFIED'
-                ? '#0866FF'
-                : displayUser.userStatus === 'PREMIUM'
-                  ? '#d97706'
-                  : theme === 'dark'
-                    ? '#b0b3b8'
-                    : '#65676b'
-            }
-          />
+          <View style={{ transform: [{ translateY: 2 }] }}>
+            <AppIcon
+              android="verified_user"
+              size={18}
+              color={
+                displayUser.userStatus === 'VERIFIED'
+                  ? '#0866FF'
+                  : displayUser.userStatus === 'PREMIUM'
+                    ? '#d97706'
+                    : theme === 'dark'
+                      ? '#b0b3b8'
+                      : '#65676b'
+              }
+            />
+          </View>
         </View>
 
         {/* @username */}
