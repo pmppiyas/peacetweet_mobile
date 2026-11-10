@@ -90,8 +90,12 @@ export default function EditProfileScreen() {
       setName(user.name || '');
       setUsername(user.username || '');
       setBio(user.bio || '');
-      setAvatarUrl(normalizeMediaUrl(user.avatarUrl));
-      setCoverUrl(normalizeMediaUrl(user.coverUrl));
+      if (user.avatarUrl) {
+        setAvatarUrl(normalizeMediaUrl(user.avatarUrl));
+      }
+      if (user.coverUrl) {
+        setCoverUrl(normalizeMediaUrl(user.coverUrl));
+      }
       setBloodGroup(user.bloodGroup || 'NONE');
       setIsDonor(Boolean(user.isDonor));
       setDonationCount(String(user.donationCount || 0));
@@ -283,8 +287,46 @@ export default function EditProfileScreen() {
       try {
         const res = await uploadsApi.uploadImage(fileObj, filename);
         if (res?.url) {
-          if (type === 'avatar') setAvatarUrl(res.url);
-          else setCoverUrl(res.url);
+          const finalUrl = res.url;
+          if (type === 'avatar') setAvatarUrl(finalUrl);
+          else setCoverUrl(finalUrl);
+
+          // Auto-save photo immediately so it persists on user profile without extra steps
+          try {
+            const updatePayload =
+              type === 'avatar'
+                ? { avatarUrl: finalUrl }
+                : { coverUrl: finalUrl };
+            const updatedUser = await profileApi.updateProfile(updatePayload);
+            if (updatedUser) {
+              setUser({
+                ...(user || {}),
+                ...updatedUser,
+                avatarUrl:
+                  type === 'avatar'
+                    ? finalUrl
+                    : user?.avatarUrl || avatarUrl,
+                coverUrl:
+                  type === 'cover' ? finalUrl : user?.coverUrl || coverUrl,
+              } as User);
+            }
+            await Promise.all([refreshUser(), refreshFeed()]);
+          } catch (autoErr) {
+            console.warn(
+              '[ProfilePhoto] Auto-save profile update error:',
+              autoErr
+            );
+          }
+
+          setSuccessMessage(
+            locale === 'bn'
+              ? type === 'avatar'
+                ? 'প্রোফাইল ছবি সফলভাবে আপডেট ও সেভ হয়েছে!'
+                : 'কভার ছবি সফলভাবে আপডেট ও সেভ হয়েছে!'
+              : type === 'avatar'
+                ? 'Profile picture saved successfully!'
+                : 'Cover photo saved successfully!'
+          );
         } else {
           throw new Error('No image URL returned from upload server');
         }
@@ -377,7 +419,12 @@ export default function EditProfileScreen() {
 
       const updatedUser = await profileApi.updateProfile(payload);
       if (updatedUser) {
-        const merged = { ...(user || {}), ...updatedUser };
+        const merged = {
+          ...(user || {}),
+          ...updatedUser,
+          avatarUrl: payload.avatarUrl || avatarUrl,
+          coverUrl: payload.coverUrl || coverUrl,
+        };
         setUser(merged as User);
       }
       await Promise.all([refreshUser(), refreshFeed()]);
