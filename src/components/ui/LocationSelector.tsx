@@ -185,13 +185,13 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('division');
             }}
-            className="h-11 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#242526] rounded-2xl px-3.5 border border-transparent">
+            className="h-11 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-xl px-3 border border-transparent active:opacity-80">
             <Text
               numberOfLines={1}
-              className={`text-xs flex-1 ${
+              className={`text-xs flex-1 pr-1 ${
                 selectedDivision
                   ? 'font-bold text-[#050505] dark:text-[#e4e6eb]'
-                  : 'text-[#8a8d91] dark:text-[#65676b]'
+                  : 'text-[#8a8d91] dark:text-[#b0b3b8]'
               }`}>
               {selectedDivision
                 ? locale === 'bn'
@@ -217,17 +217,17 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('district');
             }}
-            className={`h-11 flex-row items-center justify-between rounded-2xl px-3.5 border ${
+            className={`h-11 flex-row items-center justify-between rounded-xl px-3 border ${
               !value?.divisionId
-                ? 'bg-[#f0f2f5]/50 dark:bg-[#242526]/50 border-dashed border-gray-200 dark:border-gray-800 opacity-60'
-                : 'bg-[#f0f2f5] dark:bg-[#242526] border-transparent'
+                ? 'bg-[#f0f2f5]/50 dark:bg-[#3a3b3c]/40 border-dashed border-[#ced0d4] dark:border-[#4a4b4d] opacity-60'
+                : 'bg-[#f0f2f5] dark:bg-[#3a3b3c] border-transparent active:opacity-80'
             }`}>
             <Text
               numberOfLines={1}
-              className={`text-xs flex-1 ${
+              className={`text-xs flex-1 pr-1 ${
                 selectedDistrict
                   ? 'font-bold text-[#050505] dark:text-[#e4e6eb]'
-                  : 'text-[#8a8d91] dark:text-[#65676b]'
+                  : 'text-[#8a8d91] dark:text-[#b0b3b8]'
               }`}>
               {selectedDistrict
                 ? locale === 'bn'
@@ -260,17 +260,17 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('upazila');
             }}
-            className={`h-11 flex-row items-center justify-between rounded-2xl px-3.5 border ${
+            className={`h-11 flex-row items-center justify-between rounded-xl px-3 border ${
               !value?.districtId
-                ? 'bg-[#f0f2f5]/50 dark:bg-[#242526]/50 border-dashed border-gray-200 dark:border-gray-800 opacity-60'
-                : 'bg-[#f0f2f5] dark:bg-[#242526] border-transparent'
+                ? 'bg-[#f0f2f5]/50 dark:bg-[#3a3b3c]/40 border-dashed border-[#ced0d4] dark:border-[#4a4b4d] opacity-60'
+                : 'bg-[#f0f2f5] dark:bg-[#3a3b3c] border-transparent active:opacity-80'
             }`}>
             <Text
               numberOfLines={1}
-              className={`text-xs flex-1 ${
+              className={`text-xs flex-1 pr-1 ${
                 selectedUpazila
                   ? 'font-bold text-[#050505] dark:text-[#e4e6eb]'
-                  : 'text-[#8a8d91] dark:text-[#65676b]'
+                  : 'text-[#8a8d91] dark:text-[#b0b3b8]'
               }`}>
               {selectedUpazila
                 ? locale === 'bn'
@@ -291,7 +291,7 @@ export function LocationSelector({
         {/* 4. Detailed Address / Landmark / Area */}
         <View className="flex-1">
           <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
-            {locale === 'bn' ? 'রোড / এলাকা (ঐচ্ছিক)' : 'Area / Road (Opt.)'}
+            {locale === 'bn' ? 'রোড / এলাকা' : 'Area / Road'}
           </Text>
           <TextInput
             value={value?.detailedAddress || ''}
@@ -303,16 +303,16 @@ export function LocationSelector({
                 : 'Road 3, Mirpur'
             }
             placeholderTextColor={theme === 'dark' ? '#65676b' : '#8a8d91'}
-            className="h-11 bg-[#f0f2f5] dark:bg-[#242526] rounded-2xl px-3.5 text-xs text-[#050505] dark:text-[#e4e6eb] border border-transparent focus:border-rose-400"
+            className="h-11 bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-xl px-3 text-xs text-[#050505] dark:text-[#e4e6eb] border border-transparent focus:border-primary-500"
           />
         </View>
       </View>
 
       {/* Formatted Location Preview */}
-      {value?.location ? (
-        <View className="flex-row items-center gap-2 px-3.5 py-2.5 mt-1 rounded-2xl bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200/90 dark:border-rose-900/50">
-          <AppIcon android="location_on" size={17} color="#e11d48" />
-          <Text className="text-xs font-semibold text-rose-700 dark:text-rose-300 flex-1">
+      {value?.location && value.location !== 'Bangladesh' ? (
+        <View className="flex-row items-center gap-2 px-3.5 py-2.5 rounded-xl bg-primary-50 dark:bg-primary-950/40 border border-primary-200/80 dark:border-primary-900/40">
+          <AppIcon android="location_on" size={16} color="#0866FF" />
+          <Text className="text-xs font-semibold text-primary-700 dark:text-primary-300 flex-1">
             {value.location}
           </Text>
         </View>
