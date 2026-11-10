@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
@@ -117,6 +118,7 @@ export function ProfileView({
   showBackButton = false,
 }: ProfileViewProps) {
   const { locale, theme } = useUi();
+  const insets = useSafeAreaInsets();
   const { user: authUser, isAuthenticated, setUser } = useAuth();
   const { items: feedItems, refreshFeed } = useFeed();
 
@@ -176,6 +178,7 @@ export function ProfileView({
   const [photoMenuType, setPhotoMenuType] = useState<PhotoEditorMode | null>(
     null
   );
+  const [isManagementDrawerOpen, setIsManagementDrawerOpen] = useState(false);
 
   // Sync bio input if user changes
   useEffect(() => {
@@ -679,25 +682,15 @@ export function ProfileView({
           </Pressable>
         )}
 
-        {/* Share Button top right */}
+        {/* Profile Management Menu Button (3 vertical dots) */}
         <Pressable
-          onPress={handleShareProfile}
-          className="absolute top-3 right-3 z-30 h-9 px-3 rounded-full bg-black/50 flex-row items-center gap-1.5 active:scale-95"
+          onPress={() => setIsManagementDrawerOpen(true)}
+          className="absolute top-3 right-3 z-30 h-9 w-9 rounded-full bg-black/50 items-center justify-center active:scale-95 shadow-sm"
+          accessibilityLabel={
+            locale === 'bn' ? 'প্রোফাইল ব্যবস্থাপনা' : 'Profile Management'
+          }
         >
-          <AppIcon
-            android={copiedLink ? 'check' : 'share'}
-            size={16}
-            color={copiedLink ? '#22c55e' : '#ffffff'}
-          />
-          <Text className="text-white text-xs font-bold">
-            {copiedLink
-              ? locale === 'bn'
-                ? 'কপি হয়েছে'
-                : 'Copied'
-              : locale === 'bn'
-                ? 'শেয়ার'
-                : 'Share'}
-          </Text>
+          <AppIcon android="more_vert" size={20} color="#ffffff" />
         </Pressable>
 
         {/* Edit Cover Action Menu & Button for Owner */}
@@ -1799,6 +1792,431 @@ export function ProfileView({
         onPickAnother={() => triggerPhotoPicker(photoEditorMode)}
         onSave={handleSaveEditedPhoto}
       />
+
+      {/* Profile Management Drawer (Bottom Sheet) */}
+      <Modal
+        visible={isManagementDrawerOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsManagementDrawerOpen(false)}
+      >
+        <Pressable
+          onPress={() => setIsManagementDrawerOpen(false)}
+          className="flex-1 bg-black/50 justify-end items-center"
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+            className="w-full max-w-lg rounded-t-3xl bg-white dark:bg-[#242526] border-t border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl overflow-hidden"
+          >
+            {/* Drag Handle Indicator */}
+            <View className="items-center pt-3 pb-1">
+              <View className="w-10 h-1.5 rounded-full bg-[#ccd0d5] dark:bg-[#4e4f50]" />
+            </View>
+
+            {/* Profile Drawer Header */}
+            <View className="flex-row items-center justify-between px-5 py-3 border-b border-[#e4e6eb]/80 dark:border-[#393a3b]/80">
+              <View className="flex-row items-center gap-3 flex-1 min-w-0 pr-2">
+                <UserAvatar
+                  name={displayUser.name}
+                  avatarUrl={resolvedAvatarUrl}
+                  size="md"
+                />
+                <View className="flex-1 min-w-0">
+                  <View className="flex-row items-center gap-1.5">
+                    <Text
+                      numberOfLines={1}
+                      className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]"
+                    >
+                      {displayUser.name}
+                    </Text>
+                    {displayUser.userStatus && (
+                      <View style={{ transform: [{ translateY: 1 }] }}>
+                        <AppIcon
+                          android="verified_user"
+                          size={15}
+                          color={
+                            displayUser.userStatus === 'VERIFIED'
+                              ? '#0866FF'
+                              : displayUser.userStatus === 'PREMIUM'
+                                ? '#d97706'
+                                : theme === 'dark'
+                                  ? '#b0b3b8'
+                                  : '#65676b'
+                          }
+                        />
+                      </View>
+                    )}
+                  </View>
+                  <Text
+                    numberOfLines={1}
+                    className="text-xs font-semibold text-[#0064E0] dark:text-[#2D88FF] mt-0.5"
+                  >
+                    @{displayUser.username}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Close Button */}
+              <Pressable
+                onPress={() => setIsManagementDrawerOpen(false)}
+                className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:scale-95"
+                accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
+              >
+                <AppIcon android="close" size={18} color="#65676b" />
+              </Pressable>
+            </View>
+
+            {/* Options List */}
+            <ScrollView
+              className="max-h-[70vh] px-3 pt-2"
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
+              {isOwner ? (
+                <>
+                  {/* Option: Edit Profile Info */}
+                  <Pressable
+                    onPress={() => {
+                      setIsManagementDrawerOpen(false);
+                      router.push('/settings/profile');
+                    }}
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  >
+                    <View className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-950/60 items-center justify-center">
+                      <AppIcon android="edit" size={20} color="#0866FF" />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {locale === 'bn'
+                          ? 'প্রোফাইল তথ্য সম্পাদনা'
+                          : 'Edit Profile Info'}
+                      </Text>
+                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        {locale === 'bn'
+                          ? 'বায়ো, নাম, অবস্থান ও রক্তগ্রুপ পরিবর্তন করুন'
+                          : 'Update bio, name, location & blood group'}
+                      </Text>
+                    </View>
+                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                  </Pressable>
+
+                  {/* Option: Change Profile Picture */}
+                  <Pressable
+                    onPress={() => {
+                      setIsManagementDrawerOpen(false);
+                      triggerPhotoPicker('avatar');
+                    }}
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  >
+                    <View className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-950/60 items-center justify-center">
+                      <AppIcon
+                        android="photo_camera"
+                        size={20}
+                        color="#059669"
+                      />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {locale === 'bn'
+                          ? 'প্রোফাইল ছবি পরিবর্তন'
+                          : 'Change Profile Picture'}
+                      </Text>
+                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        {locale === 'bn'
+                          ? 'নতুন প্রোফাইল ছবি আপলোড ও ক্রপ করুন'
+                          : 'Upload and adjust new avatar'}
+                      </Text>
+                    </View>
+                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                  </Pressable>
+
+                  {/* Option: Change Cover Banner */}
+                  <Pressable
+                    onPress={() => {
+                      setIsManagementDrawerOpen(false);
+                      triggerPhotoPicker('cover');
+                    }}
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  >
+                    <View className="h-10 w-10 rounded-full bg-teal-100 dark:bg-teal-950/60 items-center justify-center">
+                      <AppIcon
+                        android="photo_camera"
+                        size={20}
+                        color="#0d9488"
+                      />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {locale === 'bn'
+                          ? 'কভার ছবি পরিবর্তন'
+                          : 'Change Cover Photo'}
+                      </Text>
+                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        {locale === 'bn'
+                          ? 'ব্যানার ছবি আপলোড ও পজিশন করুন'
+                          : 'Upload and reposition cover banner'}
+                      </Text>
+                    </View>
+                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                  </Pressable>
+
+                  {/* Option: Share Profile Link */}
+                  <Pressable
+                    onPress={() => {
+                      handleShareProfile();
+                    }}
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  >
+                    <View
+                      className={`h-10 w-10 rounded-full items-center justify-center ${
+                        copiedLink
+                          ? 'bg-emerald-100 dark:bg-emerald-950/60'
+                          : 'bg-purple-100 dark:bg-purple-950/60'
+                      }`}
+                    >
+                      <AppIcon
+                        android={copiedLink ? 'check' : 'share'}
+                        size={20}
+                        color={copiedLink ? '#059669' : '#8b5cf6'}
+                      />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {copiedLink
+                          ? locale === 'bn'
+                            ? 'লিংক কপি করা হয়েছে!'
+                            : 'Link Copied!'
+                          : locale === 'bn'
+                            ? 'প্রোফাইল লিংক শেয়ার'
+                            : 'Share Profile'}
+                      </Text>
+                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        {copiedLink
+                          ? locale === 'bn'
+                            ? 'ক্লিপবোর্ডে কপি করা হয়েছে'
+                            : 'Copied to clipboard'
+                          : locale === 'bn'
+                            ? 'প্রোফাইল লিংক কপি বা শেয়ার করুন'
+                            : 'Copy or share your profile URL'}
+                      </Text>
+                    </View>
+                    {copiedLink ? (
+                      <View className="px-2 py-0.5 rounded-full bg-emerald-500/10">
+                        <Text className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          {locale === 'bn' ? 'কপি হয়েছে' : 'Copied'}
+                        </Text>
+                      </View>
+                    ) : (
+                      <AppIcon
+                        android="chevron_right"
+                        size={18}
+                        color="#8a8d91"
+                      />
+                    )}
+                  </Pressable>
+
+                  {/* Option: Saved Posts & Duas */}
+                  <Pressable
+                    onPress={() => {
+                      setIsManagementDrawerOpen(false);
+                      setActiveTab('saved');
+                    }}
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  >
+                    <View className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-950/60 items-center justify-center">
+                      <AppIcon android="bookmark" size={20} color="#d97706" />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {locale === 'bn'
+                          ? 'সংরক্ষিত পোস্ট ও বুকমার্ক'
+                          : 'Saved Items & Bookmarks'}
+                      </Text>
+                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        {locale === 'bn'
+                          ? 'আপনার সেভ করা সব পোস্ট ও দোয়া দেখুন'
+                          : 'View all saved posts and duas'}
+                      </Text>
+                    </View>
+                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                  </Pressable>
+
+                  {/* Option: Account Settings & Privacy */}
+                  <Pressable
+                    onPress={() => {
+                      setIsManagementDrawerOpen(false);
+                      router.push('/settings');
+                    }}
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  >
+                    <View className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center">
+                      <AppIcon android="settings" size={20} color="#64748b" />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {locale === 'bn'
+                          ? 'অ্যাকাউন্ট ও সেটিংস'
+                          : 'Account & Privacy Settings'}
+                      </Text>
+                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        {locale === 'bn'
+                          ? 'পাসওয়ার্ড, নোটিফিকেশন ও থিম পরিবর্তন'
+                          : 'Password, notifications & theme'}
+                      </Text>
+                    </View>
+                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  {/* Visitor Options */}
+                  {/* Option: Share Profile */}
+                  <Pressable
+                    onPress={() => {
+                      handleShareProfile();
+                    }}
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  >
+                    <View
+                      className={`h-10 w-10 rounded-full items-center justify-center ${
+                        copiedLink
+                          ? 'bg-emerald-100 dark:bg-emerald-950/60'
+                          : 'bg-purple-100 dark:bg-purple-950/60'
+                      }`}
+                    >
+                      <AppIcon
+                        android={copiedLink ? 'check' : 'share'}
+                        size={20}
+                        color={copiedLink ? '#059669' : '#8b5cf6'}
+                      />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {copiedLink
+                          ? locale === 'bn'
+                            ? 'লিংক কপি করা হয়েছে!'
+                            : 'Link Copied!'
+                          : locale === 'bn'
+                            ? 'প্রোফাইল লিংক শেয়ার'
+                            : 'Share Profile'}
+                      </Text>
+                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        {copiedLink
+                          ? locale === 'bn'
+                            ? 'ক্লিপবোর্ডে কপি করা হয়েছে'
+                            : 'Copied to clipboard'
+                          : locale === 'bn'
+                            ? 'অন্যদের সাথে এই প্রোফাইল শেয়ার করুন'
+                            : 'Copy or share profile link'}
+                      </Text>
+                    </View>
+                    {copiedLink ? (
+                      <View className="px-2 py-0.5 rounded-full bg-emerald-500/10">
+                        <Text className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          {locale === 'bn' ? 'কপি হয়েছে' : 'Copied'}
+                        </Text>
+                      </View>
+                    ) : (
+                      <AppIcon
+                        android="chevron_right"
+                        size={18}
+                        color="#8a8d91"
+                      />
+                    )}
+                  </Pressable>
+
+                  {/* Option: Send Message */}
+                  <Pressable
+                    onPress={() => {
+                      setIsManagementDrawerOpen(false);
+                      handleMessagePress();
+                    }}
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
+                  >
+                    <View className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-950/60 items-center justify-center">
+                      <AppIcon android="chat" size={20} color="#0866FF" />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {locale === 'bn' ? 'ইনবক্সে মেসেজ পাঠান' : 'Send Message'}
+                      </Text>
+                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        {locale === 'bn'
+                          ? 'সরাসরি চ্যাট শুরু করুন'
+                          : 'Start a direct conversation'}
+                      </Text>
+                    </View>
+                    <AppIcon android="chevron_right" size={18} color="#8a8d91" />
+                  </Pressable>
+
+                  {/* Option: Unfriend (if currently friends) */}
+                  {friendshipStatus === 'FRIENDS' && (
+                    <Pressable
+                      onPress={() => {
+                        setIsManagementDrawerOpen(false);
+                        setUnfriendConfirmVisible(true);
+                      }}
+                      className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-rose-50 dark:active:bg-rose-950/30"
+                    >
+                      <View className="h-10 w-10 rounded-full bg-rose-100 dark:bg-rose-950/60 items-center justify-center">
+                        <AppIcon android="close" size={20} color="#e11d48" />
+                      </View>
+                      <View className="flex-1 min-w-0">
+                        <Text className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                          {locale === 'bn'
+                            ? 'বন্ধু তালিকা থেকে বাদ দিন'
+                            : 'Remove Friend'}
+                        </Text>
+                        <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                          {locale === 'bn'
+                            ? 'এই ব্যবহারকারীকে আনফ্রেন্ড করুন'
+                            : 'Remove this user from your friend list'}
+                        </Text>
+                      </View>
+                      <AppIcon
+                        android="chevron_right"
+                        size={18}
+                        color="#8a8d91"
+                      />
+                    </Pressable>
+                  )}
+
+                  {/* Option: Report Profile */}
+                  <Pressable
+                    onPress={() => {
+                      setIsManagementDrawerOpen(false);
+                      router.push('/feedback');
+                    }}
+                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-rose-50 dark:active:bg-rose-950/30"
+                  >
+                    <View className="h-10 w-10 rounded-full bg-rose-100 dark:bg-rose-950/60 items-center justify-center">
+                      <AppIcon android="flag" size={20} color="#e11d48" />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                        {locale === 'bn'
+                          ? 'প্রোফাইল রিপোর্ট করুন'
+                          : 'Report Profile'}
+                      </Text>
+                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                        {locale === 'bn'
+                          ? 'নীতিমালা লঙ্ঘন বা সমস্যার কথা জানান'
+                          : 'Report inappropriate behavior or content'}
+                      </Text>
+                    </View>
+                    <AppIcon
+                      android="chevron_right"
+                      size={18}
+                      color="#8a8d91"
+                    />
+                  </Pressable>
+                </>
+              )}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }

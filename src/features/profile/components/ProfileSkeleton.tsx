@@ -52,8 +52,8 @@ export function ProfileSkeleton() {
       <View className="relative w-full h-44 sm:h-52 bg-[#e4e6eb] dark:bg-[#2e2f30] overflow-hidden">
         {/* Top-left Back button placeholder */}
         <View className="absolute top-3 left-3 z-30 h-9 w-9 rounded-full bg-black/20" />
-        {/* Top-right Share button placeholder */}
-        <View className="absolute top-3 right-3 z-30 h-9 w-20 rounded-full bg-black/20" />
+        {/* Top-right 3-dots button placeholder */}
+        <View className="absolute top-3 right-3 z-30 h-9 w-9 rounded-full bg-black/20" />
       </View>
 
       {/* 2. Profile Details & Bio & Action Buttons (Hero Card) */}
