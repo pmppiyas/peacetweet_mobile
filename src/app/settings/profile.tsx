@@ -174,9 +174,25 @@ export default function EditProfileScreen() {
 
     // 2. Native Mobile (Android & iOS)
     try {
-      const permission =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
+      // Permission check with graceful Android 13+ Photo Picker handling
+      let hasPermission = true;
+      try {
+        const permStatus = await ImagePicker.getMediaLibraryPermissionsAsync();
+        if (!permStatus.granted && permStatus.canAskAgain) {
+          const reqStatus =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+          hasPermission = reqStatus.granted;
+        } else if (permStatus.granted) {
+          hasPermission = true;
+        } else {
+          // Android 13+ system photo picker runs without storage permissions
+          hasPermission = Platform.OS === 'android';
+        }
+      } catch {
+        hasPermission = Platform.OS === 'android';
+      }
+
+      if (!hasPermission && Platform.OS !== 'android') {
         setErrorMessage(
           locale === 'bn'
             ? 'গ্যালারি থেকে ছবি নির্বাচন করতে পারমিশন প্রয়োজন।'
@@ -185,20 +201,57 @@ export default function EditProfileScreen() {
         return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: type === 'avatar' ? [1, 1] : [16, 9],
-        quality: 0.85,
-      });
+      // Launch ImagePicker
+      // Note: On Android, allowsEditing: true invokes Intent.ACTION_CROP which is not
+      // available on modern Android devices and throws ActivityNotFoundException.
+      // We safely enable allowsEditing only on iOS, with fallback retry.
+      let result: ImagePicker.ImagePickerResult;
+      try {
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: Platform.OS === 'ios',
+          aspect: type === 'avatar' ? [1, 1] : [16, 9],
+          quality: 0.85,
+        });
+      } catch (pickerErr) {
+        console.warn(
+          '[ProfilePhoto] Primary picker launch failed, falling back to basic picker:',
+          pickerErr
+        );
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: false,
+          quality: 0.85,
+        });
+      }
 
       if (result.canceled || !result.assets?.length) return;
 
       const asset = result.assets[0];
-      const filename =
-        asset.fileName ||
-        `${type}_${Date.now()}.${asset.mimeType?.split('/')[1] || 'jpg'}`;
-      const mimeType = asset.mimeType || 'image/jpeg';
+
+      // Parse safe extension and MIME type
+      let ext = 'jpg';
+      if (asset.mimeType) {
+        const parts = asset.mimeType.split('/');
+        if (parts.length > 1 && parts[1]) {
+          ext = parts[1].toLowerCase();
+          if (ext === 'jpeg') ext = 'jpg';
+        }
+      } else if (asset.uri) {
+        const cleanUri = asset.uri.split('?')[0];
+        const uriExt = cleanUri.split('.').pop()?.toLowerCase();
+        if (uriExt && ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(uriExt)) {
+          ext = uriExt === 'jpeg' ? 'jpg' : uriExt;
+        }
+      }
+
+      const mimeType =
+        ext === 'png'
+          ? 'image/png'
+          : ext === 'webp'
+            ? 'image/webp'
+            : 'image/jpeg';
+      const filename = asset.fileName || `${type}_${Date.now()}.${ext}`;
 
       const fileObj: UploadableImage = {
         uri: asset.uri,
@@ -206,6 +259,7 @@ export default function EditProfileScreen() {
         type: mimeType,
       };
 
+      // Set local preview immediately
       if (type === 'avatar') {
         setAvatarUrl(asset.uri);
         setIsUploadingAvatar(true);
@@ -214,20 +268,36 @@ export default function EditProfileScreen() {
         setIsUploadingCover(true);
       }
 
-      const res = await uploadsApi.uploadImage(fileObj, filename);
-      if (res?.url) {
-        if (type === 'avatar') setAvatarUrl(res.url);
-        else setCoverUrl(res.url);
+      // Upload to server in separate try-catch block
+      try {
+        const res = await uploadsApi.uploadImage(fileObj, filename);
+        if (res?.url) {
+          if (type === 'avatar') setAvatarUrl(res.url);
+          else setCoverUrl(res.url);
+        } else {
+          throw new Error('No image URL returned from upload server');
+        }
+      } catch (uploadErr: any) {
+        console.error('[ProfilePhoto] Upload failed:', uploadErr);
+        const serverMsg =
+          uploadErr?.response?.data?.message || uploadErr?.message;
+        setErrorMessage(
+          locale === 'bn'
+            ? 'ছবি আপলোড করতে ব্যর্থ হয়েছে। অনুগ্রহ করে ইন্টারনেট কানেকশন বা ফাইলের সাইজ চেক করুন।'
+            : serverMsg ||
+                'Failed to upload photo. Please check your connection or file size.'
+        );
+      } finally {
+        if (type === 'avatar') setIsUploadingAvatar(false);
+        else setIsUploadingCover(false);
       }
-    } catch {
+    } catch (pickerErr) {
+      console.error('[ProfilePhoto] Picker error:', pickerErr);
       setErrorMessage(
         locale === 'bn'
           ? 'গ্যালারি থেকে ছবি নির্বাচন করা যায়নি।'
           : 'Could not select photo from device.'
       );
-    } finally {
-      if (type === 'avatar') setIsUploadingAvatar(false);
-      else setIsUploadingCover(false);
     }
   };
 

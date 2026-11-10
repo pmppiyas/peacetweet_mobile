@@ -153,9 +153,23 @@ export default function RegisterScreen() {
 
     // Native iOS / Android Gallery Picker
     try {
-      const permission =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
+      let hasPermission = true;
+      try {
+        const permStatus = await ImagePicker.getMediaLibraryPermissionsAsync();
+        if (!permStatus.granted && permStatus.canAskAgain) {
+          const reqStatus =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+          hasPermission = reqStatus.granted;
+        } else if (permStatus.granted) {
+          hasPermission = true;
+        } else {
+          hasPermission = Platform.OS === 'android';
+        }
+      } catch {
+        hasPermission = Platform.OS === 'android';
+      }
+
+      if (!hasPermission && Platform.OS !== 'android') {
         setErrorMessage(
           locale === 'bn'
             ? 'গ্যালারি থেকে ছবি নির্বাচন করতে পারমিশন প্রয়োজন।'
@@ -164,12 +178,25 @@ export default function RegisterScreen() {
         return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.85,
-      });
+      let result: ImagePicker.ImagePickerResult;
+      try {
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: Platform.OS === 'ios',
+          aspect: [1, 1],
+          quality: 0.85,
+        });
+      } catch (pickerErr) {
+        console.warn(
+          '[RegisterPhoto] Primary picker launch failed, falling back:',
+          pickerErr
+        );
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: false,
+          quality: 0.85,
+        });
+      }
 
       if (result.canceled || !result.assets?.length) return;
 
@@ -183,8 +210,28 @@ export default function RegisterScreen() {
         return;
       }
 
-      const filename = asset.fileName || `avatar_${Date.now()}.jpg`;
-      const mimeType = asset.mimeType || 'image/jpeg';
+      let ext = 'jpg';
+      if (asset.mimeType) {
+        const parts = asset.mimeType.split('/');
+        if (parts.length > 1 && parts[1]) {
+          ext = parts[1].toLowerCase();
+          if (ext === 'jpeg') ext = 'jpg';
+        }
+      } else if (asset.uri) {
+        const cleanUri = asset.uri.split('?')[0];
+        const uriExt = cleanUri.split('.').pop()?.toLowerCase();
+        if (uriExt && ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(uriExt)) {
+          ext = uriExt === 'jpeg' ? 'jpg' : uriExt;
+        }
+      }
+
+      const filename = asset.fileName || `avatar_${Date.now()}.${ext}`;
+      const mimeType =
+        ext === 'png'
+          ? 'image/png'
+          : ext === 'webp'
+            ? 'image/webp'
+            : 'image/jpeg';
 
       setCustomAvatarFile({
         uri: asset.uri,
@@ -193,7 +240,8 @@ export default function RegisterScreen() {
       });
       setCustomAvatarFilename(filename);
       setSelectedAvatarUrl(asset.uri);
-    } catch {
+    } catch (pickerErr) {
+      console.error('[RegisterPhoto] Picker error:', pickerErr);
       setErrorMessage(
         locale === 'bn'
           ? 'গ্যালারি থেকে ছবি নির্বাচন করা যায়নি।'

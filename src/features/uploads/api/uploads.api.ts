@@ -29,7 +29,21 @@ function appendUploadFile(
     !(typeof Blob !== 'undefined' && file instanceof Blob);
 
   if (isNativeAsset) {
-    formData.append(fieldName, file as any);
+    const nativeFile = file as NativeUploadFile;
+    let mime = (nativeFile.type || '').trim().toLowerCase();
+    if (!mime || mime === 'image/jpg') mime = 'image/jpeg';
+
+    let filename = (nativeFile.name || fallbackFilename || 'photo.jpg').trim();
+    if (!filename.includes('.')) {
+      const ext = mime.split('/')[1] || 'jpg';
+      filename = `${filename}.${ext === 'jpeg' ? 'jpg' : ext}`;
+    }
+
+    formData.append(fieldName, {
+      uri: nativeFile.uri,
+      name: filename,
+      type: mime,
+    } as any);
   } else {
     formData.append(fieldName, file as Blob, fallbackFilename);
   }
