@@ -387,23 +387,23 @@ export default function EditProfileScreen() {
       >
         <View className="w-full max-w-[640px] mx-auto gap-3">
           {/* Feedback Messages */}
-          {errorMessage && (
+          {Boolean(errorMessage) ? (
             <View className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 flex-row items-center gap-2.5">
               <AppIcon android="error" size={18} color="#e11d48" />
               <Text className="text-xs font-semibold text-rose-600 dark:text-rose-400 flex-1">
                 {errorMessage}
               </Text>
             </View>
-          )}
+          ) : null}
 
-          {successMessage && (
+          {Boolean(successMessage) ? (
             <View className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 flex-row items-center gap-2.5">
               <AppIcon android="check_circle" size={18} color="#10b981" />
               <Text className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex-1">
                 {successMessage}
               </Text>
             </View>
-          )}
+          ) : null}
 
           {/* ======================================================== */}
           {/* 1. Facebook-Style Profile Picture Section                */}
@@ -437,7 +437,7 @@ export default function EditProfileScreen() {
                 className="relative active:scale-95"
               >
                 <View className="h-28 w-28 rounded-full border-4 border-white dark:border-[#3a3b3c] bg-primary-600 shadow-md items-center justify-center overflow-hidden">
-                  {avatarUrl ? (
+                  {Boolean(avatarUrl) ? (
                     <Image
                       source={{ uri: avatarUrl }}
                       className="w-full h-full"
@@ -449,11 +449,11 @@ export default function EditProfileScreen() {
                     </Text>
                   )}
 
-                  {isUploadingAvatar && (
+                  {isUploadingAvatar ? (
                     <View className="absolute inset-0 bg-black/50 items-center justify-center">
                       <ActivityIndicator size="small" color="#ffffff" />
                     </View>
-                  )}
+                  ) : null}
                 </View>
 
                 {/* Camera Overlay Badge */}
@@ -500,7 +500,7 @@ export default function EditProfileScreen() {
                 disabled={isUploadingCover}
                 className="relative w-full h-40 sm:h-48 rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c] overflow-hidden border border-[#e4e6eb] dark:border-[#4a4b4d] active:opacity-90"
               >
-                {coverUrl ? (
+                {Boolean(coverUrl) ? (
                   <Image
                     source={{ uri: coverUrl }}
                     className="w-full h-full"
@@ -519,24 +519,24 @@ export default function EditProfileScreen() {
                   </View>
                 )}
 
-                {isUploadingCover && (
+                {isUploadingCover ? (
                   <View className="absolute inset-0 bg-black/50 items-center justify-center">
                     <ActivityIndicator size="large" color="#ffffff" />
                     <Text className="text-white text-xs font-bold mt-2">
                       {locale === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...'}
                     </Text>
                   </View>
-                )}
+                ) : null}
 
                 {/* Edit Cover Overlay Pill - only when image exists */}
-                {coverUrl && (
+                {Boolean(coverUrl) ? (
                   <View className="absolute bottom-2.5 right-2.5 bg-black/65 px-3 py-1.5 rounded-xl flex-row items-center gap-1.5">
                     <AppIcon android="photo_camera" size={14} color="#ffffff" />
                     <Text className="text-white text-xs font-bold">
                       {locale === 'bn' ? 'কভার পরিবর্তন' : 'Edit'}
                     </Text>
                   </View>
-                )}
+                ) : null}
               </Pressable>
             </View>
           </View>
@@ -730,7 +730,7 @@ export default function EditProfileScreen() {
               </View>
 
               {/* Donation Count */}
-              {isDonor && (
+              {isDonor ? (
                 <View className="flex-row items-center justify-between pt-3 border-t border-[#f0f2f5] dark:border-[#393a3b]">
                   <View>
                     <Text className="text-sm font-semibold text-[#050505] dark:text-[#e4e6eb]">
@@ -753,7 +753,7 @@ export default function EditProfileScreen() {
                     className="w-20 h-11 text-center rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c] text-sm font-bold text-[#050505] dark:text-[#e4e6eb]"
                   />
                 </View>
-              )}
+              ) : null}
             </View>
           </View>
 

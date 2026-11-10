@@ -18,6 +18,7 @@ import {
   Modal,
   Platform,
   Animated,
+  StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -1873,8 +1874,13 @@ export function ProfileView({
           <Animated.View
             style={[
               {
-                paddingTop: insets.top,
-                paddingBottom: insets.bottom,
+                paddingTop: Math.max(
+                  insets.top || 0,
+                  Platform.OS === 'android'
+                    ? ((StatusBar.currentHeight || 28) + 8)
+                    : 20
+                ),
+                paddingBottom: Math.max(insets.bottom || 0, 16),
                 transform: [{ translateX: slideAnim }],
                 backgroundColor: theme === 'dark' ? '#242526' : '#ffffff',
                 height: '100%',
@@ -1918,7 +1924,7 @@ export function ProfileView({
             >
               {isOwner ? (
                 <>
-                  {/* Option: Edit Profile Info */}
+                  {/* 1. Option: Edit Profile Info */}
                   <Pressable
                     onPress={() => {
                       closeManagementDrawer();
@@ -1941,8 +1947,8 @@ export function ProfileView({
                       </Text>
                       <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                         {locale === 'bn'
-                          ? 'বায়ো, নাম, অবস্থান ও রক্তগ্রুপ পরিবর্তন করুন'
-                          : 'Update bio, name, location & blood group'}
+                          ? 'ছবি, বায়ো, নাম, অবস্থান ও রক্তগ্রুপ পরিবর্তন করুন'
+                          : 'Update photo, bio, name, location & blood group'}
                       </Text>
                     </View>
                     <AppIcon
@@ -1952,17 +1958,17 @@ export function ProfileView({
                     />
                   </Pressable>
 
-                  {/* Option: Change Profile Picture */}
+                  {/* 2. Option: Saved Posts & Duas */}
                   <Pressable
                     onPress={() => {
                       closeManagementDrawer();
-                      triggerPhotoPicker('avatar');
+                      setActiveTab('saved');
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
                     <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
                       <AppIcon
-                        android="photo_camera"
+                        android="bookmark"
                         size={20}
                         color={theme === 'dark' ? '#e4e6eb' : '#050505'}
                       />
@@ -1970,13 +1976,13 @@ export function ProfileView({
                     <View className="flex-1 min-w-0">
                       <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
                         {locale === 'bn'
-                          ? 'প্রোফাইল ছবি পরিবর্তন'
-                          : 'Change Profile Picture'}
+                          ? 'সংরক্ষিত পোস্ট ও বুকমার্ক'
+                          : 'Saved Items & Bookmarks'}
                       </Text>
                       <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                         {locale === 'bn'
-                          ? 'নতুন প্রোফাইল ছবি আপলোড ও ক্রপ করুন'
-                          : 'Upload and adjust new avatar'}
+                          ? 'আপনার সেভ করা সব পোস্ট ও দোয়া দেখুন'
+                          : 'View all saved posts and duas'}
                       </Text>
                     </View>
                     <AppIcon
@@ -1986,17 +1992,17 @@ export function ProfileView({
                     />
                   </Pressable>
 
-                  {/* Option: Change Cover Banner */}
+                  {/* 3. Option: Account Settings & Privacy */}
                   <Pressable
                     onPress={() => {
                       closeManagementDrawer();
-                      triggerPhotoPicker('cover');
+                      router.push('/settings');
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
                   >
                     <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
                       <AppIcon
-                        android="photo_camera"
+                        android="settings"
                         size={20}
                         color={theme === 'dark' ? '#e4e6eb' : '#050505'}
                       />
@@ -2004,13 +2010,13 @@ export function ProfileView({
                     <View className="flex-1 min-w-0">
                       <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
                         {locale === 'bn'
-                          ? 'কভার ছবি পরিবর্তন'
-                          : 'Change Cover Photo'}
+                          ? 'অ্যাকাউন্ট ও সেটিংস'
+                          : 'Account & Privacy Settings'}
                       </Text>
                       <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                         {locale === 'bn'
-                          ? 'ব্যানার ছবি আপলোড ও পজিশন করুন'
-                          : 'Upload and reposition cover banner'}
+                          ? 'পাসওয়ার্ড, নোটিফিকেশন ও থিম পরিবর্তন'
+                          : 'Password, notifications & theme'}
                       </Text>
                     </View>
                     <AppIcon
@@ -2020,7 +2026,7 @@ export function ProfileView({
                     />
                   </Pressable>
 
-                  {/* Option: Share Profile Link */}
+                  {/* 4. Option: Share Profile Link (Placed last) */}
                   <Pressable
                     onPress={() => {
                       handleShareProfile();
@@ -2067,74 +2073,6 @@ export function ProfileView({
                         color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
                       />
                     )}
-                  </Pressable>
-
-                  {/* Option: Saved Posts & Duas */}
-                  <Pressable
-                    onPress={() => {
-                      closeManagementDrawer();
-                      setActiveTab('saved');
-                    }}
-                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
-                  >
-                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
-                      <AppIcon
-                        android="bookmark"
-                        size={20}
-                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
-                      />
-                    </View>
-                    <View className="flex-1 min-w-0">
-                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
-                        {locale === 'bn'
-                          ? 'সংরক্ষিত পোস্ট ও বুকমার্ক'
-                          : 'Saved Items & Bookmarks'}
-                      </Text>
-                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-                        {locale === 'bn'
-                          ? 'আপনার সেভ করা সব পোস্ট ও দোয়া দেখুন'
-                          : 'View all saved posts and duas'}
-                      </Text>
-                    </View>
-                    <AppIcon
-                      android="chevron_right"
-                      size={18}
-                      color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
-                    />
-                  </Pressable>
-
-                  {/* Option: Account Settings & Privacy */}
-                  <Pressable
-                    onPress={() => {
-                      closeManagementDrawer();
-                      router.push('/settings');
-                    }}
-                    className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
-                  >
-                    <View className="h-10 w-10 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
-                      <AppIcon
-                        android="settings"
-                        size={20}
-                        color={theme === 'dark' ? '#e4e6eb' : '#050505'}
-                      />
-                    </View>
-                    <View className="flex-1 min-w-0">
-                      <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
-                        {locale === 'bn'
-                          ? 'অ্যাকাউন্ট ও সেটিংস'
-                          : 'Account & Privacy Settings'}
-                      </Text>
-                      <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-                        {locale === 'bn'
-                          ? 'পাসওয়ার্ড, নোটিফিকেশন ও থিম পরিবর্তন'
-                          : 'Password, notifications & theme'}
-                      </Text>
-                    </View>
-                    <AppIcon
-                      android="chevron_right"
-                      size={18}
-                      color={theme === 'dark' ? '#8a8d91' : '#bcc0c4'}
-                    />
                   </Pressable>
                 </>
               ) : (
