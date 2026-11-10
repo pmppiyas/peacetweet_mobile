@@ -223,19 +223,24 @@ function AppShell() {
   // Pure white (#ffffff) in light mode, rich dark card (#242526) in dark mode
   const surfaceColor = isDark ? '#242526' : '#ffffff';
   const canvasColor = isDark ? '#18191a' : '#ffffff';
+  const settingsCanvasColor = isDark ? '#18191a' : '#f0f2f5';
   const photoViewerColor = isDark ? '#000000' : '#0b0e14';
 
   const topSafeColor = isPhotoViewerActive
     ? photoViewerColor
-    : isAuthPage || isProfileActive || isSettingsProfile
-      ? canvasColor
-      : surfaceColor;
+    : isSettingsProfile
+      ? surfaceColor
+      : isAuthPage || isProfileActive
+        ? canvasColor
+        : surfaceColor;
 
   const bottomSafeColor = isPhotoViewerActive
     ? photoViewerColor
-    : isAuthPage || isProfileActive || isSettingsProfile
-      ? canvasColor
-      : surfaceColor;
+    : isSettingsProfile
+      ? settingsCanvasColor
+      : isAuthPage || isProfileActive
+        ? canvasColor
+        : surfaceColor;
 
   useEffect(() => {
     if (Platform.OS !== 'web') {
