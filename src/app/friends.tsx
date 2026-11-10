@@ -8,7 +8,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { friendsApi } from '@/features/friends/api/friends.api';
@@ -27,10 +27,22 @@ export default function FriendsScreen() {
   const { locale, theme } = useUi();
   const { isAuthenticated, user } = useAuth();
 
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const tabParam = params.tab?.toLowerCase();
+
   // If not logged in, default to 'suggestions' (Discover)
-  const [activeTab, setActiveTab] = useState<'all' | 'requests' | 'suggestions'>(
-    isAuthenticated ? 'all' : 'suggestions'
-  );
+  const [activeTab, setActiveTab] = useState<'all' | 'requests' | 'suggestions'>(() => {
+    if (tabParam === 'requests' || tabParam === 'suggestions' || tabParam === 'all') {
+      return tabParam;
+    }
+    return isAuthenticated ? 'all' : 'suggestions';
+  });
+
+  useEffect(() => {
+    if (tabParam === 'requests' || tabParam === 'suggestions' || tabParam === 'all') {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Cache-first state initialization to prevent flash/blinking on tab changes

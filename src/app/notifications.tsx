@@ -148,18 +148,44 @@ export default function NotificationsScreen() {
     switch (item.type) {
       case 'FRIEND_REQUEST':
       case 'FRIEND_ACCEPT':
-        router.push('/profile');
+        if (item.actor?.username) {
+          router.push(`/${item.actor.username}` as any);
+        } else {
+          router.push(
+            item.type === 'FRIEND_REQUEST'
+              ? ({ pathname: '/friends', params: { tab: 'requests' } } as any)
+              : ('/friends' as any)
+          );
+        }
         break;
+
       case 'POST_LIKE':
       case 'POST_COMMENT':
-        router.push('/');
+        if (item.entityId) {
+          router.push(`/post/${item.entityId}` as any);
+        } else if (item.actor?.username) {
+          router.push(`/${item.actor.username}` as any);
+        } else {
+          router.push('/');
+        }
         break;
+
       case 'BLOOD_REQUEST':
-        router.push('/blood?tab=activity' as any);
+        if (item.entityId && item.entityType === 'POST') {
+          router.push(`/post/${item.entityId}` as any);
+        } else {
+          router.push({ pathname: '/blood', params: { tab: 'activity' } } as any);
+        }
         break;
+
       default:
-        if (item.actor?.username) {
-          router.push('/profile');
+        if (
+          item.entityId &&
+          (item.entityType === 'POST' || item.entityType === 'COMMENT')
+        ) {
+          router.push(`/post/${item.entityId}` as any);
+        } else if (item.actor?.username) {
+          router.push(`/${item.actor.username}` as any);
         } else {
           router.push('/');
         }

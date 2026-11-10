@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
+import { router } from 'expo-router';
 import { AppIcon, AndroidSymbol } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import type { SFSymbol } from 'sf-symbols-typescript';
@@ -100,7 +101,16 @@ export function NotificationItemRow({
           : 'active:bg-[#e4e6eb]/70 dark:active:bg-[#3a3b3c]/60'
       }`}>
       {/* Avatar with badge */}
-      <View className="relative shrink-0">
+      <Pressable
+        onPress={(e) => {
+          if (item.actor?.username) {
+            e.stopPropagation();
+            router.push(`/${item.actor.username}` as any);
+          } else {
+            onPress(item);
+          }
+        }}
+        className="relative shrink-0 active:opacity-80">
         <UserAvatar
           avatarUrl={item.actor?.avatarUrl || (item.actor as any)?.avatar}
           name={actorName}
@@ -116,7 +126,7 @@ export function NotificationItemRow({
             color="#ffffff"
           />
         </View>
-      </View>
+      </Pressable>
 
       {/* Content */}
       <View className="flex-1 min-w-0 pr-1">
