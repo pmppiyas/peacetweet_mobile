@@ -690,7 +690,7 @@ export function MobileComposerModal() {
       visible={isComposerModalOpen}
       transparent
       statusBarTranslucent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={handleClose}>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
       <View

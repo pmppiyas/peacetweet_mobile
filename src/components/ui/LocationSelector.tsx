@@ -321,7 +321,7 @@ export function LocationSelector({
       {/* Searchable Picker Modal */}
       <Modal
         visible={activePicker !== null}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={() => setActivePicker(null)}>
         <SafeAreaView
@@ -331,7 +331,19 @@ export function LocationSelector({
             backgroundColor: 'rgba(0,0,0,0.5)',
             ...(Platform.OS === 'web' ? ({ zIndex: 99999 } as any) : {}),
           }}>
+          {/* Backdrop Tap to close */}
+          <Pressable
+            style={{ flex: 1 }}
+            onPress={() => setActivePicker(null)}
+            accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
+          />
+
           <View className="bg-white dark:bg-[#18191a] rounded-t-3xl max-h-[75%] border-t border-[#e6e9ef] dark:border-[#242526]">
+            {/* Handle Bar */}
+            <View className="items-center pt-2.5 pb-1">
+              <View className="w-10 h-1.2 rounded-full bg-[#ccd0d5] dark:bg-[#4e4f50]" />
+            </View>
+
             {/* Modal Top Header */}
             <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#e6e9ef] dark:border-[#242526]">
               <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
