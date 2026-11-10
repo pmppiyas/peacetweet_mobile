@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   View,
   Text,
@@ -11,6 +17,7 @@ import {
   Share,
   Modal,
   Platform,
+  Animated,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -179,6 +186,47 @@ export function ProfileView({
     null
   );
   const [isManagementDrawerOpen, setIsManagementDrawerOpen] = useState(false);
+
+  const slideAnim = useRef(new Animated.Value(380)).current;
+  const backdropAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isManagementDrawerOpen) {
+      slideAnim.setValue(380);
+      backdropAnim.setValue(0);
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          damping: 25,
+          stiffness: 220,
+          mass: 0.8,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ]).start();
+    }
+  }, [isManagementDrawerOpen, slideAnim, backdropAnim]);
+
+  const closeManagementDrawer = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 380,
+        duration: 180,
+        useNativeDriver: Platform.OS !== 'web',
+      }),
+      Animated.timing(backdropAnim, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: Platform.OS !== 'web',
+      }),
+    ]).start(() => {
+      setIsManagementDrawerOpen(false);
+    });
+  }, [slideAnim, backdropAnim]);
 
   // Sync bio input if user changes
   useEffect(() => {
@@ -1793,30 +1841,68 @@ export function ProfileView({
         onSave={handleSaveEditedPhoto}
       />
 
-      {/* Profile Management Drawer (Bottom Sheet) */}
+      {/* Profile Management Right Side Drawer */}
       <Modal
         visible={isManagementDrawerOpen}
         transparent
-        animationType="slide"
-        onRequestClose={() => setIsManagementDrawerOpen(false)}
+        statusBarTranslucent
+        animationType="none"
+        onRequestClose={closeManagementDrawer}
       >
-        <Pressable
-          onPress={() => setIsManagementDrawerOpen(false)}
-          className="flex-1 bg-black/50 justify-end items-center"
+        <Animated.View
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            backgroundColor: backdropAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)'],
+            }),
+          }}
         >
+          {/* Backdrop Tap Area */}
           <Pressable
-            onPress={(e) => e.stopPropagation()}
-            style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-            className="w-full max-w-lg rounded-t-3xl bg-white dark:bg-[#242526] border-t border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl overflow-hidden"
+            className="flex-1"
+            onPress={closeManagementDrawer}
+            accessibilityLabel={
+              locale === 'bn' ? 'ড্রয়ার বন্ধ করুন' : 'Close drawer'
+            }
+          />
+
+          {/* Right Sliding Drawer Panel */}
+          <Animated.View
+            style={[
+              {
+                paddingTop: insets.top,
+                paddingBottom: insets.bottom,
+                transform: [{ translateX: slideAnim }],
+              },
+            ]}
+            className="w-[86%] sm:w-[380px] max-w-[92%] h-full bg-white dark:bg-[#242526] border-l border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none"
           >
-            {/* Drag Handle Indicator */}
-            <View className="items-center pt-3 pb-1">
-              <View className="w-10 h-1.5 rounded-full bg-[#ccd0d5] dark:bg-[#4e4f50]" />
+            {/* Drawer Header */}
+            <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#e4e6eb] dark:border-[#393a3b]">
+              <View className="flex-row items-center gap-2">
+                <AppIcon android="more_vert" size={20} color="#0866FF" />
+                <Text className="text-[17.5px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
+                  {locale === 'bn' ? 'প্রোফাইল পরিচালনা' : 'Profile Management'}
+                </Text>
+              </View>
+
+              {/* Close Button */}
+              <Pressable
+                onPress={closeManagementDrawer}
+                hitSlop={6}
+                className="h-9 w-9 items-center justify-center rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] active:bg-[#e4e6eb] dark:active:bg-[#4e4f50]"
+                accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
+              >
+                <AppIcon android="close" size={20} color="#65676b" />
+              </Pressable>
             </View>
 
-            {/* Profile Drawer Header */}
-            <View className="flex-row items-center justify-between px-5 py-3 border-b border-[#e4e6eb]/80 dark:border-[#393a3b]/80">
-              <View className="flex-row items-center gap-3 flex-1 min-w-0 pr-2">
+            {/* Profile User Snapshot Card */}
+            <View className="p-4 border-b border-[#e4e6eb]/80 dark:border-[#393a3b]/80 bg-[#f7f8fa] dark:bg-[#1c1d1e]">
+              <View className="flex-row items-center gap-3">
                 <UserAvatar
                   name={displayUser.name}
                   avatarUrl={resolvedAvatarUrl}
@@ -1856,29 +1942,20 @@ export function ProfileView({
                   </Text>
                 </View>
               </View>
-
-              {/* Close Button */}
-              <Pressable
-                onPress={() => setIsManagementDrawerOpen(false)}
-                className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:scale-95"
-                accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
-              >
-                <AppIcon android="close" size={18} color="#65676b" />
-              </Pressable>
             </View>
 
-            {/* Options List */}
+            {/* Scrollable Actions List */}
             <ScrollView
-              className="max-h-[70vh] px-3 pt-2"
+              className="flex-1 p-3"
+              contentContainerStyle={{ paddingBottom: 24 }}
               showsVerticalScrollIndicator={false}
-              bounces={false}
             >
               {isOwner ? (
                 <>
                   {/* Option: Edit Profile Info */}
                   <Pressable
                     onPress={() => {
-                      setIsManagementDrawerOpen(false);
+                      closeManagementDrawer();
                       router.push('/settings/profile');
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
@@ -1904,7 +1981,7 @@ export function ProfileView({
                   {/* Option: Change Profile Picture */}
                   <Pressable
                     onPress={() => {
-                      setIsManagementDrawerOpen(false);
+                      closeManagementDrawer();
                       triggerPhotoPicker('avatar');
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
@@ -1934,7 +2011,7 @@ export function ProfileView({
                   {/* Option: Change Cover Banner */}
                   <Pressable
                     onPress={() => {
-                      setIsManagementDrawerOpen(false);
+                      closeManagementDrawer();
                       triggerPhotoPicker('cover');
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
@@ -2019,7 +2096,7 @@ export function ProfileView({
                   {/* Option: Saved Posts & Duas */}
                   <Pressable
                     onPress={() => {
-                      setIsManagementDrawerOpen(false);
+                      closeManagementDrawer();
                       setActiveTab('saved');
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
@@ -2045,7 +2122,7 @@ export function ProfileView({
                   {/* Option: Account Settings & Privacy */}
                   <Pressable
                     onPress={() => {
-                      setIsManagementDrawerOpen(false);
+                      closeManagementDrawer();
                       router.push('/settings');
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
@@ -2129,7 +2206,7 @@ export function ProfileView({
                   {/* Option: Send Message */}
                   <Pressable
                     onPress={() => {
-                      setIsManagementDrawerOpen(false);
+                      closeManagementDrawer();
                       handleMessagePress();
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]"
@@ -2154,7 +2231,7 @@ export function ProfileView({
                   {friendshipStatus === 'FRIENDS' && (
                     <Pressable
                       onPress={() => {
-                        setIsManagementDrawerOpen(false);
+                        closeManagementDrawer();
                         setUnfriendConfirmVisible(true);
                       }}
                       className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-rose-50 dark:active:bg-rose-950/30"
@@ -2185,7 +2262,7 @@ export function ProfileView({
                   {/* Option: Report Profile */}
                   <Pressable
                     onPress={() => {
-                      setIsManagementDrawerOpen(false);
+                      closeManagementDrawer();
                       router.push('/feedback');
                     }}
                     className="flex-row items-center gap-3.5 px-3 py-3 rounded-2xl active:bg-rose-50 dark:active:bg-rose-950/30"
@@ -2214,8 +2291,8 @@ export function ProfileView({
                 </>
               )}
             </ScrollView>
-          </Pressable>
-        </Pressable>
+          </Animated.View>
+        </Animated.View>
       </Modal>
     </ScrollView>
   );
