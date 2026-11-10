@@ -8,6 +8,7 @@ import { profileApi } from '@/features/profile/api/profile.api';
 import { UserProfileResponse, ProfileTab } from '@/features/profile/types/profile.types';
 import { ProfileView } from '@/features/profile/components/ProfileView';
 import { ProfileSkeleton } from '@/features/profile/components/ProfileSkeleton';
+import { queryCache } from '@/lib/cache/queryCache';
 
 const RESERVED_ROUTES = new Set([
   'categories',
@@ -85,8 +86,19 @@ export default function UserProfileScreen() {
     }
   }
 
-  const [profile, setProfile] = useState<UserProfileResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const cacheKey = `profile:${lowerUsername}`;
+  const [profile, setProfile] = useState<UserProfileResponse | null>(() => {
+    if (authUser && authUser.username?.toLowerCase() === lowerUsername) {
+      return authUser as unknown as UserProfileResponse;
+    }
+    return queryCache.get<UserProfileResponse>(cacheKey) || null;
+  });
+  const [isLoading, setIsLoading] = useState(() => {
+    if (authUser && authUser.username?.toLowerCase() === lowerUsername) {
+      return false;
+    }
+    return !queryCache.has(cacheKey);
+  });
   const [isError, setIsError] = useState(false);
 
   const isOwner = Boolean(
@@ -95,23 +107,34 @@ export default function UserProfileScreen() {
         authUser.id === profile?.id)
   );
 
-  const fetchProfile = useCallback(async () => {
-    if (!username) return;
-    setIsLoading(true);
-    setIsError(false);
-    try {
-      const data = await profileApi.getUserProfile(username);
-      setProfile(data);
-    } catch {
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [username]);
+  const fetchProfile = useCallback(
+    async (silent = false) => {
+      if (!username) return;
+      if (!silent) setIsLoading(true);
+      setIsError(false);
+      try {
+        const data = await profileApi.getUserProfile(username);
+        if (data) {
+          queryCache.set(cacheKey, data);
+          setProfile(data);
+        }
+      } catch {
+        if (!queryCache.has(cacheKey)) {
+          setIsError(true);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [username, cacheKey]
+  );
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    const hasCache =
+      queryCache.has(cacheKey) ||
+      Boolean(authUser && authUser.username?.toLowerCase() === lowerUsername);
+    fetchProfile(hasCache);
+  }, [fetchProfile, cacheKey, authUser, lowerUsername]);
 
   const tabParam = params.tab?.toLowerCase();
   const initialTab: ProfileTab =
@@ -152,7 +175,7 @@ export default function UserProfileScreen() {
 
             <View className="flex-row items-center gap-3 mt-6">
               <Pressable
-                onPress={fetchProfile}
+                onPress={() => fetchProfile(false)}
                 className="px-4 py-2.5 rounded-xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#e6e9ef] dark:bg-[#3a3b3c] active:scale-95">
                 <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
                   {locale === 'bn' ? 'আবার চেষ্টা করুন' : 'Try Again'}
@@ -178,7 +201,9 @@ export default function UserProfileScreen() {
       <ProfileView
         targetUser={isOwner ? authUser || profile : profile}
         initialTab={initialTab}
-        onRefreshProfile={fetchProfile}
+        onRefreshProfile={async () => {
+          await fetchProfile(true);
+        }}
         showBackButton={true}
       />
     </View>
