@@ -1283,7 +1283,7 @@ export function ProfileView({
                 <View className="flex-row gap-3.5 pt-1">
                   {[1, 2, 3, 4].map((i) => (
                     <View key={i} className="items-center space-y-1.5 gap-1.5" style={{ width: 78 }}>
-                      <Skeleton className="h-18 w-18 rounded-full" />
+                      <Skeleton style={{ width: 68, height: 68, borderRadius: 34 }} />
                       <Skeleton className="h-3 w-16 rounded-md" />
                       <Skeleton className="h-2.5 w-12 rounded-md" />
                     </View>
@@ -1312,7 +1312,10 @@ export function ProfileView({
                       className="items-center active:opacity-80"
                       style={{ width: 78 }}
                     >
-                      <View className="h-18 w-18 rounded-full bg-primary-100 dark:bg-primary-900/40 border border-[#e4e6eb] dark:border-[#393a3b] overflow-hidden items-center justify-center">
+                      <View
+                        style={{ width: 68, height: 68, borderRadius: 34 }}
+                        className="bg-primary-100 dark:bg-primary-900/40 border border-[#e4e6eb] dark:border-[#393a3b] overflow-hidden items-center justify-center shadow-xs"
+                      >
                         {f.user.avatar || (f.user as any).avatarUrl ? (
                           <Image
                             source={{
@@ -1320,12 +1323,12 @@ export function ProfileView({
                                 f.user.avatar || (f.user as any).avatarUrl
                               ),
                             }}
-                            className="w-full h-full rounded-full"
+                            style={{ width: 68, height: 68, borderRadius: 34 }}
                             resizeMode="cover"
                           />
                         ) : (
-                          <Text className="text-primary-700 dark:text-primary-300 font-bold text-lg">
-                            {f.user.name?.charAt(0) || 'U'}
+                          <Text className="text-primary-700 dark:text-primary-300 font-bold text-2xl">
+                            {f.user.name?.charAt(0)?.toUpperCase() || 'U'}
                           </Text>
                         )}
                       </View>

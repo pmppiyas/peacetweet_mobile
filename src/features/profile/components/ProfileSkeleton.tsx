@@ -52,7 +52,7 @@ export function ProfileSkeleton() {
         {/* Top-left Back button placeholder */}
         <View className="absolute top-3 left-3 z-30 h-9 w-9 rounded-full bg-black/20" />
         {/* Top-right Share button placeholder */}
-        <View className="absolute top-3 right-3 z-30 h-9 w-18 rounded-full bg-black/20" />
+        <View className="absolute top-3 right-3 z-30 h-9 w-20 rounded-full bg-black/20" />
       </View>
 
       {/* 2. Profile Details & Bio & Action Buttons (Hero Card) */}
@@ -98,9 +98,9 @@ export function ProfileSkeleton() {
       <View className="bg-white dark:bg-[#18191a] border-b border-[#e4e6eb]/70 dark:border-[#393a3b]/70 py-2.5">
         <View className="w-full max-w-[768px] mx-auto flex-row items-center gap-2 px-4">
           <Skeleton className="h-8 w-24 rounded-full" />
-          <Skeleton className="h-8 w-18 rounded-full" />
+          <Skeleton className="h-8 w-20 rounded-full" />
           <Skeleton className="h-8 w-22 rounded-full" />
-          <Skeleton className="h-8 w-18 rounded-full" />
+          <Skeleton className="h-8 w-20 rounded-full" />
         </View>
       </View>
 
@@ -143,7 +143,7 @@ export function ProfileSkeleton() {
           <View className="flex-row gap-3.5 pt-1">
             {[1, 2, 3, 4].map((i) => (
               <View key={i} className="items-center space-y-1.5 gap-1.5" style={{ width: 78 }}>
-                <Skeleton className="h-18 w-18 rounded-full" />
+                <Skeleton style={{ width: 68, height: 68, borderRadius: 34 }} />
                 <Skeleton className="h-3 w-16 rounded-md" />
                 <Skeleton className="h-2.5 w-12 rounded-md" />
               </View>
