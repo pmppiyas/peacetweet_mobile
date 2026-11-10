@@ -789,14 +789,24 @@ export function ProfileView({
           )}
         </View>
 
-        {/* Name & Verified Badge */}
+        {/* Name & Verification Badge */}
         <View className="flex-row items-center justify-center gap-1.5 mt-2.5">
           <Text className="text-xl sm:text-2xl font-black text-[#050505] dark:text-[#e4e6eb] tracking-tight text-center">
             {displayUser.name}
           </Text>
-          {displayUser.userStatus === 'VERIFIED' && (
-            <AppIcon android="verified" size={20} color="#0866FF" />
-          )}
+          <AppIcon
+            android="verified_user"
+            size={18}
+            color={
+              displayUser.userStatus === 'VERIFIED'
+                ? '#0866FF'
+                : displayUser.userStatus === 'PREMIUM'
+                  ? '#d97706'
+                  : theme === 'dark'
+                    ? '#b0b3b8'
+                    : '#65676b'
+            }
+          />
         </View>
 
         {/* @username */}
@@ -804,79 +814,46 @@ export function ProfileView({
           @{displayUser.username || 'user'}
         </Text>
 
-        {/* Badges Row */}
-        <View className="flex-row flex-wrap items-center justify-center gap-1.5 mt-2.5">
-          {/* Verification Badge */}
-          {displayUser.userStatus === 'VERIFIED' ? (
-            <View className="flex-row items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 border border-blue-200 dark:border-blue-900">
-              <AppIcon android="verified" size={13} color="#0866FF" />
-              <Text className="text-[11px] font-bold text-blue-600 dark:text-blue-300">
-                {locale === 'bn' ? 'ভেরিফাইড' : 'Verified'}
-              </Text>
-            </View>
-          ) : displayUser.userStatus === 'PREMIUM' ? (
-            <View className="flex-row items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 border border-amber-200 dark:border-amber-800">
-              <AppIcon android="auto_awesome" size={13} color="#d97706" />
-              <Text className="text-[11px] font-bold text-amber-600 dark:text-amber-300">
-                {locale === 'bn' ? 'প্রিমিয়াম' : 'Premium'}
-              </Text>
-            </View>
-          ) : (
-            <View className="flex-row items-center gap-1 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] px-2.5 py-0.5 border border-[#e4e6eb] dark:border-[#4e4f50]">
-              <AppIcon android="verified_user" size={13} color="#65676b" />
-              <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn' ? 'নন-ভেরিফাইড' : 'Non-verified'}
-              </Text>
-            </View>
-          )}
+        {/* Badges Row (Special Badges & Blood Group only) */}
+        {((displayUser.badges &&
+          displayUser.badges.some(
+            (b: UserBadge) =>
+              b.name !== 'STANDARD MEMBER' &&
+              b.name !== 'NON VERIFIED' &&
+              b.name !== 'VERIFIED'
+          )) ||
+          Boolean(bloodGroupLabel)) && (
+          <View className="flex-row flex-wrap items-center justify-center gap-1.5 mt-2.5">
+            {/* Dynamic Badges */}
+            {displayUser.badges
+              ?.filter(
+                (b: UserBadge) =>
+                  b.name !== 'STANDARD MEMBER' &&
+                  b.name !== 'NON VERIFIED' &&
+                  b.name !== 'VERIFIED'
+              )
+              .map((b: UserBadge) => (
+                <View
+                  key={b.id || b.name}
+                  className="flex-row items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 border border-emerald-200 dark:border-emerald-800">
+                  <AppIcon android="how_to_reg" size={13} color="#059669" />
+                  <Text className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                    {b.name}
+                  </Text>
+                </View>
+              ))}
 
-          {/* Dynamic Badges */}
-          {displayUser.badges
-            ?.filter(
-              (b: UserBadge) =>
-                b.name !== 'STANDARD MEMBER' &&
-                b.name !== 'NON VERIFIED' &&
-                b.name !== 'VERIFIED'
-            )
-            .map((b: UserBadge) => (
-              <View
-                key={b.id || b.name}
-                className="flex-row items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 border border-emerald-200 dark:border-emerald-800">
-                <AppIcon android="how_to_reg" size={13} color="#059669" />
-                <Text className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                  {b.name}
+            {/* Blood Group */}
+            {bloodGroupLabel && (
+              <View className="flex-row items-center gap-1 rounded-full bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 border border-rose-200 dark:border-rose-900">
+                <AppIcon android="water_drop" size={13} color="#e11d48" />
+                <Text className="text-[11px] font-bold text-rose-600 dark:text-rose-300">
+                  Blood: {bloodGroupLabel}
                 </Text>
               </View>
-            ))}
-
-          {/* Blood Group */}
-          {bloodGroupLabel && (
-            <View className="flex-row items-center gap-1 rounded-full bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 border border-rose-200 dark:border-rose-900">
-              <AppIcon android="water_drop" size={13} color="#e11d48" />
-              <Text className="text-[11px] font-bold text-rose-600 dark:text-rose-300">
-                Blood: {bloodGroupLabel}
-              </Text>
-            </View>
-          )}
-
-          {/* Connected friends count pill */}
-          {totalFriends > 0 && (
-            <Pressable
-              onPress={() => setActiveTab('friends')}
-              className="flex-row items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 border border-indigo-200 dark:border-indigo-800"
-            >
-              <AppIcon android="group" size={13} color="#4f46e5" />
-              <Text className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
-                {totalFriends}{' '}
-                {locale === 'bn'
-                  ? 'বন্ধু'
-                  : totalFriends === 1
-                    ? 'friend'
-                    : 'friends'}
-              </Text>
-            </Pressable>
-          )}
-        </View>
+            )}
+          </View>
+        )}
 
         {/* Bio Section */}
         <View className="w-full max-w-md mt-3 items-center">
