@@ -229,29 +229,40 @@ export default function EditProfileScreen() {
 
       const asset = result.assets[0];
 
-      // Parse safe extension and MIME type
+      // Parse safe extension and MIME type for ANY image format
+      let mimeType = (asset.mimeType || '').toLowerCase().trim();
       let ext = 'jpg';
-      if (asset.mimeType) {
-        const parts = asset.mimeType.split('/');
-        if (parts.length > 1 && parts[1]) {
-          ext = parts[1].toLowerCase();
-          if (ext === 'jpeg') ext = 'jpg';
-        }
+
+      if (mimeType.startsWith('image/')) {
+        const subtype = mimeType.replace('image/', '').split(';')[0].trim();
+        ext = subtype === 'jpeg' ? 'jpg' : subtype;
       } else if (asset.uri) {
         const cleanUri = asset.uri.split('?')[0];
         const uriExt = cleanUri.split('.').pop()?.toLowerCase();
-        if (uriExt && ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(uriExt)) {
+        if (
+          uriExt &&
+          /^(jpg|jpeg|png|webp|gif|svg|heic|heif|avif|bmp|tiff|ico)$/.test(
+            uriExt
+          )
+        ) {
           ext = uriExt === 'jpeg' ? 'jpg' : uriExt;
         }
       }
 
-      const mimeType =
-        ext === 'png'
-          ? 'image/png'
-          : ext === 'webp'
-            ? 'image/webp'
-            : 'image/jpeg';
-      const filename = asset.fileName || `${type}_${Date.now()}.${ext}`;
+      if (!mimeType || !mimeType.startsWith('image/')) {
+        if (ext === 'png') mimeType = 'image/png';
+        else if (ext === 'webp') mimeType = 'image/webp';
+        else if (ext === 'gif') mimeType = 'image/gif';
+        else if (ext === 'svg') mimeType = 'image/svg+xml';
+        else if (ext === 'heic') mimeType = 'image/heic';
+        else if (ext === 'heif') mimeType = 'image/heif';
+        else if (ext === 'avif') mimeType = 'image/avif';
+        else if (ext === 'bmp') mimeType = 'image/bmp';
+        else mimeType = 'image/jpeg';
+      }
+
+      const filename =
+        asset.fileName || `${type}_${Date.now()}.${ext === 'jpeg' ? 'jpg' : ext}`;
 
       const fileObj: UploadableImage = {
         uri: asset.uri,
