@@ -569,7 +569,59 @@ export default function EditProfileScreen() {
           </View>
 
           {/* ======================================================== */}
-          {/* 4. Customize Details (Location & Blood Donation)         */}
+          {/* 4. Basic Information (Name & Username)                   */}
+          {/* ======================================================== */}
+          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs gap-3.5">
+            <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb] pb-3 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+              {locale === 'bn' ? 'মৌলিক তথ্য' : 'Basic info'}
+            </Text>
+
+            {/* Name */}
+            <View className="gap-1.5">
+              <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'পুরো নাম *' : 'Full Name *'}
+              </Text>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder={
+                  locale === 'bn' ? 'আপনার নাম লিখুন' : 'Enter your name'
+                }
+                placeholderTextColor="#8a8d91"
+                className="w-full h-12 rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 px-3.5 text-sm text-[#050505] dark:text-[#e4e6eb] font-medium"
+              />
+            </View>
+
+            {/* Username */}
+            <View className="gap-1.5">
+              <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'ইউজারনেম' : 'Username'}
+              </Text>
+              <TextInput
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                placeholder="username"
+                placeholderTextColor="#8a8d91"
+                className="w-full h-12 rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 px-3.5 text-sm text-[#050505] dark:text-[#e4e6eb] font-medium"
+              />
+            </View>
+
+            {/* Email (Readonly) */}
+            <View className="gap-1.5">
+              <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                {locale === 'bn' ? 'ইমেইল (অপরিবর্তনীয়)' : 'Email (Read only)'}
+              </Text>
+              <TextInput
+                value={user?.email || ''}
+                editable={false}
+                className="w-full h-12 rounded-xl border border-transparent bg-[#e4e6eb]/50 dark:bg-[#3a3b3c]/30 px-3.5 text-sm text-[#65676b] dark:text-[#b0b3b8]"
+              />
+            </View>
+          </View>
+
+          {/* ======================================================== */}
+          {/* 5. Customize Details (Location & Blood Donation)         */}
           {/* ======================================================== */}
           <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs gap-4">
             <View className="pb-3 border-b border-[#f0f2f5] dark:border-[#393a3b]">
@@ -698,58 +750,6 @@ export default function EditProfileScreen() {
                   />
                 </View>
               )}
-            </View>
-          </View>
-
-          {/* ======================================================== */}
-          {/* 5. Basic Information (Name & Username)                   */}
-          {/* ======================================================== */}
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs gap-3.5">
-            <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb] pb-3 border-b border-[#f0f2f5] dark:border-[#393a3b]">
-              {locale === 'bn' ? 'মৌলিক তথ্য' : 'Basic info'}
-            </Text>
-
-            {/* Name */}
-            <View className="gap-1.5">
-              <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]">
-                {locale === 'bn' ? 'পুরো নাম *' : 'Full Name *'}
-              </Text>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder={
-                  locale === 'bn' ? 'আপনার নাম লিখুন' : 'Enter your name'
-                }
-                placeholderTextColor="#8a8d91"
-                className="w-full h-12 rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 px-3.5 text-sm text-[#050505] dark:text-[#e4e6eb] font-medium"
-              />
-            </View>
-
-            {/* Username */}
-            <View className="gap-1.5">
-              <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]">
-                {locale === 'bn' ? 'ইউজারনেম' : 'Username'}
-              </Text>
-              <TextInput
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-                placeholder="username"
-                placeholderTextColor="#8a8d91"
-                className="w-full h-12 rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 px-3.5 text-sm text-[#050505] dark:text-[#e4e6eb] font-medium"
-              />
-            </View>
-
-            {/* Email (Readonly) */}
-            <View className="gap-1.5">
-              <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn' ? 'ইমেইল (অপরিবর্তনীয়)' : 'Email (Read only)'}
-              </Text>
-              <TextInput
-                value={user?.email || ''}
-                editable={false}
-                className="w-full h-12 rounded-xl border border-transparent bg-[#e4e6eb]/50 dark:bg-[#3a3b3c]/30 px-3.5 text-sm text-[#65676b] dark:text-[#b0b3b8]"
-              />
             </View>
           </View>
 
