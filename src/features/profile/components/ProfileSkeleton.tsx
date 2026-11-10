@@ -44,7 +44,8 @@ export function PostCardSkeleton() {
 export function ProfileSkeleton() {
   return (
     <ScrollView
-      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      className="flex-1 bg-white dark:bg-[#18191a]"
+      contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}
     >
       {/* 1. Cover Photo Banner */}
@@ -105,7 +106,7 @@ export function ProfileSkeleton() {
       </View>
 
       {/* 4. Overview Tab Content (Flat Layout) */}
-      <View className="w-full max-w-[768px] mx-auto px-0 pb-6 mt-1 bg-white dark:bg-[#18191a]">
+      <View className="w-full max-w-[768px] mx-auto px-0 pb-6 mt-1 bg-white dark:bg-[#18191a] flex-1">
         {/* At a glance */}
         <View className="px-4 py-4 space-y-3.5 gap-3.5">
           <View className="flex-row items-center justify-between mb-1">

@@ -620,6 +620,7 @@ export function ProfileView({
   return (
     <ScrollView
       className="flex-1 bg-white dark:bg-[#18191a]"
+      contentContainerStyle={{ flexGrow: 1 }}
       stickyHeaderIndices={Platform.OS === 'web' ? undefined : [2]}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
@@ -1175,7 +1176,7 @@ export function ProfileView({
       </View>
 
       {/* 4. Tab Contents */}
-      <View className="w-full max-w-[768px] mx-auto px-0 pb-3 mt-1">
+      <View className="w-full max-w-[768px] mx-auto px-0 pb-3 mt-1 flex-1">
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <View className="bg-white dark:bg-[#18191a] pb-6">
@@ -1470,7 +1471,7 @@ export function ProfileView({
 
         {/* POSTS TAB */}
         {activeTab === 'posts' && (
-          <View className="space-y-2 gap-2 bg-white dark:bg-[#18191a]">
+          <View className="space-y-2 gap-2 bg-white dark:bg-[#18191a] flex-1">
             {isPostsLoading ? (
               <>
                 <PostCardSkeleton />
@@ -1478,9 +1479,9 @@ export function ProfileView({
                 <PostCardSkeleton />
               </>
             ) : posts.length === 0 ? (
-              <View className="bg-white dark:bg-[#18191a] p-8 items-center justify-center">
-                <AppIcon android="article" size={32} color="#65676b" />
-                <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] mt-3">
+              <View className="flex-1 min-h-[320px] bg-white dark:bg-[#18191a] p-8 items-center justify-center">
+                <AppIcon android="article" size={38} color="#65676b" />
+                <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] mt-3">
                   {locale === 'bn' ? 'কোনো পোস্ট নেই' : 'No Posts Found'}
                 </Text>
                 <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center mt-1">
@@ -1504,7 +1505,7 @@ export function ProfileView({
 
         {/* FRIENDS TAB */}
         {activeTab === 'friends' && (
-          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5">
+          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5 flex-1">
             <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
               <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                 {locale === 'bn' ? 'সকল বন্ধু' : 'All Friends'} ({totalFriends})
@@ -1529,9 +1530,9 @@ export function ProfileView({
                 ))}
               </View>
             ) : friends.length === 0 ? (
-              <View className="py-8 items-center justify-center">
-                <AppIcon android="group" size={32} color="#65676b" />
-                <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+              <View className="flex-1 min-h-[280px] items-center justify-center py-10">
+                <AppIcon android="group" size={38} color="#65676b" />
+                <Text className="text-[15px] text-[#65676b] dark:text-[#b0b3b8] mt-3 font-semibold text-center">
                   {locale === 'bn'
                     ? 'কোনো বন্ধু পাওয়া যায়নি।'
                     : 'No connected friends found.'}
@@ -1580,7 +1581,7 @@ export function ProfileView({
 
         {/* GROUPS TAB */}
         {activeTab === 'groups' && (
-          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5">
+          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5 flex-1">
             <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
               <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                 {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} ({groups.length})
@@ -1605,9 +1606,9 @@ export function ProfileView({
                 ))}
               </View>
             ) : groups.length === 0 ? (
-              <View className="py-8 items-center justify-center">
-                <AppIcon android="groups" size={32} color="#65676b" />
-                <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+              <View className="flex-1 min-h-[280px] items-center justify-center py-10">
+                <AppIcon android="groups" size={38} color="#65676b" />
+                <Text className="text-[15px] text-[#65676b] dark:text-[#b0b3b8] mt-3 font-semibold text-center">
                   {locale === 'bn'
                     ? 'কোনো গ্রুপ পাওয়া যায়নি।'
                     : 'No groups joined yet.'}
@@ -1669,7 +1670,7 @@ export function ProfileView({
 
         {/* SAVED TAB (Owner only) */}
         {activeTab === 'saved' && isOwner && (
-          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5">
+          <View className="bg-white dark:bg-[#18191a] p-4 sm:p-5 flex-1">
             <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
               <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                 {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} (
@@ -1703,9 +1704,9 @@ export function ProfileView({
                 ))}
               </View>
             ) : savedItems.length === 0 ? (
-              <View className="py-8 items-center justify-center">
-                <AppIcon android="bookmark" size={32} color="#65676b" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+              <View className="flex-1 min-h-[280px] items-center justify-center py-10">
+                <AppIcon android="bookmark" size={38} color="#65676b" />
+                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-3 font-medium text-center">
                   {locale === 'bn'
                     ? 'কোনো সংরক্ষিত আইটেম নেই।'
                     : 'No saved items found.'}
