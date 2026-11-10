@@ -41,6 +41,8 @@ export function MobileNav() {
   const isInsideActiveChat =
     isMessagesActive && Boolean(activeConversationId);
 
+  const isSettingsProfile = pathname === '/settings/profile';
+
   // NOTE: MobileNav intentionally stays mounted while the photo viewer is open
   // (the viewer fully covers it) so the feed layout never resizes/jumps.
   if (
@@ -48,7 +50,8 @@ export function MobileNav() {
     isPostViewerPage ||
     isInsideActiveChat ||
     isSearchOpen ||
-    isProfileActive
+    isProfileActive ||
+    isSettingsProfile
   )
     return null;
 

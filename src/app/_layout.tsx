@@ -189,9 +189,14 @@ function AppShell() {
     pathname === '/messages' || pathname.startsWith('/messages/');
   const isInsideActiveChat =
     isMessagesActive && Boolean(activeConversationId);
+  const isSettingsProfile = pathname === '/settings/profile';
 
   const showTopNav =
-    !isAuthPage && !isPostViewerPage && !isInsideActiveChat && !isProfileActive;
+    !isAuthPage &&
+    !isPostViewerPage &&
+    !isInsideActiveChat &&
+    !isProfileActive &&
+    !isSettingsProfile;
   const showBottomNav = showTopNav && !isSearchOpen;
   const showSearchOverlay = isSearchOpen && !isMessagesActive;
   const isFullBleedRoute = COLLAPSIBLE_NAV_ROUTES.has(pathname);
@@ -222,13 +227,13 @@ function AppShell() {
 
   const topSafeColor = isPhotoViewerActive
     ? photoViewerColor
-    : isAuthPage || isProfileActive
+    : isAuthPage || isProfileActive || isSettingsProfile
       ? canvasColor
       : surfaceColor;
 
   const bottomSafeColor = isPhotoViewerActive
     ? photoViewerColor
-    : isAuthPage || isProfileActive
+    : isAuthPage || isProfileActive || isSettingsProfile
       ? canvasColor
       : surfaceColor;
 

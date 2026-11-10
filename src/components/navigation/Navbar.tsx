@@ -126,7 +126,14 @@ export function Navbar() {
     }
   }, [pathname]);
 
-  if (isAuthPage || isPostViewerPage || isInsideActiveChat || isProfileActive) {
+  const isSettingsProfile = pathname === '/settings/profile';
+  if (
+    isAuthPage ||
+    isPostViewerPage ||
+    isInsideActiveChat ||
+    isProfileActive ||
+    isSettingsProfile
+  ) {
     return null;
   }
 

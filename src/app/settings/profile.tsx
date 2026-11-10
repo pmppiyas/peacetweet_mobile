@@ -45,7 +45,7 @@ const BLOOD_GROUPS: { value: BloodGroup | 'NONE'; label: string }[] = [
 ];
 
 export default function EditProfileScreen() {
-  const { locale, theme } = useUi();
+  const { locale, theme, setIsProfileActive } = useUi();
   const {
     user,
     setUser,
@@ -54,6 +54,13 @@ export default function EditProfileScreen() {
     isLoading: isAuthLoading,
   } = useAuth();
   const { refreshFeed } = useFeed();
+
+  useEffect(() => {
+    setIsProfileActive(true);
+    return () => {
+      setIsProfileActive(false);
+    };
+  }, [setIsProfileActive]);
 
   // Form States
   const [name, setName] = useState('');
@@ -298,7 +305,7 @@ export default function EditProfileScreen() {
               if (router.canGoBack()) {
                 router.back();
               } else {
-                router.replace('/settings');
+                router.replace('/profile');
               }
             }}
             className="h-9 w-9 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] items-center justify-center active:scale-95">
