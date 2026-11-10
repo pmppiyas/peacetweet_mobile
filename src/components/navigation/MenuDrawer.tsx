@@ -242,7 +242,7 @@ export function MenuDrawer() {
                 height: '100%',
               },
             ]}
-            className="w-[88%] sm:w-[380px] max-w-[90%] border-l border-t border-b border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none rounded-tl-2xl rounded-bl-2xl overflow-hidden"
+            className="w-[88%] sm:w-[380px] max-w-[90%] border-l border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none overflow-hidden"
           >
           {/* Drawer Header */}
           <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#e4e6eb] dark:border-[#393a3b] select-none">
