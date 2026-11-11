@@ -656,13 +656,10 @@ export default function EditProfileScreen() {
                   </View>
                 ) : null}
 
-                {/* Edit Cover Overlay Pill - only when image exists */}
+                {/* Edit Cover Overlay Icon - only when image exists */}
                 {Boolean(coverUrl) ? (
-                  <View className="absolute bottom-2.5 right-2.5 bg-black/65 px-3 py-1.5 rounded-xl flex-row items-center gap-1.5">
-                    <AppIcon android="photo_camera" size={14} color="#ffffff" />
-                    <Text className="text-white text-xs font-bold">
-                      {locale === 'bn' ? 'কভার পরিবর্তন' : 'Edit'}
-                    </Text>
+                  <View className="absolute bottom-3 right-3 p-1 items-center justify-center">
+                    <AppIcon android="photo_camera" size={22} color="#ffffff" />
                   </View>
                 ) : null}
               </Pressable>

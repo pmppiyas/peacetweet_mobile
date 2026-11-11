@@ -840,12 +840,16 @@ export function ProfileView({
           <Pressable
             onPress={() => triggerPhotoPicker('cover')}
             disabled={isSavingPhoto}
-            className="absolute bottom-3 right-3 z-30 h-8 px-2.5 rounded-full bg-black/35 flex-row items-center gap-1 active:scale-95"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            className="absolute bottom-3 right-3 z-30 p-1 items-center justify-center active:scale-90 active:opacity-75"
+            accessibilityLabel={
+              locale === 'bn' ? 'কভার ছবি পরিবর্তন' : 'Change cover photo'
+            }
           >
             {isSavingPhoto && photoEditorMode === 'cover' ? (
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
-              <AppIcon android="photo_camera" size={14} color="#ffffff" />
+              <AppIcon android="photo_camera" size={22} color="#ffffff" />
             )}
           </Pressable>
         ) : null}
