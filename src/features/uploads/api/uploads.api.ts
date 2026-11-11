@@ -66,6 +66,7 @@ export const uploadsApi = {
         httpMethod: 'POST',
         uploadType: FileSystem.FileSystemUploadType.MULTIPART,
         fieldName: 'file',
+        mimeType: nativeFile.type || 'image/jpeg',
         headers,
       });
 

@@ -46,6 +46,7 @@ import { User, BloodGroup, UserBadge } from '@/types/user.types';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { PostCardSkeleton } from './ProfileSkeleton';
 import { PhotoEditorModal, PhotoEditorMode } from './PhotoEditorModal';
+import * as ImagePicker from 'expo-image-picker';
 import {
   uploadsApi,
   normalizeMediaUrl,
@@ -188,9 +189,6 @@ export function ProfileView({
   const [photoEditorSrc, setPhotoEditorSrc] = useState<string | null>(null);
   const [isPhotoEditorOpen, setIsPhotoEditorOpen] = useState(false);
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
-  const [photoMenuType, setPhotoMenuType] = useState<PhotoEditorMode | null>(
-    null
-  );
   const [isManagementDrawerOpen, setIsManagementDrawerOpen] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(380)).current;
@@ -476,9 +474,125 @@ export function ProfileView({
     }
   };
 
-  // Trigger file picker directly on the profile page -> opens PhotoEditorModal
-  const triggerPhotoPicker = (mode: PhotoEditorMode) => {
-    setPhotoMenuType(null);
+  // Trigger file picker directly on the profile page
+  // On Web: Opens file input then PhotoEditorModal so position & size can be adjusted during upload
+  // On Mobile: Opens native ImagePicker with crop/reposition option, then uploads & saves
+  const triggerPhotoPicker = async (mode: PhotoEditorMode) => {
+    setPhotoEditorMode(mode);
+
+    if (Platform.OS !== 'web') {
+      try {
+        let hasPermission = true;
+        try {
+          const permStatus = await ImagePicker.getMediaLibraryPermissionsAsync();
+          if (!permStatus.granted && permStatus.canAskAgain) {
+            const reqStatus =
+              await ImagePicker.requestMediaLibraryPermissionsAsync();
+            hasPermission = reqStatus.granted;
+          } else if (permStatus.granted) {
+            hasPermission = true;
+          } else {
+            hasPermission = Platform.OS === 'android';
+          }
+        } catch {
+          hasPermission = Platform.OS === 'android';
+        }
+
+        let result: ImagePicker.ImagePickerResult;
+        try {
+          result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: mode === 'avatar' ? [1, 1] : [16, 9],
+            quality: 0.85,
+          });
+        } catch {
+          result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: false,
+            quality: 0.85,
+          });
+        }
+
+        if (result.canceled || !result.assets?.length) return;
+
+        const asset = result.assets[0];
+        let mimeType = (asset.mimeType || '').toLowerCase().trim();
+        let ext = 'jpg';
+
+        if (mimeType.startsWith('image/')) {
+          const subtype = mimeType.replace('image/', '').split(';')[0].trim();
+          ext = subtype === 'jpeg' ? 'jpg' : subtype;
+        } else if (asset.uri) {
+          const cleanUri = asset.uri.split('?')[0];
+          const uriExt = cleanUri.split('.').pop()?.toLowerCase();
+          if (
+            uriExt &&
+            [
+              'png',
+              'jpg',
+              'jpeg',
+              'webp',
+              'gif',
+              'svg',
+              'heic',
+              'heif',
+              'avif',
+              'bmp',
+            ].includes(uriExt)
+          ) {
+            ext = uriExt === 'jpeg' ? 'jpg' : uriExt;
+          }
+        }
+
+        if (!mimeType || !mimeType.startsWith('image/')) {
+          if (ext === 'png') mimeType = 'image/png';
+          else if (ext === 'webp') mimeType = 'image/webp';
+          else if (ext === 'gif') mimeType = 'image/gif';
+          else mimeType = 'image/jpeg';
+        }
+
+        const filename =
+          asset.fileName ||
+          `${mode}_${Date.now()}.${ext === 'jpeg' ? 'jpg' : ext}`;
+        const fileObj = {
+          uri: asset.uri,
+          name: filename,
+          type: mimeType,
+        };
+
+        setIsSavingPhoto(true);
+        try {
+          const res = await uploadsApi.uploadImage(fileObj, filename);
+          if (res?.url) {
+            const updatePayload =
+              mode === 'avatar'
+                ? { avatarUrl: res.url }
+                : { coverUrl: res.url };
+            const updatedUser = await profileApi.updateProfile(updatePayload);
+            const mergedUser = {
+              ...(authUser || displayUser),
+              ...(updatedUser || {}),
+              ...updatePayload,
+            } as User;
+            setUser(mergedUser);
+            await Promise.all([
+              fetchPosts(),
+              refreshFeed(),
+              onRefreshProfile ? onRefreshProfile() : Promise.resolve(),
+            ]);
+          }
+        } catch (uploadErr) {
+          console.warn('[ProfileView] Upload failed:', uploadErr);
+        } finally {
+          setIsSavingPhoto(false);
+        }
+      } catch (err) {
+        console.warn('[ProfileView] Photo picker error:', err);
+      }
+      return;
+    }
+
     if (typeof document === 'undefined') return;
 
     const input = document.createElement('input');
@@ -502,31 +616,6 @@ export function ProfileView({
         input.parentNode.removeChild(input);
       }
     }, 1000);
-  };
-
-  // Open existing photo in PhotoEditorModal for reposition & resize
-  const openRepositionEditor = (mode: PhotoEditorMode) => {
-    setPhotoMenuType(null);
-    const currentUrl =
-      mode === 'avatar' ? displayUser?.avatarUrl : displayUser?.coverUrl;
-    if (!currentUrl) {
-      triggerPhotoPicker(mode);
-      return;
-    }
-    setPhotoEditorMode(mode);
-    setPhotoEditorSrc(normalizeMediaUrl(currentUrl));
-    setIsPhotoEditorOpen(true);
-  };
-
-  // Handle click on Cover "Edit Cover" or Avatar camera button
-  const handlePhotoActionPress = (mode: PhotoEditorMode) => {
-    const currentUrl =
-      mode === 'avatar' ? displayUser?.avatarUrl : displayUser?.coverUrl;
-    if (currentUrl) {
-      setPhotoMenuType((prev) => (prev === mode ? null : mode));
-    } else {
-      triggerPhotoPicker(mode);
-    }
   };
 
   // Save cropped/repositioned photo to server, auto-create post, and update profile immediately
@@ -566,7 +655,6 @@ export function ProfileView({
 
   // Facebook-style: clicking Profile Picture or Cover Photo navigates INSTANTLY (0ms delay) to /post/[postId]
   const handleOpenPhotoPost = (mode: PhotoEditorMode) => {
-    setPhotoMenuType(null);
     if (!displayUser) return;
 
     const rawUrl =
@@ -730,7 +818,7 @@ export function ProfileView({
                 router.replace('/');
               }
             }}
-            className="absolute top-3 left-3 z-30 h-9 w-9 rounded-full bg-black/50 items-center justify-center active:scale-95"
+            className="absolute top-3 left-3 z-30 h-9 w-9 rounded-full bg-black/35 items-center justify-center active:scale-95"
           >
             <AppIcon android="arrow_back" size={20} color="#ffffff" />
           </Pressable>
@@ -739,7 +827,7 @@ export function ProfileView({
         {/* Profile Management Menu Button (3 vertical dots) */}
         <Pressable
           onPress={() => setIsManagementDrawerOpen(true)}
-          className="absolute top-3 right-3 z-30 h-9 w-9 rounded-full bg-black/50 items-center justify-center active:scale-95 shadow-sm"
+          className="absolute top-3 right-3 z-30 h-9 w-9 rounded-full bg-black/35 items-center justify-center active:scale-95"
           accessibilityLabel={
             locale === 'bn' ? 'প্রোফাইল ব্যবস্থাপনা' : 'Profile Management'
           }
@@ -747,39 +835,19 @@ export function ProfileView({
           <AppIcon android="more_vert" size={20} color="#ffffff" />
         </Pressable>
 
-        {/* Edit Cover Action Menu & Button for Owner */}
+        {/* Edit Cover Action Button for Owner */}
         {isOwner ? (
-          <>
-            {photoMenuType === 'cover' && Boolean(resolvedCoverUrl) ? (
-              <View className="absolute bottom-12 right-3 z-40 rounded-xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl overflow-hidden min-w-[190px]">
-                <Pressable
-                  onPress={() => triggerPhotoPicker('cover')}
-                  className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b] active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
-                >
-                  <AppIcon android="photo_camera" size={16} color="#0866FF" />
-                  <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
-                    {locale === 'bn' ? 'নতুন ছবি আপলোড' : 'Upload Photo'}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => openRepositionEditor('cover')}
-                  className="flex-row items-center gap-2.5 px-3.5 py-2.5 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
-                >
-                  <AppIcon android="open_with" size={16} color="#059669" />
-                  <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
-                    {locale === 'bn' ? 'পজিশন ও রিসাইজ' : 'Reposition & Resize'}
-                  </Text>
-                </Pressable>
-              </View>
-            ) : null}
-
-            <Pressable
-              onPress={() => handlePhotoActionPress('cover')}
-              className="absolute bottom-3 right-3 z-30 h-8 px-2.5 rounded-full bg-black/65 flex-row items-center gap-1 active:scale-95"
-            >
+          <Pressable
+            onPress={() => triggerPhotoPicker('cover')}
+            disabled={isSavingPhoto}
+            className="absolute bottom-3 right-3 z-30 h-8 px-2.5 rounded-full bg-black/35 flex-row items-center gap-1 active:scale-95"
+          >
+            {isSavingPhoto && photoEditorMode === 'cover' ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
               <AppIcon android="photo_camera" size={14} color="#ffffff" />
-            </Pressable>
-          </>
+            )}
+          </Pressable>
         ) : null}
       </View>
 
@@ -810,47 +878,21 @@ export function ProfileView({
               )}
             </Pressable>
 
-            {/* Clicking ONLY the camera icon opens the floating edit menu */}
+            {/* Clicking ONLY the camera icon triggers direct photo picker with reposition during upload */}
             {isOwner && (
               <Pressable
-                onPress={() => handlePhotoActionPress('avatar')}
-                className="absolute bottom-0 right-0 z-20 h-8 w-8 rounded-full bg-primary-600 border-2 border-white dark:border-[#242526] items-center justify-center shadow-md active:scale-95"
+                onPress={() => triggerPhotoPicker('avatar')}
+                disabled={isSavingPhoto}
+                className="absolute bottom-0 right-0 z-20 h-8 w-8 rounded-full bg-primary-600 border-2 border-white dark:border-[#242526] items-center justify-center active:scale-95"
               >
-                <AppIcon android="photo_camera" size={15} color="#ffffff" />
+                {isSavingPhoto && photoEditorMode === 'avatar' ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <AppIcon android="photo_camera" size={15} color="#ffffff" />
+                )}
               </Pressable>
             )}
           </View>
-
-          {/* Floating Avatar Action Menu for Owner (absolute so it NEVER pushes content down) */}
-          {isOwner && photoMenuType === 'avatar' && Boolean(resolvedAvatarUrl) ? (
-            <View
-              style={{
-                position: 'absolute',
-                top: 118,
-                zIndex: 100,
-              }}
-              className="rounded-xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl overflow-hidden min-w-[195px]"
-            >
-              <Pressable
-                onPress={() => triggerPhotoPicker('avatar')}
-                className="flex-row items-center gap-2.5 px-3.5 py-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b] active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
-              >
-                <AppIcon android="photo_camera" size={16} color="#0866FF" />
-                <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
-                  {locale === 'bn' ? 'নতুন ছবি আপলোড' : 'Upload Photo'}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => openRepositionEditor('avatar')}
-                className="flex-row items-center gap-2.5 px-3.5 py-2.5 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]"
-              >
-                <AppIcon android="open_with" size={16} color="#059669" />
-                <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
-                  {locale === 'bn' ? 'পজিশন ও রিসাইজ' : 'Reposition & Resize'}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
         </View>
 
         {/* Name & Verification Badge */}
