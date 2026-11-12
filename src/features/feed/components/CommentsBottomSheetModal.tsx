@@ -11,8 +11,13 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   useWindowDimensions,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUi } from '@/providers/UiProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import { PostComment } from '@/features/feed/types/feed.types';
 import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -147,14 +152,7 @@ function CommentTreeItem({
           flexDirection: 'row',
           alignItems: 'flex-start',
           gap: 10,
-          paddingVertical: 4,
-          paddingHorizontal: 6,
-          borderRadius: 10,
-          backgroundColor: isReplyTarget
-            ? isDark
-              ? 'rgba(8, 102, 255, 0.16)'
-              : 'rgba(8, 102, 255, 0.08)'
-            : 'transparent',
+          paddingVertical: 3,
         }}>
         <UserAvatar
           avatarUrl={normalizeMediaUrl(
@@ -163,41 +161,59 @@ function CommentTreeItem({
           name={comment.author?.name || 'User'}
           size={depth > 0 ? 'sm' : 'md'}
         />
-        <View style={{ flex: 1, paddingTop: 1 }}>
-          <View className="flex-row items-center flex-wrap gap-1.5">
+        <View style={{ flex: 1 }}>
+          {/* Comment Bubble (Facebook / Threads style) */}
+          <View
+            style={{
+              backgroundColor: isReplyTarget
+                ? isDark
+                  ? 'rgba(8, 102, 255, 0.2)'
+                  : '#e7f3ff'
+                : isDark
+                  ? '#303132'
+                  : '#f0f2f5',
+              borderWidth: isReplyTarget ? 1 : 0,
+              borderColor: '#0866FF',
+            }}
+            className="rounded-2xl px-3.5 py-2.5 self-start max-w-full">
+            <View className="flex-row items-center flex-wrap gap-1.5">
+              <Text
+                selectable={false}
+                className="text-[13.5px] font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
+                {comment.author?.name || 'User'}
+              </Text>
+              {comment.isPosting && (
+                <View className="rounded-full bg-primary-50 dark:bg-primary-950/60 border border-primary-200 dark:border-primary-800 px-2 py-0.5">
+                  <Text className="text-[10px] font-semibold text-primary-600 dark:text-primary-400">
+                    {locale === 'bn' ? 'পোস্ট হচ্ছে...' : 'Posting...'}
+                  </Text>
+                </View>
+              )}
+            </View>
+
             <Text
-              selectable={false}
-              className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
-              {comment.author?.name || 'User'}
+              selectable={true}
+              className={`text-[14px] text-[#050505] dark:text-[#e4e6eb] mt-1 leading-[20px] select-text ${
+                comment.isPosting ? 'opacity-70' : ''
+              }`}>
+              {comment.content}
             </Text>
+          </View>
+
+          {/* Timestamp & Reply Action Row */}
+          <View className="flex-row items-center gap-3.5 mt-1.5 ml-2">
             {!!timeLabel && (
               <Text
                 selectable={false}
-                className="text-[11px] font-normal text-[#65676b] dark:text-[#b0b3b8] select-none">
+                className="text-[11.5px] font-normal text-[#65676b] dark:text-[#b0b3b8] select-none">
                 {timeLabel}
               </Text>
             )}
-            {comment.isPosting && (
-              <View className="rounded-full bg-primary-50 dark:bg-primary-950/60 border border-primary-200 dark:border-primary-800 px-2 py-0.5">
-                <Text className="text-[10px] font-semibold text-primary-600 dark:text-primary-400">
-                  {locale === 'bn' ? 'পোস্ট হচ্ছে...' : 'Posting...'}
-                </Text>
-              </View>
-            )}
-          </View>
 
-          <Text
-            selectable={true}
-            className={`text-xs text-[#050505] dark:text-[#e4e6eb] mt-0.5 leading-4 select-text ${
-              comment.isPosting ? 'opacity-70' : ''
-            }`}>
-            {comment.content}
-          </Text>
-
-          <View className="flex-row items-center gap-4 mt-1">
             <Pressable
               disabled={!!comment.isPosting}
               onPress={() => onSelectReply(comment)}
+              hitSlop={6}
               className="py-0.5 active:opacity-70">
               <Text
                 style={{
@@ -207,7 +223,7 @@ function CommentTreeItem({
                       ? '#b0b3b8'
                       : '#65676b',
                 }}
-                className="text-[11px] font-semibold">
+                className="text-[12px] font-bold">
                 {locale === 'bn' ? 'রিপ্লাই' : 'Reply'}
               </Text>
             </Pressable>
@@ -218,11 +234,11 @@ function CommentTreeItem({
       {replies.length > 0 && (
         <View
           style={{
-            marginLeft: depth === 0 ? 42 : 26,
+            marginLeft: depth === 0 ? 38 : 22,
             marginTop: 6,
             paddingLeft: 12,
             borderLeftWidth: 2,
-            borderLeftColor: isDark ? '#393a3b' : '#dadde1',
+            borderLeftColor: isDark ? '#393a3b' : '#e4e6eb',
             gap: 8,
           }}>
           {replies.map((reply) => (
@@ -252,6 +268,8 @@ export function CommentsBottomSheetModal({
   onChangeCommentText,
   onSubmitComment,
 }: CommentsBottomSheetModalProps) {
+  const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const { locale, theme } = useUi();
   const { height: windowHeight } = useWindowDimensions();
   const isDark = theme === 'dark';
@@ -454,7 +472,9 @@ export function CommentsBottomSheetModal({
     }
   };
 
-  const sheetHeight = windowHeight || '100%';
+  const topSafe = Math.max(insets.top, 24);
+  const bottomSafe = Math.max(insets.bottom, 12);
+  const sheetHeight = Math.min(windowHeight * 0.88, windowHeight - topSafe - 16);
 
   return (
     <Modal
@@ -478,7 +498,7 @@ export function CommentsBottomSheetModal({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
             opacity: backdropOpacity,
           }}>
           <Pressable
@@ -487,12 +507,11 @@ export function CommentsBottomSheetModal({
           />
         </Animated.View>
 
-        {/* Animated wrapper using explicit inline styles so NativeWind never strips height/bg */}
+        {/* Bottom Sheet Animated Container */}
         <Animated.View
           style={{
-            flex: 1,
             width: '100%',
-            maxWidth: 768,
+            maxWidth: 720,
             height: sheetHeight,
             alignSelf: 'center',
             transform: [{ translateY }],
@@ -501,26 +520,32 @@ export function CommentsBottomSheetModal({
             style={{
               flex: 1,
               width: '100%',
-              backgroundColor: isDark ? '#242526' : '#f5f6f8',
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
+              backgroundColor: isDark ? '#242526' : '#ffffff',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
               borderTopWidth: 1,
-              borderColor: isDark ? '#393a3b' : '#d9dde4',
+              borderColor: isDark ? '#393a3b' : '#e4e6eb',
               overflow: 'hidden',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: isDark ? 0.35 : 0.1,
+              shadowRadius: 16,
+              elevation: 20,
             }}>
             {/* 1. Draggable Top Handle Bar + Header */}
             <View
               {...headerPanResponder.panHandlers}
               style={{
                 borderBottomWidth: 1,
-                borderBottomColor: isDark ? '#393a3b' : '#d9dde4',
-                backgroundColor: isDark ? '#242526' : '#f5f6f8',
+                borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
+                backgroundColor: isDark ? '#242526' : '#ffffff',
+                cursor: 'grab' as any,
               }}
               className="w-full select-none">
               {/* Center Drag Bar Pill */}
               <Pressable
                 onPress={closeWithSlideDown}
-                className="w-full items-center pt-3 pb-1.5">
+                className="w-full items-center pt-3 pb-1 active:opacity-75">
                 <View
                   style={{
                     width: 44,
@@ -531,13 +556,31 @@ export function CommentsBottomSheetModal({
                 />
               </Pressable>
 
-              {/* Sheet Header Row */}
-              <View className="flex-row items-center px-4 pt-1 pb-3">
-                <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
-                  {locale === 'bn'
-                    ? `মন্তব্যসমূহ (${commentCount})`
-                    : `Comments (${commentCount})`}
-                </Text>
+              {/* Sheet Header Row with Title, Badge & Close Button */}
+              <View className="flex-row items-center justify-between px-5 pt-1 pb-3">
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+                    {locale === 'bn' ? 'মন্তব্যসমূহ' : 'Comments'}
+                  </Text>
+                  <View className="px-2.5 py-0.5 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c]">
+                    <Text className="text-[12px] font-bold text-[#65676b] dark:text-[#b0b3b8]">
+                      {commentCount}
+                    </Text>
+                  </View>
+                </View>
+
+                <Pressable
+                  onPress={closeWithSlideDown}
+                  hitSlop={8}
+                  className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
+                  <AppIcon
+                    android="close"
+                    ios="xmark"
+                    size={16}
+                    weight="bold"
+                    color={isDark ? '#e4e6eb' : '#050505'}
+                  />
+                </Pressable>
               </View>
             </View>
 
@@ -550,8 +593,8 @@ export function CommentsBottomSheetModal({
                 style={{ flex: 1 }}
                 contentContainerStyle={{
                   paddingHorizontal: 16,
-                  paddingTop: 10,
-                  paddingBottom: 4,
+                  paddingTop: 12,
+                  paddingBottom: 8,
                 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={true}
@@ -576,16 +619,23 @@ export function CommentsBottomSheetModal({
                     ))}
                   </View>
                 ) : comments.length === 0 ? (
-                  <View className="py-12 items-center">
-                    <AppIcon android="chat_bubble" size={32} color="#65676b" />
-                    <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2">
+                  <View className="py-16 items-center justify-center px-6">
+                    <View className="h-16 w-16 rounded-full bg-blue-50 dark:bg-blue-950/60 items-center justify-center mb-3.5">
+                      <AppIcon android="chat_bubble_outline" size={30} color="#0866FF" />
+                    </View>
+                    <Text className="text-[16px] font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
                       {locale === 'bn'
-                        ? 'এখনো কোনো মন্তব্য নেই। প্রথম মন্তব্য করুন!'
-                        : 'No comments yet. Be the first to comment!'}
+                        ? 'এখনো কোনো মন্তব্য নেই'
+                        : 'No comments yet'}
+                    </Text>
+                    <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] text-center mt-1 max-w-[260px]">
+                      {locale === 'bn'
+                        ? 'আলোচনা শুরু করতে প্রথম মন্তব্যটি লিখুন।'
+                        : 'Be the first to share what you think.'}
                     </Text>
                   </View>
                 ) : (
-                  <View className="gap-3 pb-1">
+                  <View className="gap-3.5 pb-2">
                     {comments.map((c) => (
                       <CommentTreeItem
                         key={c.id}
@@ -602,73 +652,100 @@ export function CommentsBottomSheetModal({
               </ScrollView>
             </View>
 
-            {/* 3. Fixed Bottom Add Comment / Reply Input Bar */}
-            <View
-              style={{
-                borderTopWidth: 1,
-                borderTopColor: isDark ? '#393a3b' : '#d9dde4',
-                backgroundColor: isDark ? '#242526' : '#f5f6f8',
-              }}>
-              {replyingTo && (
-                <View
-                  style={{
-                    borderBottomWidth: 1,
-                    borderBottomColor: isDark ? '#393a3b' : '#e6e9ef',
-                  }}
-                  className="px-4 py-1.5 flex-row items-center justify-between bg-[#f7f8fa] dark:bg-[#1e1f20]">
-                  <Text className="text-[11px] text-[#65676b] dark:text-[#b0b3b8]">
-                    {locale === 'bn' ? 'রিপ্লাই দিচ্ছেন ' : 'Replying to '}
-                    <Text className="font-bold text-[#050505] dark:text-[#e4e6eb]">
-                      {replyingTo.author?.name || 'User'}
-                    </Text>
-                  </Text>
+            {/* 3. Fixed Bottom Add Comment / Reply Input Bar with Keyboard Support */}
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+              <View
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: isDark ? '#393a3b' : '#f0f2f5',
+                  backgroundColor: isDark ? '#242526' : '#ffffff',
+                  paddingBottom: bottomSafe,
+                }}>
+                {replyingTo && (
+                  <View
+                    style={{
+                      borderBottomWidth: 1,
+                      borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
+                    }}
+                    className="px-4 py-2 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#1e1f20]">
+                    <View className="flex-row items-center gap-1.5 flex-1 pr-2">
+                      <AppIcon
+                        android="reply"
+                        size={15}
+                        color={isDark ? '#4599FF' : '#0866FF'}
+                      />
+                      <Text
+                        numberOfLines={1}
+                        className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] flex-1">
+                        {locale === 'bn' ? 'রিপ্লাই দিচ্ছেন ' : 'Replying to '}
+                        <Text className="font-bold text-[#050505] dark:text-[#e4e6eb]">
+                          {replyingTo.author?.name || 'User'}
+                        </Text>
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={handleCancelReply}
+                      hitSlop={8}
+                      className="h-6 w-6 rounded-full bg-white dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
+                      <AppIcon
+                        android="close"
+                        size={14}
+                        color={isDark ? '#b0b3b8' : '#65676b'}
+                      />
+                    </Pressable>
+                  </View>
+                )}
+
+                <View className="px-4 pt-2.5 pb-1 flex-row items-center gap-2.5">
+                  <UserAvatar
+                    avatarUrl={normalizeMediaUrl(
+                      user?.avatarUrl || (user as any)?.avatar
+                    )}
+                    name={user?.name || 'User'}
+                    size="sm"
+                  />
+                  <TextInput
+                    ref={inputRef}
+                    value={commentText}
+                    onChangeText={onChangeCommentText}
+                    onSubmitEditing={handleSend}
+                    placeholder={
+                      replyingTo
+                        ? locale === 'bn'
+                          ? `${replyingTo.author?.name || 'User'}-কে রিপ্লাই লিখুন...`
+                          : `Reply to ${replyingTo.author?.name || 'User'}...`
+                        : locale === 'bn'
+                          ? 'একটি মন্তব্য লিখুন...'
+                          : 'Write a comment...'
+                    }
+                    placeholderTextColor={isDark ? '#8a8d91' : '#8c9099'}
+                    className="flex-1 h-11 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#e4e6eb] dark:border-[#4e5052] px-4 text-[14px] text-[#050505] dark:text-[#e4e6eb]"
+                  />
                   <Pressable
-                    onPress={handleCancelReply}
-                    className="p-1 active:opacity-70">
+                    disabled={!commentText.trim()}
+                    onPress={handleSend}
+                    className={`h-10 w-10 rounded-full items-center justify-center active:scale-95 ${
+                      commentText.trim()
+                        ? 'bg-[#0866FF] shadow-xs'
+                        : 'bg-[#e4e6eb] dark:bg-[#3a3b3c]'
+                    }`}>
                     <AppIcon
-                      android="close"
-                      size={14}
-                      color={isDark ? '#b0b3b8' : '#65676b'}
+                      android="send"
+                      ios="paperplane.fill"
+                      size={17}
+                      color={
+                        commentText.trim()
+                          ? '#ffffff'
+                          : isDark
+                            ? '#707275'
+                            : '#9ca3af'
+                      }
                     />
                   </Pressable>
                 </View>
-              )}
-
-              <View className="px-4 py-3 flex-row items-center gap-2">
-                <TextInput
-                  ref={inputRef}
-                  value={commentText}
-                  onChangeText={onChangeCommentText}
-                  onSubmitEditing={handleSend}
-                  placeholder={
-                    replyingTo
-                      ? locale === 'bn'
-                        ? `${replyingTo.author?.name || 'User'}-কে রিপ্লাই লিখুন...`
-                        : `Reply to ${replyingTo.author?.name || 'User'}...`
-                      : locale === 'bn'
-                        ? 'মন্তব্য লিখুন...'
-                        : 'Write a comment...'
-                  }
-                  placeholderTextColor="#8e8e93"
-                  className="flex-1 h-10 rounded-full bg-[#e6e9ef] dark:bg-[#3a3b3c] px-4 text-xs text-[#050505] dark:text-[#e4e6eb]"
-                />
-                <Pressable
-                  disabled={!commentText.trim()}
-                  onPress={handleSend}
-                  className={`h-10 w-10 rounded-full items-center justify-center ${
-                    commentText.trim()
-                      ? 'bg-[#0866FF]'
-                      : 'bg-gray-200 dark:bg-gray-800'
-                  }`}>
-                  <AppIcon
-                    android="send"
-                    ios="paperplane.fill"
-                    size={16}
-                    color={commentText.trim() ? '#ffffff' : '#9ca3af'}
-                  />
-                </Pressable>
               </View>
-            </View>
+            </KeyboardAvoidingView>
           </View>
         </Animated.View>
       </View>
