@@ -285,8 +285,8 @@ export function FeedPostCard({
     }
   };
 
-  const handleAddComment = async (parentId?: string | null) => {
-    const trimmed = commentText.trim();
+  const handleAddComment = async (parentId?: string | null, textToSend?: string) => {
+    const trimmed = (textToSend ?? commentText).trim();
     if (!trimmed) return;
     if (!isAuthenticated) {
       router.push('/login');

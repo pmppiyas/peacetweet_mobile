@@ -666,9 +666,9 @@ export function GlobalPhotoViewerModal() {
   };
 
   // Add Comment
-  const handleAddComment = async (parentId?: string | null) => {
-    if (!currentPost || !commentText.trim() || !isAuthenticated) return;
-    const trimmed = commentText.trim();
+  const handleAddComment = async (parentId?: string | null, textToSend?: string) => {
+    const trimmed = (textToSend ?? commentText).trim();
+    if (!currentPost || !trimmed || !isAuthenticated) return;
     const tempId = `temp-${Date.now()}`;
     const optimistic: PostComment = {
       id: tempId,

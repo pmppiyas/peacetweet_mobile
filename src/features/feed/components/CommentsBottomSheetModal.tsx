@@ -4,6 +4,7 @@ import {
   Text,
   ScrollView,
   Pressable,
+  TouchableOpacity,
   TextInput,
   Modal,
   Animated,
@@ -34,7 +35,7 @@ export interface CommentsBottomSheetModalProps {
   isLoadingComments: boolean;
   commentText: string;
   onChangeCommentText: (text: string) => void;
-  onSubmitComment: (parentId?: string | null) => void;
+  onSubmitComment: (parentId?: string | null, textToSend?: string) => void;
 }
 
 export function insertOptimisticComment(
@@ -315,6 +316,8 @@ export function CommentsBottomSheetModal({
 
   const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
   const replyingToRef = useRef<PostComment | null>(null);
+  const textRef = useRef(commentText);
+  textRef.current = commentText;
   const inputRef = useRef<any>(null);
   const scrollViewRef = useRef<any>(null);
 
@@ -359,8 +362,6 @@ export function CommentsBottomSheetModal({
   const fullHeight = windowHeight || 700;
   const translateY = useRef(new Animated.Value(fullHeight)).current;
   const scrollOffsetY = useRef(0);
-  const touchStartY = useRef<number | null>(null);
-  const isDraggingSheet = useRef(false);
   const isClosingRef = useRef(false);
 
   const backdropOpacity = translateY.interpolate({
@@ -373,8 +374,6 @@ export function CommentsBottomSheetModal({
     if (visible) {
       isClosingRef.current = false;
       scrollOffsetY.current = 0;
-      isDraggingSheet.current = false;
-      touchStartY.current = null;
       translateY.setValue(fullHeight);
       Animated.timing(translateY, {
         toValue: 0,
@@ -405,18 +404,26 @@ export function CommentsBottomSheetModal({
   const isSendingRef = useRef(false);
 
   const handleSend = () => {
-    if (!commentText.trim()) return;
+    const textToSend = (textRef.current || commentText).trim();
+    if (!textToSend) return;
     if (isSendingRef.current) return;
     isSendingRef.current = true;
     setTimeout(() => {
       isSendingRef.current = false;
-    }, 600);
+    }, 800);
 
     const activeTarget = replyingToRef.current || replyingTo;
     const parentId = activeTarget?.id || null;
     replyingToRef.current = null;
     setReplyingTo(null);
-    onSubmitComment(parentId);
+
+    // Call submit with both parentId and the explicit text to guarantee delivery on first tap
+    onSubmitComment(parentId, textToSend);
+
+    // Immediately clear local text ref and parent commentText
+    textRef.current = '';
+    onChangeCommentText('');
+
     Keyboard.dismiss();
     setKeyboardHeight(0);
 
@@ -430,8 +437,6 @@ export function CommentsBottomSheetModal({
   const closeWithSlideDown = () => {
     if (isClosingRef.current) return;
     isClosingRef.current = true;
-    isDraggingSheet.current = false;
-    touchStartY.current = null;
     Keyboard.dismiss();
     setKeyboardHeight(0);
 
@@ -461,13 +466,18 @@ export function CommentsBottomSheetModal({
         gs.dy > 4 && Math.abs(gs.dy) > Math.abs(gs.dx),
       onMoveShouldSetPanResponderCapture: (_, gs) =>
         gs.dy > 4 && Math.abs(gs.dy) > Math.abs(gs.dx),
+      onPanResponderGrant: () => {
+        Keyboard.dismiss();
+      },
       onPanResponderMove: (_, gs) => {
         if (gs.dy > 0) {
           translateY.setValue(gs.dy);
+        } else {
+          translateY.setValue(0);
         }
       },
       onPanResponderRelease: (_, gs) => {
-        if (gs.dy > 65 || gs.vy > 0.4) {
+        if (gs.dy > 55 || gs.vy > 0.35) {
           closeWithSlideDown();
         } else {
           snapBackToTop();
@@ -479,23 +489,60 @@ export function CommentsBottomSheetModal({
     })
   ).current;
 
-  // PanResponder for the body/ScrollView: captures downward drag ONLY when scrolled to the very top (scrollOffsetY <= 2)
+  // PanResponder for the body/ScrollView: captures downward drag when scrolled near top
   const bodyPanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponderCapture: (_, gs) => {
-        const isAtTop = scrollOffsetY.current <= 2;
+        const isAtTop = scrollOffsetY.current <= 8;
         const isPullingDown =
-          gs.dy > 8 && Math.abs(gs.dy) > Math.abs(gs.dx) * 1.2;
+          gs.dy > 6 && Math.abs(gs.dy) > Math.abs(gs.dx) * 1.1;
         return isAtTop && isPullingDown;
+      },
+      onPanResponderGrant: () => {
+        Keyboard.dismiss();
       },
       onPanResponderMove: (_, gs) => {
         if (gs.dy > 0) {
           translateY.setValue(gs.dy);
+        } else {
+          translateY.setValue(0);
         }
       },
       onPanResponderRelease: (_, gs) => {
-        if (gs.dy > 65 || gs.vy > 0.4) {
+        if (gs.dy > 55 || gs.vy > 0.35) {
+          closeWithSlideDown();
+        } else {
+          snapBackToTop();
+        }
+      },
+      onPanResponderTerminate: () => {
+        snapBackToTop();
+      },
+    })
+  ).current;
+
+  // Empty Area PanResponder: always captures downward drag on empty space to close sheet
+  const emptyAreaPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponder: (_, gs) =>
+        gs.dy > 4 && Math.abs(gs.dy) > Math.abs(gs.dx),
+      onMoveShouldSetPanResponderCapture: (_, gs) =>
+        gs.dy > 4 && Math.abs(gs.dy) > Math.abs(gs.dx),
+      onPanResponderGrant: () => {
+        Keyboard.dismiss();
+      },
+      onPanResponderMove: (_, gs) => {
+        if (gs.dy > 0) {
+          translateY.setValue(gs.dy);
+        } else {
+          translateY.setValue(0);
+        }
+      },
+      onPanResponderRelease: (_, gs) => {
+        if (gs.dy > 55 || gs.vy > 0.35) {
           closeWithSlideDown();
         } else {
           snapBackToTop();
@@ -509,57 +556,16 @@ export function CommentsBottomSheetModal({
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
-    scrollOffsetY.current = y;
+    scrollOffsetY.current = y <= 6 ? 0 : y;
     // In iOS/mobile web overscroll bounce (y < -55), also trigger dismiss
     if (y < -65) {
       closeWithSlideDown();
     }
   };
 
-  // Direct touch handlers on ScrollView so Web touch-drag at top also pulls down the modal smoothly
-  const handleTouchStart = (e: any) => {
-    const pageY = e?.nativeEvent?.pageY ?? e?.touches?.[0]?.pageY;
-    if (typeof pageY === 'number' && scrollOffsetY.current <= 2) {
-      touchStartY.current = pageY;
-      isDraggingSheet.current = false;
-    } else {
-      touchStartY.current = null;
-    }
-  };
-
-  const handleTouchMove = (e: any) => {
-    if (touchStartY.current === null) return;
-    if (scrollOffsetY.current > 2 && !isDraggingSheet.current) {
-      touchStartY.current = null;
-      return;
-    }
-    const pageY = e?.nativeEvent?.pageY ?? e?.touches?.[0]?.pageY;
-    if (typeof pageY !== 'number') return;
-    const dy = pageY - touchStartY.current;
-    if (dy > 6) {
-      isDraggingSheet.current = true;
-      translateY.setValue(dy);
-    } else if (isDraggingSheet.current && dy <= 0) {
-      translateY.setValue(0);
-    }
-  };
-
-  const handleTouchEnd = (e: any) => {
-    if (!isDraggingSheet.current || touchStartY.current === null) {
-      touchStartY.current = null;
-      isDraggingSheet.current = false;
-      return;
-    }
-    const pageY =
-      e?.nativeEvent?.pageY ?? e?.changedTouches?.[0]?.pageY ?? touchStartY.current;
-    const dy = pageY - touchStartY.current;
-    touchStartY.current = null;
-    isDraggingSheet.current = false;
-    if (dy > 65) {
-      closeWithSlideDown();
-    } else {
-      snapBackToTop();
-    }
+  const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    scrollOffsetY.current = y <= 6 ? 0 : y;
   };
 
   const topSafe = Math.max(insets.top, 24);
@@ -685,14 +691,14 @@ export function CommentsBottomSheetModal({
                   paddingHorizontal: 16,
                   paddingTop: 12,
                   paddingBottom: 8,
+                  flexGrow: 1,
                 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={true}
                 scrollEventThrottle={16}
                 onScroll={handleScroll}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}>
+                onScrollEndDrag={handleScrollEnd}
+                onMomentumScrollEnd={handleScrollEnd}>
                 {isLoadingComments ? (
                   <View className="gap-4 py-2">
                     {[1, 2, 3, 4].map((i) => (
@@ -709,7 +715,10 @@ export function CommentsBottomSheetModal({
                     ))}
                   </View>
                 ) : comments.length === 0 ? (
-                  <View className="py-14 items-center justify-center px-6">
+                  <View
+                    {...emptyAreaPanResponder.panHandlers}
+                    style={{ flex: 1, minHeight: 280 }}
+                    className="py-14 items-center justify-center px-6">
                     <EmptyCommentsIllustration isDark={isDark} />
                     <Text className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
                       {locale === 'bn'
@@ -723,18 +732,33 @@ export function CommentsBottomSheetModal({
                     </Text>
                   </View>
                 ) : (
-                  <View className="gap-3.5 pb-2">
-                    {comments.map((c) => (
-                      <CommentTreeItem
-                        key={c.id}
-                        comment={c}
-                        locale={locale}
-                        isDark={isDark}
-                        depth={0}
-                        activeReplyId={replyingTo?.id || null}
-                        onSelectReply={handleSelectReply}
-                      />
-                    ))}
+                  <View style={{ flex: 1 }}>
+                    <View className="gap-3.5 pb-2">
+                      {comments.map((c) => (
+                        <CommentTreeItem
+                          key={c.id}
+                          comment={c}
+                          locale={locale}
+                          isDark={isDark}
+                          depth={0}
+                          activeReplyId={replyingTo?.id || null}
+                          onSelectReply={handleSelectReply}
+                        />
+                      ))}
+                    </View>
+
+                    {/* Empty space below comments: touching and swiping down here dismisses the sheet smoothly */}
+                    <View
+                      {...emptyAreaPanResponder.panHandlers}
+                      style={{
+                        flex: 1,
+                        minHeight: 140,
+                        width: '100%',
+                      }}
+                      onTouchStart={() => {
+                        Keyboard.dismiss();
+                      }}
+                    />
                   </View>
                 )}
               </ScrollView>
@@ -743,105 +767,132 @@ export function CommentsBottomSheetModal({
             {/* 3. Fixed Bottom Add Comment / Reply Input Bar with Keyboard Support */}
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-              <View
-                style={{
-                  borderTopWidth: 1,
-                  borderTopColor: isDark ? '#393a3b' : '#f0f2f5',
-                  backgroundColor: isDark ? '#242526' : '#ffffff',
-                  paddingBottom:
-                    Platform.OS === 'android'
-                      ? keyboardHeight > 0
-                        ? keyboardHeight + 8
-                        : bottomSafe
-                      : bottomSafe,
-                }}>
-                {replyingTo && (
-                  <View
-                    style={{
-                      borderBottomWidth: 1,
-                      borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
-                    }}
-                    className="px-4 py-2 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#1e1f20]">
-                    <View className="flex-row items-center gap-1.5 flex-1 pr-2">
-                      <AppIcon
-                        android="reply"
-                        size={15}
-                        color={isDark ? '#4599FF' : '#0866FF'}
-                      />
-                      <Text
-                        numberOfLines={1}
-                        className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] flex-1">
-                        {locale === 'bn' ? 'রিপ্লাই দিচ্ছেন ' : 'Replying to '}
-                        <Text className="font-bold text-[#050505] dark:text-[#e4e6eb]">
-                          {replyingTo.author?.name || 'User'}
+              <ScrollView
+                scrollEnabled={false}
+                keyboardShouldPersistTaps="always"
+                bounces={false}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+                keyboardDismissMode="none"
+                contentContainerStyle={{ flexGrow: 1 }}
+                style={{ flexGrow: 0 }}>
+                <View
+                  style={{
+                    borderTopWidth: 1,
+                    borderTopColor: isDark ? '#393a3b' : '#f0f2f5',
+                    backgroundColor: isDark ? '#242526' : '#ffffff',
+                    paddingBottom:
+                      Platform.OS === 'android'
+                        ? keyboardHeight > 0
+                          ? keyboardHeight + 8
+                          : bottomSafe
+                        : bottomSafe,
+                  }}>
+                  {replyingTo && (
+                    <View
+                      style={{
+                        borderBottomWidth: 1,
+                        borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
+                      }}
+                      className="px-4 py-2 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#1e1f20]">
+                      <View className="flex-row items-center gap-1.5 flex-1 pr-2">
+                        <AppIcon
+                          android="reply"
+                          size={15}
+                          color={isDark ? '#4599FF' : '#0866FF'}
+                        />
+                        <Text
+                          numberOfLines={1}
+                          className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] flex-1">
+                          {locale === 'bn' ? 'রিপ্লাই দিচ্ছেন ' : 'Replying to '}
+                          <Text className="font-bold text-[#050505] dark:text-[#e4e6eb]">
+                            {replyingTo.author?.name || 'User'}
+                          </Text>
                         </Text>
-                      </Text>
+                      </View>
+                      <Pressable
+                        onPress={handleCancelReply}
+                        hitSlop={8}
+                        className="h-6 w-6 rounded-full bg-white dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
+                        <AppIcon
+                          android="close"
+                          size={14}
+                          color={isDark ? '#b0b3b8' : '#65676b'}
+                        />
+                      </Pressable>
                     </View>
-                    <Pressable
-                      onPress={handleCancelReply}
-                      hitSlop={8}
-                      className="h-6 w-6 rounded-full bg-white dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
-                      <AppIcon
-                        android="close"
-                        size={14}
-                        color={isDark ? '#b0b3b8' : '#65676b'}
-                      />
-                    </Pressable>
-                  </View>
-                )}
+                  )}
 
-                <View className="px-4 pt-2.5 pb-1 flex-row items-center gap-2.5">
-                  <UserAvatar
-                    avatarUrl={normalizeMediaUrl(
-                      user?.avatarUrl || (user as any)?.avatar
-                    )}
-                    name={user?.name || 'User'}
-                    size="sm"
-                  />
-                  <TextInput
-                    ref={inputRef}
-                    value={commentText}
-                    onChangeText={onChangeCommentText}
-                    onSubmitEditing={handleSend}
-                    returnKeyType="send"
-                    enablesReturnKeyAutomatically={true}
-                    placeholder={
-                      replyingTo
-                        ? locale === 'bn'
-                          ? `${replyingTo.author?.name || 'User'}-কে রিপ্লাই লিখুন...`
-                          : `Reply to ${replyingTo.author?.name || 'User'}...`
-                        : locale === 'bn'
-                          ? 'একটি মন্তব্য লিখুন...'
-                          : 'Write a comment...'
-                    }
-                    placeholderTextColor={isDark ? '#8a8d91' : '#8c9099'}
-                    className="flex-1 h-11 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#e4e6eb] dark:border-[#4e5052] px-4 text-[14px] text-[#050505] dark:text-[#e4e6eb]"
-                  />
-                  <Pressable
-                    disabled={!commentText.trim()}
-                    onPressIn={handleSend}
-                    onPress={handleSend}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    className={`h-10 w-10 rounded-full items-center justify-center active:scale-95 ${
-                      commentText.trim()
-                        ? 'bg-[#0866FF] shadow-xs'
-                        : 'bg-[#e4e6eb] dark:bg-[#3a3b3c]'
-                    }`}>
-                    <AppIcon
-                      android="send"
-                      ios="paperplane.fill"
-                      size={17}
-                      color={
-                        commentText.trim()
-                          ? '#ffffff'
-                          : isDark
-                            ? '#707275'
-                            : '#9ca3af'
-                      }
+                  <View className="px-4 pt-2.5 pb-1 flex-row items-center gap-2.5">
+                    <UserAvatar
+                      avatarUrl={normalizeMediaUrl(
+                        user?.avatarUrl || (user as any)?.avatar
+                      )}
+                      name={user?.name || 'User'}
+                      size="sm"
                     />
-                  </Pressable>
+                    <TextInput
+                      ref={inputRef}
+                      value={commentText}
+                      onChangeText={onChangeCommentText}
+                      onSubmitEditing={handleSend}
+                      returnKeyType="send"
+                      enablesReturnKeyAutomatically={true}
+                      blurOnSubmit={false}
+                      placeholder={
+                        replyingTo
+                          ? locale === 'bn'
+                            ? `${replyingTo.author?.name || 'User'}-কে রিপ্লাই লিখুন...`
+                            : `Reply to ${replyingTo.author?.name || 'User'}...`
+                          : locale === 'bn'
+                            ? 'একটি মন্তব্য লিখুন...'
+                            : 'Write a comment...'
+                      }
+                      placeholderTextColor={isDark ? '#8a8d91' : '#8c9099'}
+                      className="flex-1 h-11 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#e4e6eb] dark:border-[#4e5052] px-4 text-[14px] text-[#050505] dark:text-[#e4e6eb]"
+                    />
+                    <View
+                      onTouchStart={() => {
+                        const text = (textRef.current || commentText).trim();
+                        if (text) {
+                          handleSend();
+                        }
+                      }}>
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        disabled={!commentText.trim()}
+                        onPressIn={handleSend}
+                        onPress={handleSend}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 20,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: commentText.trim()
+                            ? '#0866FF'
+                            : isDark
+                              ? '#3a3b3c'
+                              : '#e4e6eb',
+                        }}>
+                        <AppIcon
+                          android="send"
+                          ios="paperplane.fill"
+                          size={17}
+                          color={
+                            commentText.trim()
+                              ? '#ffffff'
+                              : isDark
+                                ? '#707275'
+                                : '#9ca3af'
+                          }
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
-              </View>
+              </ScrollView>
             </KeyboardAvoidingView>
           </View>
         </Animated.View>
