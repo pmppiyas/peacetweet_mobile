@@ -402,13 +402,24 @@ export function CommentsBottomSheetModal({
     setReplyingTo(null);
   };
 
+  const isSendingRef = useRef(false);
+
   const handleSend = () => {
     if (!commentText.trim()) return;
+    if (isSendingRef.current) return;
+    isSendingRef.current = true;
+    setTimeout(() => {
+      isSendingRef.current = false;
+    }, 600);
+
     const activeTarget = replyingToRef.current || replyingTo;
     const parentId = activeTarget?.id || null;
     replyingToRef.current = null;
     setReplyingTo(null);
     onSubmitComment(parentId);
+    Keyboard.dismiss();
+    setKeyboardHeight(0);
+
     if (!parentId) {
       setTimeout(() => {
         scrollViewRef.current?.scrollTo?.({ y: 0, animated: true });
@@ -792,6 +803,8 @@ export function CommentsBottomSheetModal({
                     value={commentText}
                     onChangeText={onChangeCommentText}
                     onSubmitEditing={handleSend}
+                    returnKeyType="send"
+                    enablesReturnKeyAutomatically={true}
                     placeholder={
                       replyingTo
                         ? locale === 'bn'
@@ -806,7 +819,9 @@ export function CommentsBottomSheetModal({
                   />
                   <Pressable
                     disabled={!commentText.trim()}
+                    onPressIn={handleSend}
                     onPress={handleSend}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     className={`h-10 w-10 rounded-full items-center justify-center active:scale-95 ${
                       commentText.trim()
                         ? 'bg-[#0866FF] shadow-xs'
