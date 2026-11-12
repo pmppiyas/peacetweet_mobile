@@ -124,12 +124,12 @@ export function MenuDrawer() {
     insets.top || 0,
     Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
   );
-  const appBottomEnd = Math.max(
-    insets.bottom || 0,
-    Platform.OS === 'android'
-      ? Math.max(appTopStart, 36)
-      : (insets.bottom || 0)
-  );
+  const appBottomEnd =
+    insets.bottom > 0
+      ? insets.bottom
+      : Platform.OS === 'android'
+        ? 16
+        : 0;
   const pathname = usePathname();
   const {
     isMenuDrawerOpen,
