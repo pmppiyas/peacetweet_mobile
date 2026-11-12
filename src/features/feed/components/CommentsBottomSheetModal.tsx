@@ -11,6 +11,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   useWindowDimensions,
+  Dimensions,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
@@ -23,6 +24,7 @@ import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
+import Svg, { Path, Circle } from 'react-native-svg';
 
 export interface CommentsBottomSheetModalProps {
   visible: boolean;
@@ -258,6 +260,43 @@ function CommentTreeItem({
   );
 }
 
+function EmptyCommentsIllustration({ isDark }: { isDark: boolean }) {
+  return (
+    <View className="relative items-center justify-center mb-4">
+      {/* Soft circular background badge */}
+      <View
+        style={{
+          width: 80,
+          height: 80,
+          borderRadius: 40,
+          backgroundColor: isDark ? 'rgba(8, 102, 255, 0.12)' : '#e7f3ff',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: 1,
+          borderColor: isDark ? 'rgba(8, 102, 255, 0.25)' : '#d0e7ff',
+        }}>
+        <Svg width="46" height="46" viewBox="0 0 48 48" fill="none">
+          {/* Back Bubble in subtle accent */}
+          <Path
+            d="M32 10H16C12.6863 10 10 12.6863 10 16V28C10 30.5 11.5 32.5 13.7 33.4L11 39L18.5 36H32C35.3137 36 38 33.3137 38 30V16C38 12.6863 35.3137 10 32 10Z"
+            fill={isDark ? '#2a4365' : '#bfdbfe'}
+            opacity={0.85}
+          />
+          {/* Front Main Bubble in primary blue */}
+          <Path
+            d="M36 14H20C16.6863 14 14 16.6863 14 20V32C14 35.3137 16.6863 38 20 38H33.5L40 43L38.2 36.4C40.5 35.3 42 33 42 30V20C42 16.6863 39.3137 14 36 14Z"
+            fill="#0866FF"
+          />
+          {/* 3 Discussion Dots inside front bubble */}
+          <Circle cx="22" cy="26" r="2.2" fill="#ffffff" />
+          <Circle cx="28" cy="26" r="2.2" fill="#ffffff" />
+          <Circle cx="34" cy="26" r="2.2" fill="#ffffff" />
+        </Svg>
+      </View>
+    </View>
+  );
+}
+
 export function CommentsBottomSheetModal({
   visible,
   onClose,
@@ -278,6 +317,44 @@ export function CommentsBottomSheetModal({
   const replyingToRef = useRef<PostComment | null>(null);
   const inputRef = useRef<any>(null);
   const scrollViewRef = useRef<any>(null);
+
+  // Keyboard height tracker for Android / translucent modals
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      // The modal is translucent (draws under the nav bar), so measure the
+      // real distance from the keyboard's top edge to the physical screen bottom.
+      // `endCoordinates.height` excludes the Android navigation bar, which
+      // left the input partially hidden behind the keyboard.
+      const screenHeight = Dimensions.get('screen').height;
+      const fromScreenY =
+        typeof e.endCoordinates.screenY === 'number' && e.endCoordinates.screenY > 0
+          ? screenHeight - e.endCoordinates.screenY
+          : 0;
+      const measured = Math.max(
+        fromScreenY,
+        e.endCoordinates.height + (Platform.OS === 'android' ? insets.bottom : 0)
+      );
+      setKeyboardHeight(measured);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd?.({ animated: true });
+      }, 80);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [insets.bottom]);
 
   const fullHeight = windowHeight || 700;
   const translateY = useRef(new Animated.Value(fullHeight)).current;
@@ -344,6 +421,8 @@ export function CommentsBottomSheetModal({
     isClosingRef.current = true;
     isDraggingSheet.current = false;
     touchStartY.current = null;
+    Keyboard.dismiss();
+    setKeyboardHeight(0);
 
     Animated.timing(translateY, {
       toValue: fullHeight,
@@ -619,19 +698,17 @@ export function CommentsBottomSheetModal({
                     ))}
                   </View>
                 ) : comments.length === 0 ? (
-                  <View className="py-16 items-center justify-center px-6">
-                    <View className="h-16 w-16 rounded-full bg-blue-50 dark:bg-blue-950/60 items-center justify-center mb-3.5">
-                      <AppIcon android="chat_bubble_outline" size={30} color="#0866FF" />
-                    </View>
-                    <Text className="text-[16px] font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
+                  <View className="py-14 items-center justify-center px-6">
+                    <EmptyCommentsIllustration isDark={isDark} />
+                    <Text className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
                       {locale === 'bn'
                         ? 'এখনো কোনো মন্তব্য নেই'
                         : 'No comments yet'}
                     </Text>
-                    <Text className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] text-center mt-1 max-w-[260px]">
+                    <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] text-center mt-1.5 max-w-[280px] leading-[19px]">
                       {locale === 'bn'
-                        ? 'আলোচনা শুরু করতে প্রথম মন্তব্যটি লিখুন।'
-                        : 'Be the first to share what you think.'}
+                        ? 'আলোচনা শুরু করতে নিচের বক্সে প্রথম মন্তব্যটি লিখুন।'
+                        : 'Be the first to start the conversation by writing a comment below.'}
                     </Text>
                   </View>
                 ) : (
@@ -660,7 +737,12 @@ export function CommentsBottomSheetModal({
                   borderTopWidth: 1,
                   borderTopColor: isDark ? '#393a3b' : '#f0f2f5',
                   backgroundColor: isDark ? '#242526' : '#ffffff',
-                  paddingBottom: bottomSafe,
+                  paddingBottom:
+                    Platform.OS === 'android'
+                      ? keyboardHeight > 0
+                        ? keyboardHeight + 8
+                        : bottomSafe
+                      : bottomSafe,
                 }}>
                 {replyingTo && (
                   <View
