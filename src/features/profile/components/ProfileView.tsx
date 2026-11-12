@@ -132,12 +132,6 @@ export function ProfileView({
     insets.top || 0,
     Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
   );
-  const appBottomEnd =
-    insets.bottom > 0
-      ? insets.bottom
-      : Platform.OS === 'android'
-        ? 16
-        : 0;
   const { user: authUser, isAuthenticated, setUser } = useAuth();
   const { items: feedItems, refreshFeed } = useFeed();
 
@@ -1907,48 +1901,39 @@ export function ProfileView({
         animationType="none"
         onRequestClose={closeManagementDrawer}
       >
-        <View style={{ flex: 1 }}>
-          {/* Top outside area: Status bar / Network bar (Tap to close) */}
-          {appTopStart > 0 ? (
-            <Pressable
-              style={{ height: appTopStart }}
-              onPress={closeManagementDrawer}
-              accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
-            />
-          ) : null}
+        <Animated.View
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            backgroundColor: backdropAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)'],
+            }),
+          }}
+        >
+          {/* Full-height backdrop tap area */}
+          <Pressable
+            className="flex-1"
+            onPress={closeManagementDrawer}
+            accessibilityLabel={
+              locale === 'bn' ? 'ড্রয়ার বন্ধ করুন' : 'Close drawer'
+            }
+          />
 
-          {/* App Viewport Container: starts below network bar, ends above bottom bar */}
+          {/* Full-height seamless drawer panel */}
           <Animated.View
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
-              backgroundColor: backdropAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.55)'],
-              }),
-            }}
+            style={[
+              {
+                transform: [{ translateX: slideAnim }],
+                backgroundColor: theme === 'dark' ? '#242526' : '#ffffff',
+                height: '100%',
+                paddingTop: appTopStart,
+                paddingBottom: Math.max(insets.bottom || 0, Platform.OS === 'android' ? 8 : 0),
+              },
+            ]}
+            className="w-[86%] sm:w-[380px] max-w-[92%] border-l border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none overflow-hidden"
           >
-            {/* Backdrop Tap Area */}
-            <Pressable
-              className="flex-1"
-              onPress={closeManagementDrawer}
-              accessibilityLabel={
-                locale === 'bn' ? 'ড্রয়ার বন্ধ করুন' : 'Close drawer'
-              }
-            />
-
-            {/* Right Sliding Drawer Panel (Bounded strictly to visible App Height) */}
-            <Animated.View
-              style={[
-                {
-                  transform: [{ translateX: slideAnim }],
-                  backgroundColor: theme === 'dark' ? '#242526' : '#ffffff',
-                  height: '100%',
-                },
-              ]}
-              className="w-[86%] sm:w-[380px] max-w-[92%] border-l border-[#e4e6eb] dark:border-[#393a3b] shadow-2xl flex-col select-none overflow-hidden"
-            >
             {/* Drawer Header */}
             <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#e4e6eb] dark:border-[#393a3b]">
               <View className="flex-row items-center gap-2">
@@ -2226,17 +2211,7 @@ export function ProfileView({
             </ScrollView>
           </Animated.View>
         </Animated.View>
-
-        {/* Bottom outside area: System navigation / gesture bar (Tap to close) */}
-        {appBottomEnd > 0 ? (
-          <Pressable
-            style={{ height: appBottomEnd }}
-            onPress={closeManagementDrawer}
-            accessibilityLabel={locale === 'bn' ? 'বন্ধ করুন' : 'Close'}
-          />
-        ) : null}
-      </View>
-    </Modal>
+      </Modal>
     </ScrollView>
   );
 }
