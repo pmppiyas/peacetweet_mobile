@@ -95,9 +95,9 @@ export function NotificationItemRow({
   return (
     <Pressable
       onPress={() => onPress(item)}
-      className={`w-full relative flex-row items-center gap-2.5 px-2 py-2 rounded-xl ${
+      className={`w-full relative flex-row items-center gap-3 px-3 py-2.5 rounded-xl ${
         !item.isRead
-          ? 'bg-[#e6e9ef] dark:bg-[#3a3b3c]/80 active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]'
+          ? 'bg-[#edf2f7] dark:bg-[#2e3033] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]'
           : 'active:bg-[#e4e6eb]/70 dark:active:bg-[#3a3b3c]/60'
       }`}>
       {/* Avatar with badge */}
@@ -114,15 +114,15 @@ export function NotificationItemRow({
         <UserAvatar
           avatarUrl={item.actor?.avatarUrl || (item.actor as any)?.avatar}
           name={actorName}
-          size="md"
+          size="lg"
         />
 
         <View
-          className={`absolute -bottom-0.5 -right-0.5 h-5 w-5 items-center justify-center rounded-full border-2 border-white dark:border-[#242526] ${badge.bgColor}`}>
+          className={`absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white dark:border-[#242526] ${badge.bgColor}`}>
           <AppIcon
             android={badge.android}
             ios={badge.ios}
-            size={11}
+            size={12}
             color="#ffffff"
           />
         </View>
@@ -132,11 +132,21 @@ export function NotificationItemRow({
       <View className="flex-1 min-w-0 pr-1">
         <Text
           numberOfLines={2}
-          className="text-[15px] leading-tight text-[#050505] dark:text-[#e4e6eb]">
-          <Text className="font-bold text-[#050505] dark:text-white">
+          className="text-[15px] leading-[20px] text-[#050505] dark:text-[#e4e6eb]">
+          <Text
+            className={`${
+              !item.isRead
+                ? 'font-bold text-[#050505] dark:text-white'
+                : 'font-semibold text-[#050505] dark:text-[#e4e6eb]'
+            }`}>
             {actorName}
           </Text>{' '}
-          <Text className="font-normal text-[#050505] dark:text-[#e4e6eb]">
+          <Text
+            className={`${
+              !item.isRead
+                ? 'font-medium text-[#050505] dark:text-[#e4e6eb]'
+                : 'font-normal text-[#4b4c4f] dark:text-[#b0b3b8]'
+            }`}>
             {item.message}
           </Text>
         </Text>
@@ -144,7 +154,11 @@ export function NotificationItemRow({
         <View className="flex-row items-center gap-1 mt-1">
           <Text
             numberOfLines={1}
-            className="text-[13px] leading-normal text-[#65676b] dark:text-[#b0b3b8]">
+            className={`text-[12px] leading-[16px] font-medium ${
+              !item.isRead
+                ? 'font-semibold text-primary-600 dark:text-primary-400'
+                : 'text-[#65676b] dark:text-[#b0b3b8]'
+            }`}>
             {formatNotificationTimeAgo(item.createdAt)}
           </Text>
         </View>
@@ -153,7 +167,7 @@ export function NotificationItemRow({
       {/* Actions */}
       <View className="flex-row items-center gap-1.5 shrink-0">
         {!item.isRead ? (
-          <View className="h-2 w-2 rounded-full bg-primary-600 dark:bg-primary-400" />
+          <View className="h-2.5 w-2.5 rounded-full bg-primary-600 dark:bg-primary-400" />
         ) : null}
 
         <Pressable

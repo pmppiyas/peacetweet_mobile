@@ -33,8 +33,8 @@ const SIZE_CLASSES: Record<
     badge: 'h-3 w-3 border-2',
   },
   lg: {
-    container: 'h-14 w-14',
-    text: 'text-base',
+    container: 'h-[52px] w-[52px]',
+    text: 'text-[17px]',
     badge: 'h-3.5 w-3.5 border-2',
   },
   xl: {

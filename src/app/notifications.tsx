@@ -221,31 +221,28 @@ export default function NotificationsScreen() {
 
   return (
     <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={!isInitialLoading}
-        onScroll={handleFeedScroll}
-        scrollEventThrottle={16}
-        className="flex-1 px-1 sm:px-4 no-scrollbar scrollbar-none"
-        contentContainerStyle={{
-          paddingTop: isDesktop ? 72 : 66,
-          paddingBottom: 68,
-        }}
-        contentContainerClassName={isInitialLoading ? 'pb-0' : 'pb-0'}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => {
-              setIsRefreshing(true);
-              loadNotifications(true);
-            }}
-            colors={['#0866FF']}
-            tintColor="#0866FF"
-            progressViewOffset={60}
-          />
-        }>
-        {/* Flat Content Display: Matching Message page layout & gap from Navbar */}
-        <View className="w-full max-w-[720px] mx-auto bg-white dark:bg-[#18191a] sm:dark:bg-[#242526] sm:rounded-2xl sm:border sm:border-[#e4e6eb] sm:dark:border-[#393a3b] overflow-hidden sm:p-2">
+      <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b] pt-[60px] pb-[56px]">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={!isInitialLoading}
+          onScroll={handleFeedScroll}
+          scrollEventThrottle={16}
+          className="flex-1 px-2 sm:px-4 no-scrollbar scrollbar-none"
+          contentContainerStyle={{
+            paddingTop: 8,
+            paddingBottom: 16,
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => {
+                setIsRefreshing(true);
+                loadNotifications(true);
+              }}
+              colors={['#0866FF']}
+              tintColor="#0866FF"
+            />
+          }>
           {/* Header (Desktop/Tablet only - hidden on mobile so top gap from Navbar matches Messages 100%) */}
           {isDesktop ? (
             <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#e4e6eb]/60 dark:border-[#393a3b]/60 mb-2">
@@ -276,8 +273,8 @@ export default function NotificationsScreen() {
             </View>
           ) : null}
 
-          {/* Notifications List - Matching Message page gap-0.5 */}
-          <View className="flex-col gap-0.5">
+          {/* Notifications List - Matching Message page gap-1 */}
+          <View className="flex-col gap-1">
             {isInitialLoading ? (
               <NotificationSkeleton count={6} variant="page" />
             ) : error && notifications.length === 0 ? (
@@ -325,8 +322,8 @@ export default function NotificationsScreen() {
               ))
             )}
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {/* Reusable Delete Notification Confirmation Dialog */}
       <ConfirmDialog

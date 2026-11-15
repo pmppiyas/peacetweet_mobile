@@ -5,21 +5,21 @@ import { AppIcon } from '@/components/ui/Icon';
 
 export function ConversationListSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <View className="flex-col gap-0.5">
+    <View className="flex-col gap-1">
       {Array.from({ length: count }, (_, i) => (
         <View
           key={i}
-          className="flex-row items-center gap-2.5 px-2 py-2 rounded-xl">
-          <Skeleton className="h-11 w-11 rounded-full shrink-0" />
+          className="flex-row items-center gap-3 px-3 py-2.5 rounded-xl">
+          <Skeleton className="h-[52px] w-[52px] rounded-full shrink-0" />
           <View className="flex-1 gap-1.5 min-w-0">
             <Skeleton
-              className={`h-3.5 rounded-md ${
+              className={`h-4 rounded-md ${
                 i % 3 === 0 ? 'w-3/4' : i % 3 === 1 ? 'w-5/6' : 'w-2/3'
               }`}
             />
-            <Skeleton className="h-3 rounded-md w-28" />
+            <Skeleton className="h-3.5 rounded-md w-36" />
           </View>
-          <Skeleton className="h-2.5 w-8 rounded-md shrink-0" />
+          <Skeleton className="h-3 w-10 rounded-md shrink-0" />
         </View>
       ))}
     </View>
@@ -32,19 +32,19 @@ export function UserSearchSkeleton({ count = 4 }: { count?: number }) {
       {Array.from({ length: count }, (_, i) => (
         <View
           key={i}
-          className="flex-row items-center justify-between px-2.5 py-2.5 rounded-xl">
-          <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
-            <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+          className="flex-row items-center justify-between px-3 py-2.5 rounded-xl">
+          <View className="flex-row items-center gap-3 flex-1 min-w-0">
+            <Skeleton className="h-[52px] w-[52px] rounded-full shrink-0" />
             <View className="flex-1 gap-1.5 min-w-0">
               <Skeleton
-                className={`h-3.5 rounded-md ${
+                className={`h-4 rounded-md ${
                   i % 2 === 0 ? 'w-3/5' : 'w-1/2'
                 }`}
               />
-              <Skeleton className="h-2.5 rounded-md w-20" />
+              <Skeleton className="h-3.5 rounded-md w-24" />
             </View>
           </View>
-          <Skeleton className="h-7 w-16 rounded-lg shrink-0 ml-2" />
+          <Skeleton className="h-8 w-16 rounded-lg shrink-0 ml-2" />
         </View>
       ))}
     </View>

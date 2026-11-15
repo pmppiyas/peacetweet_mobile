@@ -86,7 +86,7 @@ export function ConversationItemView({
   return (
     <Pressable
       onPress={onSelect}
-      className={`w-full flex-row items-center gap-2.5 px-2 py-2 rounded-xl ${
+      className={`w-full flex-row items-center gap-3 px-3 py-2.5 rounded-xl ${
         isSelected
           ? 'bg-[#e4e6eb] dark:bg-[#3a3b3c]'
           : 'active:bg-[#e4e6eb]/70 dark:active:bg-[#3a3b3c]/60'
@@ -94,16 +94,16 @@ export function ConversationItemView({
       <ChatAvatar
         name={displayName}
         avatarUrl={participant?.avatarUrl}
-        size="md"
+        size="lg"
         isOnline={isOnline}
         showOnlineBadge
       />
 
       <View className="flex-1 min-w-0">
-        <View className="flex-row items-center justify-between gap-1">
+        <View className="flex-row items-center justify-between gap-1.5">
           <Text
             numberOfLines={1}
-            className={`flex-1 text-[15px] leading-tight ${
+            className={`flex-1 text-[15px] leading-[20px] ${
               isSelected
                 ? 'font-bold text-primary-700 dark:text-primary-400'
                 : hasUnread
@@ -115,9 +115,9 @@ export function ConversationItemView({
 
           {conversation.lastMessageAt ? (
             <Text
-              className={`text-[11px] shrink-0 ${
+              className={`text-[12px] shrink-0 font-medium ${
                 hasUnread
-                  ? 'font-bold text-primary-600 dark:text-primary-400'
+                  ? 'font-semibold text-primary-600 dark:text-primary-400'
                   : 'text-[#65676b] dark:text-[#b0b3b8]'
               }`}>
               {formatConversationTime(conversation.lastMessageAt, locale)}
@@ -128,9 +128,9 @@ export function ConversationItemView({
         <View className="flex-row items-center justify-between gap-2 mt-1">
           <Text
             numberOfLines={1}
-            className={`flex-1 text-[13px] leading-normal ${
+            className={`flex-1 text-[13.5px] leading-[18px] ${
               hasUnread
-                ? 'font-bold text-[#050505] dark:text-[#e6e9ef]'
+                ? 'font-semibold text-[#050505] dark:text-[#e6e9ef]'
                 : 'text-[#65676b] dark:text-[#b0b3b8]'
             }`}>
             {formatConversationLastMessage(

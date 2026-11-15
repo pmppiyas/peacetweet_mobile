@@ -123,11 +123,11 @@ export function ConversationSidebar({
         key={user.id}
         disabled={Boolean(creatingForUserId)}
         onPress={() => handleSelectUser(user)}
-        className="w-full flex-row items-center gap-2.5 px-2 py-2 rounded-xl active:bg-[#e4e6eb]/70 dark:active:bg-[#3a3b3c]/60">
+        className="w-full flex-row items-center gap-3 px-3 py-2.5 rounded-xl active:bg-[#e4e6eb]/70 dark:active:bg-[#3a3b3c]/60">
         <ChatAvatar
           name={user.name}
           avatarUrl={user.avatarUrl}
-          size="md"
+          size="lg"
           isOnline={isUserOnline(user.id) || Boolean(user.isOnline)}
         />
 
@@ -135,7 +135,7 @@ export function ConversationSidebar({
           <View className="flex-row items-center gap-1.5">
             <Text
               numberOfLines={1}
-              className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb] leading-tight">
+              className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb] leading-[20px]">
               {user.name}
             </Text>
             {isFriend ? (
@@ -148,7 +148,7 @@ export function ConversationSidebar({
           </View>
           <Text
             numberOfLines={1}
-            className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5 leading-normal">
+            className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5 leading-[18px]">
             @{user.username}
           </Text>
         </View>
@@ -177,8 +177,8 @@ export function ConversationSidebar({
       <ScrollView
         showsVerticalScrollIndicator={false}
         scrollEnabled={!isInitialLoading}
-        className="flex-1 px-1 no-scrollbar scrollbar-none"
-        contentContainerStyle={{ paddingBottom: 0 }}
+        className="flex-1 px-2 sm:px-4 no-scrollbar scrollbar-none"
+        contentContainerStyle={{ paddingTop: 8, paddingBottom: 16 }}
         contentContainerClassName={isInitialLoading ? 'pb-0' : 'pb-0 md:pb-2'}
         refreshControl={
           <RefreshControl
@@ -210,7 +210,7 @@ export function ConversationSidebar({
             <View className="flex-col gap-3">
               {/* 1. Friends Section (Top) */}
               {friendResults.length > 0 ? (
-                <View className="flex-col gap-0.5">
+                <View className="flex-col gap-1">
                   <View className="px-2.5 py-1 flex-row items-center justify-between">
                     <Text className="text-[11px] font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
                       {locale === 'bn' ? 'ফ্রেন্ডস' : 'Friends'}
@@ -227,7 +227,7 @@ export function ConversationSidebar({
 
               {/* 2. Others Section (Bottom) */}
               {otherResults.length > 0 ? (
-                <View className="flex-col gap-0.5">
+                <View className="flex-col gap-1">
                   <View className="px-2.5 py-1 flex-row items-center justify-between">
                     <Text className="text-[11px] font-bold text-[#65676b] dark:text-[#b0b3b8] uppercase tracking-wider">
                       {locale === 'bn' ? 'অন্যান্য' : 'Others'}
@@ -259,7 +259,7 @@ export function ConversationSidebar({
             }
           />
         ) : (
-          <View className="flex-col gap-0.5">
+          <View className="flex-col gap-1">
             {conversations.map((conv) => {
               const other = getOtherUserFromConversation(conv);
               return (
