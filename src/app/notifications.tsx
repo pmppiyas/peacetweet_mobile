@@ -56,23 +56,6 @@ export default function NotificationsScreen() {
     []
   );
 
-  // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
-  if (!isAuthLoading && !isAuthenticated) {
-    return (
-      <View className="flex-1 pt-[60px] pb-[56px]">
-        <AuthPromptScreen
-          icon="notifications"
-          iconBgColor="bg-amber-50 dark:bg-amber-950/60"
-          iconColor="#d97706"
-          titleBn="বিজ্ঞপ্তি দেখতে লগইন করুন"
-          titleEn="Sign in to view Notifications"
-          descriptionBn="আপনার পোস্টের প্রতিক্রিয়া, কমেন্ট ও গুরুত্বপূর্ণ নোটিফিকেশন পেতে অ্যাকাউন্টে প্রবেশ করুন।"
-          descriptionEn="Log in to your account to view reactions, comments, mentions, and updates."
-        />
-      </View>
-    );
-  }
-
   const loadNotifications = useCallback(
     async (silent = false) => {
       if (!isAuthenticated) {
@@ -218,6 +201,25 @@ export default function NotificationsScreen() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const isInitialLoading = isLoading && notifications.length === 0;
+
+  // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
+  if (!isAuthLoading && !isAuthenticated) {
+    return (
+      <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
+        <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b] pt-[60px] pb-[56px]">
+          <AuthPromptScreen
+            icon="notifications"
+            iconBgColor="bg-amber-50 dark:bg-amber-950/60"
+            iconColor="#d97706"
+            titleBn="বিজ্ঞপ্তি দেখতে লগইন করুন"
+            titleEn="Sign in to view Notifications"
+            descriptionBn="আপনার পোস্টের প্রতিক্রিয়া, কমেন্ট ও গুরুত্বপূর্ণ নোটিফিকেশন পেতে অ্যাকাউন্টে প্রবেশ করুন।"
+            descriptionEn="Log in to your account to view reactions, comments, mentions, and updates."
+          />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">

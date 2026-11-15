@@ -82,21 +82,6 @@ export default function MessagesScreen() {
     return () => sub.remove();
   }, [selectedConversation, closeConversation]);
 
-  // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
-  if (!isAuthLoading && !isAuthenticated) {
-    return (
-      <AuthPromptScreen
-        icon="chat_bubble"
-        iconBgColor="bg-blue-50 dark:bg-blue-950/60"
-        iconColor="#0866FF"
-        titleBn="মেসেজ দেখতে লগইন করুন"
-        titleEn="Sign in to view Messages"
-        descriptionBn="আপনার কনভারসেশন ও ফ্রেন্ডদের সাথে বার্তা আদান-প্রদান করতে অ্যাকাউন্টে প্রবেশ করুন।"
-        descriptionEn="Log in to your account to view conversations, send direct messages, and chat with friends."
-      />
-    );
-  }
-
   const loadChatData = useCallback(
     async (silent = false) => {
       if (!isAuthenticated) {
@@ -297,6 +282,25 @@ export default function MessagesScreen() {
     setUnreadMessagesCount(totalUnreadCount);
   }, [totalUnreadCount, setUnreadMessagesCount]);
   const isChatActive = Boolean(selectedConversation);
+
+  // If not authenticated, render friendly AuthPromptCard instead of redirecting directly to /login
+  if (!isAuthLoading && !isAuthenticated) {
+    return (
+      <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
+        <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b] pt-[60px] pb-[56px]">
+          <AuthPromptScreen
+            icon="chat_bubble"
+            iconBgColor="bg-blue-50 dark:bg-blue-950/60"
+            iconColor="#0866FF"
+            titleBn="মেসেজ দেখতে লগইন করুন"
+            titleEn="Sign in to view Messages"
+            descriptionBn="আপনার কনভারসেশন ও ফ্রেন্ডদের সাথে বার্তা আদান-প্রদান করতে অ্যাকাউন্টে প্রবেশ করুন।"
+            descriptionEn="Log in to your account to view conversations, send direct messages, and chat with friends."
+          />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
