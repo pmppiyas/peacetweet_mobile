@@ -14,7 +14,6 @@ import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
-import { PeaceTweetLogo } from '@/components/ui/PeaceTweetLogo';
 import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
 
 export default function LoginScreen() {
@@ -114,16 +113,13 @@ export default function LoginScreen() {
 
           {/* Welcoming Hero & Brand Section */}
           <View className="mb-8">
-            <View className="flex-row items-center gap-3 mb-4">
-              <PeaceTweetLogo size={52} />
-              <Pressable onPress={() => router.push('/')}>
-                <Text className="text-[34px] font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
-                  PeaceTweet
-                </Text>
-              </Pressable>
-            </View>
+            <Pressable onPress={() => router.push('/')} className="mb-2 self-start">
+              <Text className="text-[34px] font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
+                PeaceTweet
+              </Text>
+            </Pressable>
 
-            <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-1.5 leading-relaxed">
+            <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] leading-relaxed">
               {locale === 'bn'
                 ? 'আপনার অ্যাকাউন্টে সাইন ইন করুন এবং শান্তির বার্তা ছড়িয়ে দিন।'
                 : 'Sign in to reconnect with authentic duas and reflections.'}

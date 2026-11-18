@@ -16,7 +16,6 @@ import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
-import { PeaceTweetLogo } from '@/components/ui/PeaceTweetLogo';
 import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
 import {
   uploadsApi,
@@ -438,14 +437,11 @@ export default function RegisterScreen() {
 
           {/* Welcoming Hero & Brand Section */}
           <View className="mb-6">
-            <View className="flex-row items-center gap-3 mb-4">
-              <PeaceTweetLogo size={52} />
-              <Pressable onPress={() => router.push('/')}>
-                <Text className="text-[34px] font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
-                  PeaceTweet
-                </Text>
-              </Pressable>
-            </View>
+            <Pressable onPress={() => router.push('/')} className="mb-2 self-start">
+              <Text className="text-[34px] font-black tracking-tight text-[#0866FF] dark:text-[#36a4fa]">
+                PeaceTweet
+              </Text>
+            </Pressable>
 
             <Text className="text-[26px] font-black tracking-tight text-[#1e2329] dark:text-[#e4e6eb]">
               {step === 1 &&
