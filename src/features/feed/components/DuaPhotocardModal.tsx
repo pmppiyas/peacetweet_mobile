@@ -64,8 +64,13 @@ export function DuaPhotocardModal({
         if (typeof navigator !== 'undefined' && (navigator as any).share) {
           try {
             const blob = await (await fetch(uri)).blob();
-            const file = new File([blob], 'peacetweet-photocard.jpg', { type: 'image/jpeg' });
-            if ((navigator as any).canShare && (navigator as any).canShare({ files: [file] })) {
+            const file = new File([blob], 'peacetweet-photocard.jpg', {
+              type: 'image/jpeg',
+            });
+            if (
+              (navigator as any).canShare &&
+              (navigator as any).canShare({ files: [file] })
+            ) {
               await (navigator as any).share({
                 title: 'PeaceTweet Photocard',
                 text: `more: peacetweet/${post.author?.username || 'user'}`,
@@ -177,14 +182,20 @@ export function DuaPhotocardModal({
           const existingAlbum = await MediaLibrary.getAlbumAsync(albumName);
 
           if (existingAlbum) {
-            await MediaLibrary.addAssetsToAlbumAsync([asset], existingAlbum, false);
+            await MediaLibrary.addAssetsToAlbumAsync(
+              [asset],
+              existingAlbum,
+              false
+            );
           } else {
             await MediaLibrary.createAlbumAsync(albumName, asset, false);
           }
         } catch (albumErr) {
           // Album reading/creation may be restricted in Expo Go sandbox,
-          // but createAssetAsync has already successfully saved the photo into the device gallery.
-          console.log('[Photocard] Album grouping skipped in this environment:', albumErr);
+          console.log(
+            '[Photocard] Album grouping skipped in this environment:',
+            albumErr
+          );
         }
 
         Alert.alert(
@@ -218,10 +229,7 @@ export function DuaPhotocardModal({
     >
       <View style={styles.modalBackdrop}>
         {/* Semi-transparent dark overlay */}
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={onClose}
-        />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
         {/* Modal Window Container */}
         <View
@@ -292,11 +300,7 @@ export function DuaPhotocardModal({
             style={styles.scrollView}
           >
             <View style={styles.cardPreviewContainer}>
-              <PhotocardCanvas
-                ref={cardRef}
-                post={post}
-                locale={locale}
-              />
+              <PhotocardCanvas ref={cardRef} post={post} locale={locale} />
             </View>
           </ScrollView>
 

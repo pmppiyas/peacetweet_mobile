@@ -234,8 +234,8 @@ export function PostActionMenuModal({
 
             {/* Action List - Monochrome Black & White with larger typography */}
             <View {...bodyPanResponder.panHandlers} className="py-1 px-3">
-              {/* 1. Make Photocard (First option at the very top as requested) */}
-              {onMakePhotocard && (
+              {/* 1. Make Photocard (First option at the very top, ONLY for Dua posts) */}
+              {onMakePhotocard && isDuaPost && (
                 <Pressable
                   onPress={() => {
                     onClose();

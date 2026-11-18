@@ -32,6 +32,7 @@ import {
 } from '@/features/feed/components/CommentsBottomSheetModal';
 import { PostActionMenuModal } from '@/features/feed/components/PostActionMenuModal';
 import { PostShareModal } from '@/features/feed/components/PostShareModal';
+import { DuaPhotocardModal } from '@/features/feed/components/DuaPhotocardModal';
 import { EditPostModal } from '@/features/feed/components/EditPostModal';
 import { ReportPostModal } from '@/features/feed/components/ReportPostModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -190,6 +191,7 @@ export default function PostPhotoViewerScreen() {
   // Modals & Action states
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showPhotocardModal, setShowPhotocardModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -1004,6 +1006,13 @@ export default function PostPhotoViewerScreen() {
             onToggleSave={handleToggleSave}
             onCopyLink={handleShare}
             onOpenShare={() => setShowShareModal(true)}
+            onMakePhotocard={
+              effectivePost.type === 'DUA' ||
+              Boolean(effectivePost.dua) ||
+              Boolean(effectivePost.duaId)
+                ? () => setShowPhotocardModal(true)
+                : undefined
+            }
             onReport={() => setShowReportModal(true)}
           />
 
@@ -1012,6 +1021,16 @@ export default function PostPhotoViewerScreen() {
             onClose={() => setShowShareModal(false)}
             post={effectivePost}
           />
+
+          {(effectivePost.type === 'DUA' ||
+            Boolean(effectivePost.dua) ||
+            Boolean(effectivePost.duaId)) && (
+            <DuaPhotocardModal
+              visible={showPhotocardModal}
+              onClose={() => setShowPhotocardModal(false)}
+              post={effectivePost}
+            />
+          )}
 
           <EditPostModal
             visible={showEditModal}

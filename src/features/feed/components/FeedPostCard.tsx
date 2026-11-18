@@ -137,6 +137,10 @@ export function FeedPostCard({
   } = useFeed();
 
   const [currentPost, setCurrentPost] = useState<FeedItem>(post);
+  const isDuaPost =
+    currentPost.type === 'DUA' ||
+    Boolean(currentPost.dua) ||
+    Boolean(currentPost.duaId);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showPhotocardModal, setShowPhotocardModal] = useState(false);
@@ -720,7 +724,7 @@ export function FeedPostCard({
         onToggleSave={handleToggleSave}
         onCopyLink={handleCopyLink}
         onOpenShare={() => setShowShareModal(true)}
-        onMakePhotocard={() => setShowPhotocardModal(true)}
+        onMakePhotocard={isDuaPost ? () => setShowPhotocardModal(true) : undefined}
         onReport={() => setShowReportModal(true)}
       />
 
@@ -731,12 +735,14 @@ export function FeedPostCard({
         post={currentPost}
       />
 
-      {/* 7. Dua & Post Photocard Generator Modal */}
-      <DuaPhotocardModal
-        visible={showPhotocardModal}
-        onClose={() => setShowPhotocardModal(false)}
-        post={currentPost}
-      />
+      {/* 7. Dua Photocard Generator Modal (Only for Dua posts) */}
+      {isDuaPost && (
+        <DuaPhotocardModal
+          visible={showPhotocardModal}
+          onClose={() => setShowPhotocardModal(false)}
+          post={currentPost}
+        />
+      )}
 
       {/* 7. Reusable Edit Post Modal */}
       <EditPostModal
