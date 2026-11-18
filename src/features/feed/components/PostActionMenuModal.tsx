@@ -24,6 +24,7 @@ export interface PostActionMenuModalProps {
   onToggleSave: () => void;
   onCopyLink: () => void;
   onOpenShare: () => void;
+  onMakePhotocard?: () => void;
   onReport: () => void;
 }
 
@@ -38,6 +39,7 @@ export function PostActionMenuModal({
   onToggleSave,
   onCopyLink,
   onOpenShare,
+  onMakePhotocard,
   onReport,
 }: PostActionMenuModalProps) {
   const { locale, theme } = useUi();
@@ -351,7 +353,38 @@ export function PostActionMenuModal({
                 </View>
               </Pressable>
 
-              {/* 4. Social Media Share (Both) */}
+              {/* 4. Make Photocard (Both) */}
+              {onMakePhotocard && (
+                <Pressable
+                  onPress={() => {
+                    onClose();
+                    onMakePhotocard();
+                  }}
+                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
+                  <View
+                    style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
+                    className="h-10 w-10 rounded-full items-center justify-center">
+                    <AppIcon
+                      android="photo_library"
+                      ios="photo.on.rectangle"
+                      size={20}
+                      color="#0866FF"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                      {locale === 'bn' ? 'ফটোকার্ড তৈরি করুন' : 'Make Photocard'}
+                    </Text>
+                    <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                      {locale === 'bn'
+                        ? 'সোশ্যাল মিডিয়ায় শেয়ারের জন্য সুন্দর ভিন্টেজ কার্ড বানান'
+                        : 'Create beautiful vintage card for social media'}
+                    </Text>
+                  </View>
+                </Pressable>
+              )}
+
+              {/* 5. Social Media Share (Both) */}
               <Pressable
                 onPress={() => {
                   onClose();
@@ -382,7 +415,7 @@ export function PostActionMenuModal({
                 </View>
               </Pressable>
 
-              {/* 5. Delete Post (Author only) */}
+              {/* 6. Delete Post (Author only) */}
               {isAuthor && (
                 <Pressable
                   onPress={() => {

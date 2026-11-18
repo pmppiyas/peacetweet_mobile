@@ -30,6 +30,7 @@ import {
 } from './CommentsBottomSheetModal';
 import { PostActionMenuModal } from './PostActionMenuModal';
 import { PostShareModal } from './PostShareModal';
+import { DuaPhotocardModal } from './DuaPhotocardModal';
 import { EditPostModal } from './EditPostModal';
 import { ReportPostModal } from './ReportPostModal';
 import { queryCache } from '@/lib/cache/queryCache';
@@ -138,6 +139,7 @@ export function FeedPostCard({
   const [currentPost, setCurrentPost] = useState<FeedItem>(post);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showPhotocardModal, setShowPhotocardModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
 
@@ -718,6 +720,7 @@ export function FeedPostCard({
         onToggleSave={handleToggleSave}
         onCopyLink={handleCopyLink}
         onOpenShare={() => setShowShareModal(true)}
+        onMakePhotocard={() => setShowPhotocardModal(true)}
         onReport={() => setShowReportModal(true)}
       />
 
@@ -725,6 +728,13 @@ export function FeedPostCard({
       <PostShareModal
         visible={showShareModal}
         onClose={() => setShowShareModal(false)}
+        post={currentPost}
+      />
+
+      {/* 7. Dua & Post Photocard Generator Modal */}
+      <DuaPhotocardModal
+        visible={showPhotocardModal}
+        onClose={() => setShowPhotocardModal(false)}
         post={currentPost}
       />
 
