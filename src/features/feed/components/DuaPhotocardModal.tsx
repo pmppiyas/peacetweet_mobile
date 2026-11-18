@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import * as MediaLibrary from 'expo-media-library';
 import { FeedItem } from '@/features/feed/types/feed.types';
 import { useUi } from '@/providers/UiProvider';
 import { AppIcon } from '@/components/ui/Icon';
@@ -142,29 +143,41 @@ export function DuaPhotocardModal({
         Alert.alert(
           locale === 'bn' ? 'সফল হয়েছে' : 'Success',
           locale === 'bn'
-            ? 'ফটোকার্ডটি ডিভাইসে সেভ হয়েছে!'
-            : 'Photocard saved to your device!'
+            ? 'ফটোকার্ডটি ডিভাইসে ডাউনলোড হয়েছে!'
+            : 'Photocard downloaded to your device!'
         );
       } else {
-        // On native mobile, invoke system share/save sheet so user can "Save Image" to gallery or files
-        const isAvailable = await Sharing.isAvailableAsync();
-        if (isAvailable) {
-          await Sharing.shareAsync(uri, {
-            mimeType: 'image/jpeg',
-            dialogTitle:
-              locale === 'bn'
-                ? 'গ্যালারি বা ফাইলে সংরক্ষণ করুন'
-                : 'Save Photocard to Gallery / Files',
-            UTI: 'public.jpeg',
-          });
-        } else {
+        // 1. Request permission to save to Media Library
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status !== 'granted') {
           Alert.alert(
-            locale === 'bn' ? 'সেভ করা যায়নি' : 'Unable to Save',
+            locale === 'bn' ? 'অনুমতি প্রয়োজন' : 'Permission Required',
             locale === 'bn'
-              ? 'ডিভাইসে সেভ করার অপশন সমর্থিত নয়।'
-              : 'Saving directly is not supported on this device.'
+              ? 'গ্যালারিতে ফটোকার্ড সংরক্ষণ করার জন্য মিডিয়া স্টোরেজ অনুমতি দিন।'
+              : 'Please grant media library permission to save photocards.'
           );
+          return;
         }
+
+        // 2. Create asset from local snapshot
+        const asset = await MediaLibrary.createAssetAsync(uri);
+
+        // 3. Create or add to dedicated 'PeaceTweet' album
+        const albumName = 'PeaceTweet';
+        const existingAlbum = await MediaLibrary.getAlbumAsync(albumName);
+
+        if (existingAlbum) {
+          await MediaLibrary.addAssetsToAlbumAsync([asset], existingAlbum, false);
+        } else {
+          await MediaLibrary.createAlbumAsync(albumName, asset, false);
+        }
+
+        Alert.alert(
+          locale === 'bn' ? 'সংরক্ষিত হয়েছে' : 'Saved!',
+          locale === 'bn'
+            ? 'ফটোকার্ডটি আপনার গ্যালারির "PeaceTweet" ফোল্ডারে সেভ হয়েছে!'
+            : 'Photocard saved to the "PeaceTweet" album in your gallery!'
+        );
       }
     } catch (err: any) {
       Alert.alert(
