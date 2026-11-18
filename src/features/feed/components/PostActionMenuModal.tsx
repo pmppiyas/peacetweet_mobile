@@ -100,7 +100,6 @@ export function PostActionMenuModal({
     }).start();
   };
 
-  // PanResponder for the top handle bar (always draggable downward)
   const headerPanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
@@ -111,6 +110,8 @@ export function PostActionMenuModal({
       onPanResponderMove: (_, gs) => {
         if (gs.dy > 0) {
           translateY.setValue(gs.dy);
+        } else {
+          translateY.setValue(0);
         }
       },
       onPanResponderRelease: (_, gs) => {
@@ -126,15 +127,16 @@ export function PostActionMenuModal({
     })
   ).current;
 
-  // PanResponder for the action list body
   const bodyPanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponderCapture: (_, gs) =>
-        gs.dy > 8 && Math.abs(gs.dy) > Math.abs(gs.dx) * 1.2,
+        gs.dy > 6 && Math.abs(gs.dy) > Math.abs(gs.dx) * 1.1,
       onPanResponderMove: (_, gs) => {
         if (gs.dy > 0) {
           translateY.setValue(gs.dy);
+        } else {
+          translateY.setValue(0);
         }
       },
       onPanResponderRelease: (_, gs) => {
@@ -149,6 +151,10 @@ export function PostActionMenuModal({
       },
     })
   ).current;
+
+  // Unified Black & White / Monochrome style helpers
+  const iconBoxBg = isDark ? '#3a3b3c' : '#e6e9ef';
+  const iconColor = isDark ? '#e4e6eb' : '#050505';
 
   return (
     <Modal
@@ -164,7 +170,7 @@ export function PostActionMenuModal({
           backgroundColor: 'transparent',
           justifyContent: 'flex-end',
         }}>
-        {/* Pinned light black backdrop overlay (fades in/out, does NOT slide from bottom) */}
+        {/* Pinned light black backdrop overlay */}
         <Animated.View
           style={{
             position: 'absolute',
@@ -172,7 +178,7 @@ export function PostActionMenuModal({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
             opacity: backdropOpacity,
           }}>
           <Pressable
@@ -181,7 +187,7 @@ export function PostActionMenuModal({
           />
         </Animated.View>
 
-        {/* Bottom Sheet Container (hugs content height) */}
+        {/* Bottom Sheet Container */}
         <Animated.View
           style={{
             width: '100%',
@@ -192,15 +198,15 @@ export function PostActionMenuModal({
           <View
             style={{
               width: '100%',
-              backgroundColor: isDark ? '#242526' : '#f5f6f8',
+              backgroundColor: isDark ? '#242526' : '#ffffff',
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               borderBottomLeftRadius: 0,
               borderBottomRightRadius: 0,
               overflow: 'hidden',
               borderTopWidth: 1,
-              borderColor: isDark ? '#393a3b' : '#d9dde4',
-              paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+              borderColor: isDark ? '#393a3b' : '#e4e6eb',
+              paddingBottom: Platform.OS === 'ios' ? 34 : 18,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: -4 },
               shadowOpacity: isDark ? 0.35 : 0.1,
@@ -226,28 +232,59 @@ export function PostActionMenuModal({
               </Pressable>
             </View>
 
-            {/* Action List */}
+            {/* Action List - Monochrome Black & White with larger typography */}
             <View {...bodyPanResponder.panHandlers} className="py-1 px-3">
-              {/* 1. Edit Post (Author only) */}
+              {/* 1. Make Photocard (First option at the very top as requested) */}
+              {onMakePhotocard && (
+                <Pressable
+                  onPress={() => {
+                    onClose();
+                    onMakePhotocard();
+                  }}
+                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  <View
+                    style={{ backgroundColor: iconBoxBg }}
+                    className="h-11 w-11 rounded-full items-center justify-center">
+                    <AppIcon
+                      android="photo_library"
+                      ios="photo.on.rectangle"
+                      size={21}
+                      color={iconColor}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[16px] leading-[22px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+                      {locale === 'bn' ? 'ফটোকার্ড তৈরি করুন' : 'Make Photocard'}
+                    </Text>
+                    <Text className="text-[13.5px] leading-[18px] text-[#65676b] dark:text-[#b0b3b8]">
+                      {locale === 'bn'
+                        ? 'সোশ্যাল মিডিয়ায় শেয়ারের জন্য সুন্দর ভিন্টেজ কার্ড বানান'
+                        : 'Create beautiful vintage card for social media'}
+                    </Text>
+                  </View>
+                </Pressable>
+              )}
+
+              {/* 2. Edit Post (Author only) */}
               {isAuthor && (
                 <Pressable
                   onPress={() => {
                     onClose();
                     onEdit();
                   }}
-                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
+                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
                   <View
-                    style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
-                    className="h-10 w-10 rounded-full items-center justify-center">
+                    style={{ backgroundColor: iconBoxBg }}
+                    className="h-11 w-11 rounded-full items-center justify-center">
                     <AppIcon
                       android="edit"
                       ios="pencil"
-                      size={20}
-                      color={isDark ? '#e4e6eb' : '#050505'}
+                      size={21}
+                      color={iconColor}
                     />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                    <Text className="text-[16px] leading-[22px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                       {isBloodPost
                         ? locale === 'bn'
                           ? 'রক্তের অনুরোধ সম্পাদনা করুন'
@@ -260,10 +297,10 @@ export function PostActionMenuModal({
                           ? 'পোস্ট সম্পাদনা করুন'
                           : 'Edit Post'}
                     </Text>
-                    <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                    <Text className="text-[13.5px] leading-[18px] text-[#65676b] dark:text-[#b0b3b8]">
                       {isBloodPost
                         ? locale === 'bn'
-                          ? 'রোগীর নাম, রক্তের গ্রুপ, হাসপাতাল ও যোগাযোগের বিবরণ পরিবর্তন করুন'
+                          ? 'রোগীর নাম, রক্তের গ্রুপ, হাসপাতাল ও বিবরণ পরিবর্তন করুন'
                           : 'Modify patient, hospital, and blood request details'
                         : isDuaPost
                         ? locale === 'bn'
@@ -277,33 +314,27 @@ export function PostActionMenuModal({
                 </Pressable>
               )}
 
-              {/* 2. Save / Bookmark (Both) */}
+              {/* 3. Save / Bookmark (Both) */}
               <Pressable
                 onPress={() => {
                   onClose();
                   onToggleSave();
                 }}
-                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
+                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
                 <View
-                  style={{
-                    backgroundColor: hasSaved
-                      ? '#0866FF'
-                      : isDark
-                        ? '#3a3b3c'
-                        : '#e6e9ef',
-                  }}
-                  className="h-10 w-10 rounded-full items-center justify-center">
+                  style={{ backgroundColor: iconBoxBg }}
+                  className="h-11 w-11 rounded-full items-center justify-center">
                   <AppIcon
                     android="bookmark"
                     ios={hasSaved ? 'bookmark.fill' : 'bookmark'}
-                    size={20}
-                    color={hasSaved ? '#ffffff' : isDark ? '#e4e6eb' : '#050505'}
-                    fill={hasSaved ? '#ffffff' : 'none'}
+                    size={21}
+                    color={iconColor}
+                    fill={hasSaved ? iconColor : 'none'}
                     filled={hasSaved}
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                  <Text className="text-[16px] leading-[22px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {hasSaved
                       ? locale === 'bn'
                         ? 'সংরক্ষণ থেকে সরান'
@@ -312,7 +343,7 @@ export function PostActionMenuModal({
                         ? 'পোস্ট সংরক্ষণ করুন'
                         : 'Save Post'}
                   </Text>
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[13.5px] leading-[18px] text-[#65676b] dark:text-[#b0b3b8]">
                     {hasSaved
                       ? locale === 'bn'
                         ? 'সংরক্ষিত তালিকা থেকে পোস্টটি মুছুন'
@@ -324,28 +355,28 @@ export function PostActionMenuModal({
                 </View>
               </Pressable>
 
-              {/* 3. Copy Link (Both) */}
+              {/* 4. Copy Link (Both) */}
               <Pressable
                 onPress={() => {
                   onClose();
                   onCopyLink();
                 }}
-                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
+                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
                 <View
-                  style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
-                  className="h-10 w-10 rounded-full items-center justify-center">
+                  style={{ backgroundColor: iconBoxBg }}
+                  className="h-11 w-11 rounded-full items-center justify-center">
                   <AppIcon
                     android="link"
                     ios="link"
-                    size={20}
-                    color={isDark ? '#e4e6eb' : '#050505'}
+                    size={21}
+                    color={iconColor}
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                  <Text className="text-[16px] leading-[22px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'পোস্টের লিংক কপি করুন' : 'Copy Link'}
                   </Text>
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[13.5px] leading-[18px] text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn'
                       ? 'ক্লিপবোর্ডে সরাসরি পোস্টের লিংক কপি করুন'
                       : 'Copy direct post URL to clipboard'}
@@ -353,61 +384,30 @@ export function PostActionMenuModal({
                 </View>
               </Pressable>
 
-              {/* 4. Make Photocard (Both) */}
-              {onMakePhotocard && (
-                <Pressable
-                  onPress={() => {
-                    onClose();
-                    onMakePhotocard();
-                  }}
-                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
-                  <View
-                    style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
-                    className="h-10 w-10 rounded-full items-center justify-center">
-                    <AppIcon
-                      android="photo_library"
-                      ios="photo.on.rectangle"
-                      size={20}
-                      color="#0866FF"
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
-                      {locale === 'bn' ? 'ফটোকার্ড তৈরি করুন' : 'Make Photocard'}
-                    </Text>
-                    <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
-                      {locale === 'bn'
-                        ? 'সোশ্যাল মিডিয়ায় শেয়ারের জন্য সুন্দর ভিন্টেজ কার্ড বানান'
-                        : 'Create beautiful vintage card for social media'}
-                    </Text>
-                  </View>
-                </Pressable>
-              )}
-
               {/* 5. Social Media Share (Both) */}
               <Pressable
                 onPress={() => {
                   onClose();
                   onOpenShare();
                 }}
-                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]">
+                className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
                 <View
-                  style={{ backgroundColor: isDark ? '#3a3b3c' : '#e6e9ef' }}
-                  className="h-10 w-10 rounded-full items-center justify-center">
+                  style={{ backgroundColor: iconBoxBg }}
+                  className="h-11 w-11 rounded-full items-center justify-center">
                   <AppIcon
                     android="share"
                     ios="square.and.arrow.up"
-                    size={20}
-                    color={isDark ? '#e4e6eb' : '#050505'}
+                    size={21}
+                    color={iconColor}
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                  <Text className="text-[16px] leading-[22px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn'
                       ? 'সোশ্যাল মিডিয়ায় শেয়ার করুন'
                       : 'Share via Social Apps'}
                   </Text>
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[13.5px] leading-[18px] text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn'
                       ? 'হোয়াটসঅ্যাপ, ফেসবুক, মেসেঞ্জার বা এক্স (টুইটার)'
                       : 'WhatsApp, Facebook, Messenger or X'}
@@ -415,27 +415,29 @@ export function PostActionMenuModal({
                 </View>
               </Pressable>
 
-              {/* 6. Delete Post (Author only) */}
+              {/* 6. Delete Post (Author only) - Monochrome B&W */}
               {isAuthor && (
                 <Pressable
                   onPress={() => {
                     onClose();
                     onDelete();
                   }}
-                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-rose-50 dark:active:bg-rose-950/30">
-                  <View className="h-10 w-10 rounded-full bg-rose-100 dark:bg-rose-950/60 items-center justify-center">
+                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  <View
+                    style={{ backgroundColor: iconBoxBg }}
+                    className="h-11 w-11 rounded-full items-center justify-center">
                     <AppIcon
                       android="delete"
                       ios="trash"
-                      size={20}
-                      color="#e11d48"
+                      size={21}
+                      color={iconColor}
                     />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                    <Text className="text-[16px] leading-[22px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                       {locale === 'bn' ? 'পোস্ট মুছে ফেলুন' : 'Delete Post'}
                     </Text>
-                    <Text className="text-xs text-rose-500/80">
+                    <Text className="text-[13.5px] leading-[18px] text-[#65676b] dark:text-[#b0b3b8]">
                       {locale === 'bn'
                         ? 'পোস্টটি স্থায়ীভাবে মুছে ফেলুন'
                         : 'Permanently remove this post'}
@@ -444,27 +446,29 @@ export function PostActionMenuModal({
                 </Pressable>
               )}
 
-              {/* 6. Report Post (Other's Post only) */}
+              {/* 7. Report Post (Other's Post only) - Monochrome B&W */}
               {!isAuthor && (
                 <Pressable
                   onPress={() => {
                     onClose();
                     onReport();
                   }}
-                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-amber-50 dark:active:bg-amber-950/30">
-                  <View className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-950/60 items-center justify-center">
+                  className="flex-row items-center gap-3.5 px-3 py-3 rounded-xl active:bg-[#f0f2f5] dark:active:bg-[#3a3b3c]">
+                  <View
+                    style={{ backgroundColor: iconBoxBg }}
+                    className="h-11 w-11 rounded-full items-center justify-center">
                     <AppIcon
                       android="flag"
                       ios="flag"
-                      size={20}
-                      color="#d97706"
+                      size={21}
+                      color={iconColor}
                     />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                    <Text className="text-[16px] leading-[22px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                       {locale === 'bn' ? 'পোস্ট রিপোর্ট করুন' : 'Report Post'}
                     </Text>
-                    <Text className="text-xs text-amber-600/80">
+                    <Text className="text-[13.5px] leading-[18px] text-[#65676b] dark:text-[#b0b3b8]">
                       {locale === 'bn'
                         ? 'স্প্যাম, ভুল বা আপত্তিকর কনটেন্ট জানান'
                         : 'Notify admins of spam or inappropriate content'}
