@@ -27,25 +27,47 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
     const references = hasDua && dua?.references && dua.references.length > 0 ? dua.references : null;
     const rawPostContent = post.content && post.content !== title ? post.content : null;
 
-    // Content length checks for adaptive scaling so text is as large as possible
+    // Total text length for proportional scaling
     const totalChars =
       (arabicText?.length || 0) +
       (transliteration?.length || 0) +
       (meaning?.length || 0) +
       (rawPostContent?.length || 0);
 
-    const isLong = totalChars > 160;
+    // Smart auto-scaling so text is never cut off, while keeping pronunciation large & meaning small
+    let arabicFontSize = 28;
+    let arabicLineHeight = 46;
+    let transliterationFontSize = 22;
+    let transliterationLineHeight = 32;
+    let meaningFontSize = 15;
+    let meaningLineHeight = 22;
+    let contentGap = 10;
 
-    // Hierarchy requested by user:
-    // 1. Arabic: prominent & clear
-    // 2. Pronunciation (উচ্চারণ): BORO (Large / Prominent, 21-24px)
-    // 3. Meaning (অর্থ): CHOTO (Small / Subtle, 14-15px)
-    const arabicFontSize = isLong ? 24 : 29;
-    const arabicLineHeight = isLong ? 40 : 48;
-    const transliterationFontSize = isLong ? 19 : 23;
-    const transliterationLineHeight = isLong ? 28 : 34;
-    const meaningFontSize = isLong ? 13.5 : 15;
-    const meaningLineHeight = isLong ? 20 : 23;
+    if (totalChars > 320) {
+      arabicFontSize = 19;
+      arabicLineHeight = 32;
+      transliterationFontSize = 15;
+      transliterationLineHeight = 22;
+      meaningFontSize = 12;
+      meaningLineHeight = 17;
+      contentGap = 6;
+    } else if (totalChars > 180) {
+      arabicFontSize = 22;
+      arabicLineHeight = 36;
+      transliterationFontSize = 17.5;
+      transliterationLineHeight = 25;
+      meaningFontSize = 13;
+      meaningLineHeight = 19;
+      contentGap = 7;
+    } else if (totalChars > 90) {
+      arabicFontSize = 25;
+      arabicLineHeight = 42;
+      transliterationFontSize = 19.5;
+      transliterationLineHeight = 28;
+      meaningFontSize = 14;
+      meaningLineHeight = 20.5;
+      contentGap = 8;
+    }
 
     return (
       <View
@@ -53,7 +75,10 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
         collapsable={false}
         style={[
           styles.cardContainer,
-          { width: cardSize, height: cardSize },
+          {
+            width: cardSize,
+            minHeight: cardSize,
+          },
         ]}
       >
         {/* 1. Pure, Simple Vintage Book Paper Background (from user sample) */}
@@ -63,8 +88,8 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
           resizeMode="cover"
         />
 
-        {/* 2. Main Sacred / Literary Content (Centered on the paper without boxes) */}
-        <View style={styles.contentBody}>
+        {/* 2. Main Sacred / Literary Content (FULL text, no truncation) */}
+        <View style={[styles.contentBody, { gap: contentGap }]}>
           {/* Subtle Bismillah Calligraphy (if Dua) */}
           {hasDua && arabicText ? (
             <Text style={styles.bismillahText}>
@@ -74,7 +99,7 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
 
           {/* Optional Dua Title */}
           {title ? (
-            <Text style={styles.titleText} numberOfLines={2}>
+            <Text style={styles.titleText}>
               {title}
             </Text>
           ) : null}
@@ -86,13 +111,12 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
                 styles.mainQuoteText,
                 { fontSize: transliterationFontSize, lineHeight: transliterationLineHeight },
               ]}
-              numberOfLines={isLong ? 5 : 7}
             >
               {rawPostContent}
             </Text>
           ) : null}
 
-          {/* Arabic Dua Text (Pure text directly on book paper - no box wrapper) */}
+          {/* Arabic Dua Text (Pure full text directly on book paper) */}
           {arabicText ? (
             <Text
               style={[
@@ -104,7 +128,7 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
             </Text>
           ) : null}
 
-          {/* Pronunciation / Transliteration: BORO (Large & Prominent as requested) */}
+          {/* Pronunciation / Transliteration: BORO (Full text, large & prominent) */}
           {transliteration ? (
             <Text
               style={[
@@ -114,34 +138,32 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
                   lineHeight: transliterationLineHeight,
                 },
               ]}
-              numberOfLines={isLong ? 4 : 5}
             >
               {transliteration}
             </Text>
           ) : null}
 
-          {/* Meaning / Translation: CHOTO (Small & Subtle as requested) */}
+          {/* Meaning / Translation: CHOTO (Full text, small & subtle) */}
           {meaning ? (
             <Text
               style={[
                 styles.meaningText,
                 { fontSize: meaningFontSize, lineHeight: meaningLineHeight },
               ]}
-              numberOfLines={isLong ? 4 : 5}
             >
               "{meaning}"
             </Text>
           ) : null}
 
-          {/* Reference (small, subtle, like book reference) */}
+          {/* Reference (small, subtle book reference) */}
           {references && references.length > 0 ? (
-            <Text style={styles.referenceText} numberOfLines={1}>
+            <Text style={styles.referenceText}>
               — {references.map((r) => r.source?.name ? `${r.source.name}: ${r.reference}` : r.reference).join(' • ')}
             </Text>
           ) : null}
         </View>
 
-        {/* 3. Bottom Right Signature: more: peacetweet/username (just like reference image signature) */}
+        {/* 3. Bottom Right Signature: more: peacetweet/username */}
         <View style={styles.signatureRow}>
           <Text style={styles.signatureText}>
             more: peacetweet/{authorUsername}
@@ -156,17 +178,15 @@ PhotocardCanvas.displayName = 'PhotocardCanvas';
 
 const styles = StyleSheet.create({
   cardContainer: {
-    // 4:4 (1:1) Perfect Square Aspect Ratio
     width: 380,
-    height: 380,
-    aspectRatio: 1,
+    minHeight: 380,
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: '#eee4cf',
-    paddingHorizontal: 28,
-    paddingTop: 24,
-    paddingBottom: 20,
+    paddingHorizontal: 22,
+    paddingTop: 22,
+    paddingBottom: 16,
     justifyContent: 'space-between',
     // Soft realistic shadow for the page
     shadowColor: '#2b2118',
@@ -180,7 +200,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 10,
+    marginVertical: 4,
   },
   bismillahText: {
     textAlign: 'center',
@@ -192,11 +212,11 @@ const styles = StyleSheet.create({
   },
   titleText: {
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     color: '#2a1f18',
     letterSpacing: -0.2,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   mainQuoteText: {
     textAlign: 'center',
@@ -211,20 +231,20 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Geeza Pro' : undefined,
     marginBottom: 4,
   },
-  // Pronunciation is BORO (Large, bold, prominent)
+  // Pronunciation is BORO (Large, bold, prominent, full text)
   transliterationText: {
     textAlign: 'center',
     fontWeight: '700',
     color: '#1a1412',
     letterSpacing: -0.1,
   },
-  // Meaning is CHOTO (Small, lighter, subtle)
+  // Meaning is CHOTO (Small, lighter, subtle, full text)
   meaningText: {
     textAlign: 'center',
     fontWeight: '500',
     color: '#4e4239',
     marginTop: 2,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
   },
   referenceText: {
     fontSize: 11.5,
@@ -238,7 +258,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'flex-end',
     justifyContent: 'center',
-    paddingTop: 6,
+    paddingTop: 8,
   },
   signatureText: {
     fontSize: 12,
