@@ -1,12 +1,33 @@
 import { useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
-import * as Crypto from 'expo-crypto';
+import * as Linking from 'expo-linking';
 import { useAuth } from '@/providers/AuthProvider';
 import { envConfig, getValidatedGoogleClientId } from '@/config/env.config';
 
-WebBrowser.maybeCompleteAuthSession();
+try {
+  WebBrowser.maybeCompleteAuthSession();
+} catch {
+  // Gracefully continue if running in an environment without WebBrowser native bindings
+}
+
+/**
+ * Safely generate a cryptographically random UUID / nonce without requiring native ExpoCrypto
+ */
+function generateNonce(): string {
+  if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
+    try {
+      return globalThis.crypto.randomUUID();
+    } catch {
+      // fallback below
+    }
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 /**
  * Safely parse redirect URL parameters from both hash fragments (#) and query strings (?)
@@ -71,9 +92,8 @@ export function useGoogleAuth() {
       return `${window.location.origin}/auth/google/callback`;
     }
 
-    return AuthSession.makeRedirectUri({
+    return Linking.createURL('auth/google/callback', {
       scheme: 'peacetweetmobile',
-      path: 'auth/google/callback',
     });
   }, []);
 
@@ -82,7 +102,7 @@ export function useGoogleAuth() {
     const clientId = getValidatedGoogleClientId();
 
     const redirectUri = getRedirectUri();
-    const nonce = Crypto.randomUUID();
+    const nonce = generateNonce();
 
     setIsPrompting(true);
 
