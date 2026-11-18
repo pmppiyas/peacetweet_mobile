@@ -42,6 +42,14 @@
             "image": "./assets/images/splash-icon.png"
           }
         }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow PeaceTweet to access your photos to save photocards.",
+          "savePhotosPermission": "Allow PeaceTweet to save photocards to your photo library.",
+          "isAccessMediaLocationEnabled": false
+        }
       ]
     ],
     "experiments": {

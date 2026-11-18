@@ -147,29 +147,44 @@ export function DuaPhotocardModal({
             : 'Photocard downloaded to your device!'
         );
       } else {
-        // 1. Request permission to save to Media Library
-        const { status } = await MediaLibrary.requestPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert(
-            locale === 'bn' ? 'অনুমতি প্রয়োজন' : 'Permission Required',
-            locale === 'bn'
-              ? 'গ্যালারিতে ফটোকার্ড সংরক্ষণ করার জন্য মিডিয়া স্টোরেজ অনুমতি দিন।'
-              : 'Please grant media library permission to save photocards.'
-          );
-          return;
+        // 1. Request permission to save to Media Library (write-only to avoid asking for audio permission)
+        try {
+          const perm = await MediaLibrary.getPermissionsAsync(true);
+          if (!perm.granted) {
+            const req = await MediaLibrary.requestPermissionsAsync(true);
+            if (!req.granted && req.status !== 'granted') {
+              Alert.alert(
+                locale === 'bn' ? 'অনুমতি প্রয়োজন' : 'Permission Required',
+                locale === 'bn'
+                  ? 'গ্যালারিতে ফটোকার্ড সংরক্ষণ করার জন্য স্টোরেজ অনুমতি দিন।'
+                  : 'Please grant media library permission to save photocards.'
+              );
+              return;
+            }
+          }
+        } catch (permError) {
+          // In Expo Go on Android 13+, requesting permissions without custom manifest may throw.
+          // MediaStore on Android 10+ safely allows write operations without runtime permissions.
+          console.log('[Photocard] Permission prompt handled:', permError);
         }
 
-        // 2. Create asset from local snapshot
+        // 2. Create asset from local snapshot (safely saves directly into system gallery)
         const asset = await MediaLibrary.createAssetAsync(uri);
 
         // 3. Create or add to dedicated 'PeaceTweet' album
-        const albumName = 'PeaceTweet';
-        const existingAlbum = await MediaLibrary.getAlbumAsync(albumName);
+        try {
+          const albumName = 'PeaceTweet';
+          const existingAlbum = await MediaLibrary.getAlbumAsync(albumName);
 
-        if (existingAlbum) {
-          await MediaLibrary.addAssetsToAlbumAsync([asset], existingAlbum, false);
-        } else {
-          await MediaLibrary.createAlbumAsync(albumName, asset, false);
+          if (existingAlbum) {
+            await MediaLibrary.addAssetsToAlbumAsync([asset], existingAlbum, false);
+          } else {
+            await MediaLibrary.createAlbumAsync(albumName, asset, false);
+          }
+        } catch (albumErr) {
+          // Album reading/creation may be restricted in Expo Go sandbox,
+          // but createAssetAsync has already successfully saved the photo into the device gallery.
+          console.log('[Photocard] Album grouping skipped in this environment:', albumErr);
         }
 
         Alert.alert(
