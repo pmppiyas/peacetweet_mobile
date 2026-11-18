@@ -12,7 +12,7 @@ export interface PhotocardCanvasProps {
 export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
   ({ post, locale = 'bn' }, ref) => {
     const { width: windowWidth } = useWindowDimensions();
-    const cardSize = Math.min(windowWidth - 48, 380);
+    const cardSize = Math.min(windowWidth - 40, 380);
 
     const dua = post.dua;
     const author = post.author;
@@ -27,20 +27,25 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
     const references = hasDua && dua?.references && dua.references.length > 0 ? dua.references : null;
     const rawPostContent = post.content && post.content !== title ? post.content : null;
 
-    // Adaptive sizing for 4:4 (1:1) square card so text stays as large as possible without overflowing
+    // Content length checks for adaptive scaling so text is as large as possible
     const totalChars =
       (arabicText?.length || 0) +
+      (transliteration?.length || 0) +
       (meaning?.length || 0) +
       (rawPostContent?.length || 0);
 
-    const isVeryLong = totalChars > 220;
-    const isMedium = totalChars > 120;
+    const isLong = totalChars > 160;
 
-    const arabicFontSize = isVeryLong ? 24 : isMedium ? 28 : 33;
-    const arabicLineHeight = isVeryLong ? 42 : isMedium ? 48 : 54;
-    const meaningFontSize = isVeryLong ? 15.5 : isMedium ? 17.5 : 19.5;
-    const meaningLineHeight = isVeryLong ? 23 : isMedium ? 26 : 29;
-    const titleFontSize = isVeryLong ? 18 : 21;
+    // Hierarchy requested by user:
+    // 1. Arabic: prominent & clear
+    // 2. Pronunciation (উচ্চারণ): BORO (Large / Prominent, 21-24px)
+    // 3. Meaning (অর্থ): CHOTO (Small / Subtle, 14-15px)
+    const arabicFontSize = isLong ? 24 : 29;
+    const arabicLineHeight = isLong ? 40 : 48;
+    const transliterationFontSize = isLong ? 19 : 23;
+    const transliterationLineHeight = isLong ? 28 : 34;
+    const meaningFontSize = isLong ? 13.5 : 15;
+    const meaningLineHeight = isLong ? 20 : 23;
 
     return (
       <View
@@ -51,110 +56,96 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
           { width: cardSize, height: cardSize },
         ]}
       >
-        {/* 1. Square Vintage Notebook Paper Background */}
+        {/* 1. Pure, Simple Vintage Book Paper Background (from user sample) */}
         <Image
           source={VINTAGE_BG}
           style={StyleSheet.absoluteFill}
           resizeMode="cover"
         />
 
-        {/* Vintage Paper Double Border Overlay */}
-        <View style={styles.cardBorderOverlayOuter} />
-        <View style={styles.cardBorderOverlayInner} />
-
-        {/* 2. Main Content Body - Centered in 4:4 Square */}
+        {/* 2. Main Sacred / Literary Content (Centered on the paper without boxes) */}
         <View style={styles.contentBody}>
-          {/* Subtle Bismillah Calligraphy */}
+          {/* Subtle Bismillah Calligraphy (if Dua) */}
           {hasDua && arabicText ? (
             <Text style={styles.bismillahText}>
               بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
             </Text>
           ) : null}
 
-          {/* Dua Title */}
+          {/* Optional Dua Title */}
           {title ? (
-            <Text
-              style={[styles.titleText, { fontSize: titleFontSize }]}
-              numberOfLines={2}
-            >
+            <Text style={styles.titleText} numberOfLines={2}>
               {title}
             </Text>
           ) : null}
 
-          {/* Optional Caption / Post Content (for non-Dua or captioned posts) */}
+          {/* Raw post content for quotes or thoughts */}
           {rawPostContent ? (
             <Text
-              style={[styles.captionText, { fontSize: meaningFontSize, lineHeight: meaningLineHeight }]}
-              numberOfLines={isVeryLong ? 4 : 6}
+              style={[
+                styles.mainQuoteText,
+                { fontSize: transliterationFontSize, lineHeight: transliterationLineHeight },
+              ]}
+              numberOfLines={isLong ? 5 : 7}
             >
               {rawPostContent}
             </Text>
           ) : null}
 
-          {/* Large Arabic Dua Sacred Text */}
+          {/* Arabic Dua Text (Pure text directly on book paper - no box wrapper) */}
           {arabicText ? (
-            <View style={styles.arabicWrapper}>
-              <Text
-                style={[
-                  styles.arabicText,
-                  { fontSize: arabicFontSize, lineHeight: arabicLineHeight },
-                ]}
-              >
-                {arabicText}
-              </Text>
-            </View>
+            <Text
+              style={[
+                styles.arabicText,
+                { fontSize: arabicFontSize, lineHeight: arabicLineHeight },
+              ]}
+            >
+              {arabicText}
+            </Text>
           ) : null}
 
-          {/* Ornate Star Divider */}
-          {(arabicText || title) && (meaning || transliteration) ? (
-            <View style={styles.ornateDivider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerStar}>✦</Text>
-              <View style={styles.dividerLine} />
-            </View>
-          ) : null}
-
-          {/* Transliteration / Pronunciation */}
+          {/* Pronunciation / Transliteration: BORO (Large & Prominent as requested) */}
           {transliteration ? (
-            <View style={styles.transliterationBox}>
-              <Text
-                style={[styles.transliterationText, isVeryLong && { fontSize: 13, lineHeight: 19 }]}
-                numberOfLines={3}
-              >
-                {transliteration}
-              </Text>
-            </View>
+            <Text
+              style={[
+                styles.transliterationText,
+                {
+                  fontSize: transliterationFontSize,
+                  lineHeight: transliterationLineHeight,
+                },
+              ]}
+              numberOfLines={isLong ? 4 : 5}
+            >
+              {transliteration}
+            </Text>
           ) : null}
 
-          {/* Bengali / English Meaning / Translation */}
+          {/* Meaning / Translation: CHOTO (Small & Subtle as requested) */}
           {meaning ? (
-            <View style={styles.meaningBox}>
-              <Text
-                style={[
-                  styles.meaningText,
-                  { fontSize: meaningFontSize, lineHeight: meaningLineHeight },
-                ]}
-                numberOfLines={isVeryLong ? 5 : 7}
-              >
-                "{meaning}"
-              </Text>
-            </View>
+            <Text
+              style={[
+                styles.meaningText,
+                { fontSize: meaningFontSize, lineHeight: meaningLineHeight },
+              ]}
+              numberOfLines={isLong ? 4 : 5}
+            >
+              "{meaning}"
+            </Text>
           ) : null}
 
-          {/* Reference Source */}
+          {/* Reference (small, subtle, like book reference) */}
           {references && references.length > 0 ? (
-            <View style={styles.referenceBox}>
-              <Text style={styles.referenceText} numberOfLines={1}>
-                📖 {references.map((r) => r.source?.name ? `${r.source.name}: ${r.reference}` : r.reference).join(' • ')}
-              </Text>
-            </View>
+            <Text style={styles.referenceText} numberOfLines={1}>
+              — {references.map((r) => r.source?.name ? `${r.source.name}: ${r.reference}` : r.reference).join(' • ')}
+            </Text>
           ) : null}
         </View>
 
-        {/* 3. Footer: ONLY "more: peacetweet/username" (No header, no user photo, no user name) */}
-        <View style={styles.footerRow}>
-          <Text style={styles.moreLabel}>more: </Text>
-          <Text style={styles.moreHandle}>peacetweet/{authorUsername}</Text>
+        {/* 3. Bottom Right Signature: more: peacetweet/username (just like reference image signature) */}
+        <View style={styles.signatureRow}>
+          <Text style={styles.signatureText}>
+            more: peacetweet/{authorUsername}
+          </Text>
         </View>
       </View>
     );
@@ -169,149 +160,92 @@ const styles = StyleSheet.create({
     width: 380,
     height: 380,
     aspectRatio: 1,
-    borderRadius: 20,
+    borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: '#faf6ef',
-    paddingHorizontal: 22,
-    paddingTop: 22,
-    paddingBottom: 16,
+    backgroundColor: '#eee4cf',
+    paddingHorizontal: 28,
+    paddingTop: 24,
+    paddingBottom: 20,
     justifyContent: 'space-between',
-    alignItems: 'center',
-    // Realistic shadow for physical paper look
-    shadowColor: '#3c2a1a',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.22,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  cardBorderOverlayOuter: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: 'rgba(120, 80, 40, 0.22)',
-  },
-  cardBorderOverlayInner: {
-    ...StyleSheet.absoluteFill,
-    margin: 6,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: 'rgba(120, 80, 40, 0.12)',
+    // Soft realistic shadow for the page
+    shadowColor: '#2b2118',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 6,
   },
   contentBody: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 2,
+    gap: 10,
   },
   bismillahText: {
     textAlign: 'center',
-    fontSize: 17,
-    color: '#854d0e',
-    opacity: 0.9,
+    fontSize: 16,
+    color: '#634832',
+    opacity: 0.85,
     fontFamily: Platform.OS === 'ios' ? 'Geeza Pro' : undefined,
+    marginBottom: 2,
   },
   titleText: {
     textAlign: 'center',
-    fontWeight: '800',
-    color: '#292524',
-    letterSpacing: -0.3,
-    paddingHorizontal: 8,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2a1f18',
+    letterSpacing: -0.2,
+    marginBottom: 4,
   },
-  captionText: {
+  mainQuoteText: {
     textAlign: 'center',
-    color: '#3f3f46',
-    fontWeight: '500',
-    paddingHorizontal: 6,
-  },
-  arabicWrapper: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
-    borderRadius: 14,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(120, 80, 40, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    fontWeight: '700',
+    color: '#1a1412',
+    letterSpacing: -0.2,
   },
   arabicText: {
     textAlign: 'center',
     fontWeight: '700',
-    color: '#18181b',
+    color: '#1c1512',
     fontFamily: Platform.OS === 'ios' ? 'Geeza Pro' : undefined,
+    marginBottom: 4,
   },
-  ornateDivider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '75%',
-    marginVertical: 4,
-    gap: 8,
-  },
-  dividerLine: {
-    height: 1,
-    flex: 1,
-    backgroundColor: 'rgba(120, 80, 40, 0.22)',
-  },
-  dividerStar: {
-    fontSize: 11,
-    color: '#a16207',
-    opacity: 0.8,
-  },
-  transliterationBox: {
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-  },
+  // Pronunciation is BORO (Large, bold, prominent)
   transliterationText: {
-    fontSize: 14.5,
-    fontStyle: 'italic',
-    lineHeight: 21,
-    color: '#52525b',
     textAlign: 'center',
-  },
-  meaningBox: {
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-  },
-  meaningText: {
-    textAlign: 'center',
-    fontWeight: '600',
-    color: '#18181b',
+    fontWeight: '700',
+    color: '#1a1412',
     letterSpacing: -0.1,
   },
-  referenceBox: {
+  // Meaning is CHOTO (Small, lighter, subtle)
+  meaningText: {
+    textAlign: 'center',
+    fontWeight: '500',
+    color: '#4e4239',
     marginTop: 2,
-    paddingHorizontal: 10,
+    paddingHorizontal: 6,
   },
   referenceText: {
+    fontSize: 11.5,
+    fontWeight: '500',
+    color: '#7a6b5e',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  // Signature in bottom-right matching user's sample style
+  signatureRow: {
+    width: '100%',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    paddingTop: 6,
+  },
+  signatureText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#78716c',
-    textAlign: 'center',
-  },
-  footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(120, 80, 40, 0.14)',
-    width: '100%',
-  },
-  moreLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#78716c',
-  },
-  moreHandle: {
-    fontSize: 12.5,
-    fontWeight: '700',
-    color: '#0866FF',
-    letterSpacing: -0.2,
+    color: '#5c4d3e',
+    fontStyle: 'italic',
+    letterSpacing: -0.1,
+    opacity: 0.9,
   },
 });
