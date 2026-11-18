@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: 380,
     minHeight: 380,
-    borderRadius: 12,
+    borderRadius: 0,
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: '#eee4cf',
@@ -188,12 +188,6 @@ const styles = StyleSheet.create({
     paddingTop: 22,
     paddingBottom: 16,
     justifyContent: 'space-between',
-    // Soft realistic shadow for the page
-    shadowColor: '#2b2118',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    elevation: 6,
   },
   contentBody: {
     flex: 1,

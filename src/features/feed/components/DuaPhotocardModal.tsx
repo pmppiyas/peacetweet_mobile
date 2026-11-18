@@ -276,11 +276,13 @@ export function DuaPhotocardModal({
             contentContainerStyle={styles.scrollContent}
             style={styles.scrollView}
           >
-            <PhotocardCanvas
-              ref={cardRef}
-              post={post}
-              locale={locale}
-            />
+            <View style={styles.cardPreviewContainer}>
+              <PhotocardCanvas
+                ref={cardRef}
+                post={post}
+                locale={locale}
+              />
+            </View>
           </ScrollView>
 
           {/* Action Buttons Footer */}
@@ -430,6 +432,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  cardPreviewContainer: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    shadowColor: '#2b2118',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+    elevation: 5,
   },
   modalFooter: {
     paddingHorizontal: 16,
