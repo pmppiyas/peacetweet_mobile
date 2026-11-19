@@ -12,7 +12,12 @@ import {
 } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
-import * as MediaLibrary from 'expo-media-library';
+import {
+  Asset,
+  Album,
+  requestPermissionsAsync,
+  getPermissionsAsync,
+} from 'expo-media-library';
 import { FeedItem } from '@/features/feed/types/feed.types';
 import { useUi } from '@/providers/UiProvider';
 import { AppIcon } from '@/components/ui/Icon';
@@ -154,9 +159,9 @@ export function DuaPhotocardModal({
       } else {
         // 1. Request permission to save to Media Library (write-only to avoid asking for audio permission)
         try {
-          const perm = await MediaLibrary.getPermissionsAsync(true);
+          const perm = await getPermissionsAsync(true);
           if (!perm.granted) {
-            const req = await MediaLibrary.requestPermissionsAsync(true);
+            const req = await requestPermissionsAsync(true);
             if (!req.granted && req.status !== 'granted') {
               Alert.alert(
                 locale === 'bn' ? 'অনুমতি প্রয়োজন' : 'Permission Required',
@@ -173,22 +178,38 @@ export function DuaPhotocardModal({
           console.log('[Photocard] Permission prompt handled:', permError);
         }
 
-        // 2. Create asset from local snapshot (safely saves directly into system gallery)
-        const asset = await MediaLibrary.createAssetAsync(uri);
+        // 2. Create asset from local snapshot using modern class-based Asset.create API
+        let asset: any = null;
+        if (typeof Asset?.create === 'function') {
+          asset = await Asset.create(uri);
+        } else {
+          // Fallback to legacy module if Asset.create is not available
+          const LegacyMediaLibrary = require('expo-media-library/legacy');
+          asset = await LegacyMediaLibrary.createAssetAsync(uri);
+        }
 
         // 3. Create or add to dedicated 'PeaceTweet' album
         try {
           const albumName = 'PeaceTweet';
-          const existingAlbum = await MediaLibrary.getAlbumAsync(albumName);
-
-          if (existingAlbum) {
-            await MediaLibrary.addAssetsToAlbumAsync(
-              [asset],
-              existingAlbum,
-              false
-            );
+          if (typeof Album?.get === 'function') {
+            const existingAlbum = await Album.get(albumName);
+            if (existingAlbum) {
+              await existingAlbum.add(asset);
+            } else {
+              await Album.create(albumName, [asset]);
+            }
           } else {
-            await MediaLibrary.createAlbumAsync(albumName, asset, false);
+            const LegacyMediaLibrary = require('expo-media-library/legacy');
+            const existingAlbum = await LegacyMediaLibrary.getAlbumAsync(albumName);
+            if (existingAlbum) {
+              await LegacyMediaLibrary.addAssetsToAlbumAsync(
+                [asset],
+                existingAlbum,
+                false
+              );
+            } else {
+              await LegacyMediaLibrary.createAlbumAsync(albumName, asset, false);
+            }
           }
         } catch (albumErr) {
           // Album reading/creation may be restricted in Expo Go sandbox,
