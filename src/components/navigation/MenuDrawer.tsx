@@ -45,14 +45,6 @@ const MENU_ITEMS: MenuItem[] = [
     iconBg: 'bg-sky-500',
   },
   {
-    id: 'menu-categories',
-    labelBn: 'বিষয়ভিত্তিক ক্যাটাগরি',
-    labelEn: 'Categories',
-    href: '/categories',
-    icon: 'layers',
-    iconBg: 'bg-blue-600',
-  },
-  {
     id: 'menu-friends',
     labelBn: 'ফ্রেন্ডস',
     labelEn: 'Friends',
@@ -364,11 +356,9 @@ export function MenuDrawer() {
               {MENU_ITEMS.map((item) => {
                 const isActive = item.exact
                   ? pathname === item.href
-                  : item.href === '/categories'
-                    ? pathname === '/categories' || pathname === '/explore'
-                    : pathname === item.href ||
-                      (pathname.startsWith(item.href + '/') &&
-                        item.href !== '/');
+                  : pathname === item.href ||
+                    (pathname.startsWith(item.href + '/') &&
+                      item.href !== '/');
 
                 return (
                   <Pressable

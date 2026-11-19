@@ -38,8 +38,6 @@ const COLLAPSIBLE_NAV_ROUTES = new Set([
   '/',
   '/saved',
   '/notifications',
-  '/categories',
-  '/explore',
   '/zakat',
   '/purpose',
   '/feedback',

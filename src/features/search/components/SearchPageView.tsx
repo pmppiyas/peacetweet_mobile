@@ -235,7 +235,7 @@ export function SearchPageView() {
     if (item.entityType === 'GROUP') {
       setSearchOpen(false);
       setChatSearchQuery('');
-      router.push('/explore');
+      router.push('/groups');
       return;
     }
 
@@ -283,7 +283,7 @@ export function SearchPageView() {
     });
     setSearchOpen(false);
     setChatSearchQuery('');
-    router.push('/explore');
+    router.push('/groups');
   };
 
   return (
