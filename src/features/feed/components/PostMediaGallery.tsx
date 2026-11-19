@@ -84,7 +84,7 @@ export function SingleFeedImage({
 export interface PostMediaGalleryProps {
   post?: FeedItem;
   urls?: string[];
-  layout?: 'COLLAGE' | 'SWIPE';
+  layout?: 'COLLAGE' | 'SWIPE' | string | null;
   onOpenPhoto?: (url: string) => void;
 }
 

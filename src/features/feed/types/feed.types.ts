@@ -99,7 +99,7 @@ export interface FeedItem {
   type: PostType;
   content: string | null;
   mediaUrls?: string[];
-  mediaLayout?: 'COLLAGE' | 'SWIPE';
+  mediaLayout?: 'COLLAGE' | 'SWIPE' | string;
   feeling?: string | null;
   createdAt: string;
   visibility?: PostVisibility;
@@ -145,7 +145,7 @@ export interface CreatePostInput {
   type: PostType;
   content?: string;
   mediaUrls?: string[];
-  mediaLayout?: 'COLLAGE' | 'SWIPE';
+  mediaLayout?: 'COLLAGE' | 'SWIPE' | string;
   feeling?: string;
   duaId?: string;
   duaData?: {

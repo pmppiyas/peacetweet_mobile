@@ -3,6 +3,8 @@ import { View } from 'react-native';
 import { FeedItem } from '@/features/feed/types/feed.types';
 import { PostMediaGallery } from './PostMediaGallery';
 import { ExpandablePostCaption } from './ExpandablePostCaption';
+import { StyledBackgroundPostCard } from './StyledBackgroundPostCard';
+import { getPostBackgroundById } from '../constants/postBackgrounds';
 
 export interface TextPostCardProps {
   post: FeedItem;
@@ -11,6 +13,15 @@ export interface TextPostCardProps {
 
 export function TextPostCard({ post, onOpenPhoto }: TextPostCardProps) {
   const hasMedia = Boolean(post.mediaUrls && post.mediaUrls.length > 0);
+  const background = !hasMedia ? getPostBackgroundById(post.mediaLayout) : null;
+
+  if (background) {
+    return (
+      <View style={{ width: '100%' }} className="w-full">
+        <StyledBackgroundPostCard post={post} background={background} />
+      </View>
+    );
+  }
 
   return (
     <View style={{ width: '100%' }} className="w-full gap-3">
