@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -39,6 +39,15 @@ export function DuaPhotocardModal({
   const cardRef = useRef<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionType, setActionType] = useState<'share' | 'save' | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const saveTimerRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!visible) {
+      setIsSaved(false);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    }
+  }, [visible]);
 
   const captureCardImage = async (): Promise<string | null> => {
     if (!cardRef.current) {
@@ -78,7 +87,7 @@ export function DuaPhotocardModal({
             ) {
               await (navigator as any).share({
                 title: 'PeaceTweet Photocard',
-                text: `more: peacetweet/${post.author?.username || 'user'}`,
+                text: `more: www.peacetweet.com/${post.author?.username || 'user'}`,
                 files: [file],
               });
               setIsProcessing(false);
@@ -150,12 +159,11 @@ export function DuaPhotocardModal({
         link.download = `peacetweet-photocard-${Date.now()}.jpg`;
         link.href = uri;
         link.click();
-        Alert.alert(
-          locale === 'bn' ? 'সফল হয়েছে' : 'Success',
-          locale === 'bn'
-            ? 'ফটোকার্ডটি ডিভাইসে ডাউনলোড হয়েছে!'
-            : 'Photocard downloaded to your device!'
-        );
+        setIsSaved(true);
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+          setIsSaved(false);
+        }, 3500);
       } else {
         // 1. Request permission to save to Media Library (write-only to avoid asking for audio permission)
         try {
@@ -219,12 +227,12 @@ export function DuaPhotocardModal({
           );
         }
 
-        Alert.alert(
-          locale === 'bn' ? 'সংরক্ষিত হয়েছে' : 'Saved!',
-          locale === 'bn'
-            ? 'ফটোকার্ডটি আপনার গ্যালারির "PeaceTweet" ফোল্ডারে সেভ হয়েছে!'
-            : 'Photocard saved to the "PeaceTweet" album in your gallery!'
-        );
+        // Inline visual confirmation on the button itself (no alert modal)
+        setIsSaved(true);
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+          setIsSaved(false);
+        }, 3500);
       }
     } catch (err: any) {
       Alert.alert(
@@ -369,10 +377,15 @@ export function DuaPhotocardModal({
               disabled={isProcessing}
               style={[
                 styles.secondarySaveButton,
-                {
-                  borderColor: isDark ? '#3e4146' : '#d0d5dd',
-                  backgroundColor: isDark ? '#26292d' : '#f8f9fa',
-                },
+                isSaved
+                  ? {
+                      borderColor: '#10b981',
+                      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5',
+                    }
+                  : {
+                      borderColor: isDark ? '#3e4146' : '#d0d5dd',
+                      backgroundColor: isDark ? '#26292d' : '#f8f9fa',
+                    },
                 isProcessing && styles.disabledButton,
               ]}
             >
@@ -381,6 +394,23 @@ export function DuaPhotocardModal({
                   size="small"
                   color={isDark ? '#e4e6eb' : '#0866FF'}
                 />
+              ) : isSaved ? (
+                <>
+                  <AppIcon
+                    android="check"
+                    ios="checkmark"
+                    size={19}
+                    color="#10b981"
+                  />
+                  <Text
+                    style={[
+                      styles.secondarySaveText,
+                      { color: '#10b981', fontWeight: '700' },
+                    ]}
+                  >
+                    Saved
+                  </Text>
+                </>
               ) : (
                 <>
                   <AppIcon

@@ -163,10 +163,10 @@ export const PhotocardCanvas = React.forwardRef<any, PhotocardCanvasProps>(
           ) : null}
         </View>
 
-        {/* 3. Bottom Right Signature: more: peacetweet/username */}
+        {/* 3. Bottom Right Signature: more: www.peacetweet.com/username */}
         <View style={styles.signatureRow}>
           <Text style={styles.signatureText}>
-            more: peacetweet/{authorUsername}
+            more: www.peacetweet.com/{authorUsername}
           </Text>
         </View>
       </View>
