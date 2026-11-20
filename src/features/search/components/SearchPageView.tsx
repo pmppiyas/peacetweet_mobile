@@ -45,12 +45,16 @@ export function SearchPageView() {
 
   const [activeTab, setActiveTab] = useState<SearchScope>('ALL');
   const [history, setHistoryState] = useState<SearchHistoryItem[]>(() => {
-    const cached = queryCache.get<SearchHistoryItem[]>(CACHE_KEYS.SEARCH_HISTORY);
+    const cached = queryCache.get<SearchHistoryItem[]>(
+      CACHE_KEYS.SEARCH_HISTORY
+    );
     if (cached && cached.length > 0) return cached;
     return getLocalSearchHistory();
   });
   const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(() => {
-    const cached = queryCache.get<SearchHistoryItem[]>(CACHE_KEYS.SEARCH_HISTORY);
+    const cached = queryCache.get<SearchHistoryItem[]>(
+      CACHE_KEYS.SEARCH_HISTORY
+    );
     if (cached && cached.length > 0) return false;
     const local = getLocalSearchHistory();
     if (local.length > 0) return false;
@@ -341,39 +345,13 @@ export function SearchPageView() {
         {/* STATE 1: Empty Query -> Dedicated Full-Page Recent Searches */}
         {trimmedQuery.length === 0 ? (
           <View className="w-full select-none">
-            <View className="flex-row items-center justify-between border-b border-[#e4e6eb] dark:border-[#393a3b] pb-3 mb-2 px-1 select-none">
-              <View className="flex-row items-center gap-2 select-none">
-                <AppIcon
-                  android="schedule"
-                  ios="clock"
-                  size={17}
-                  color={isDark ? '#b0b3b8' : '#65676b'}
-                />
-                <Text
-                  selectable={false}
-                  className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
-                  {locale === 'bn' ? 'সাম্প্রতিক অনুসন্ধান' : 'Recent Searches'}
-                </Text>
-              </View>
-              {history.length > 0 ? (
-                <Pressable
-                  onPress={handleClearAllHistory}
-                  hitSlop={8}
-                  className="px-2.5 py-1 rounded-md active:opacity-75 select-none"
-                >
-                  <Text
-                    selectable={false}
-                    className="text-xs font-bold text-primary-600 dark:text-primary-400 select-none">
-                    {locale === 'bn' ? 'সব মুছুন' : 'Clear all'}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </View>
-
             {isHistoryLoading ? (
               <View className="gap-2.5 py-3 px-1 select-none">
                 {[1, 2, 3].map((i) => (
-                  <View key={i} className="flex-row items-center gap-3 py-1.5 select-none">
+                  <View
+                    key={i}
+                    className="flex-row items-center gap-3 py-1.5 select-none"
+                  >
                     <View className="h-9 w-9 rounded-full bg-[#e4e6eb] dark:bg-[#3a3b3c]" />
                     <View className="flex-1 gap-1.5">
                       <View className="h-3.5 w-1/2 rounded bg-[#e4e6eb] dark:bg-[#3a3b3c]" />
@@ -506,7 +484,8 @@ export function SearchPageView() {
                 </Text>
                 <Text
                   selectable={false}
-                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
+                  className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none"
+                >
                   {locale === 'bn'
                     ? 'সকল মানুষ, দোয়া, গ্রুপ এবং পোস্ট খুঁজুন'
                     : 'Search all posts, people, duas, and groups'}
@@ -576,7 +555,8 @@ export function SearchPageView() {
                         <AppIcon android="person" size={16} color="#0866FF" />
                         <Text
                           selectable={false}
-                          className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
+                          className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none"
+                        >
                           {locale === 'bn' ? 'মানুষ' : 'People'} (
                           {results.users.length})
                         </Text>
@@ -620,7 +600,8 @@ export function SearchPageView() {
                           >
                             <Text
                               selectable={false}
-                              className="text-xs font-bold text-primary-600 dark:text-primary-400 select-none">
+                              className="text-xs font-bold text-primary-600 dark:text-primary-400 select-none"
+                            >
                               {locale === 'bn' ? 'মেসেজ' : 'Message'}
                             </Text>
                           </Pressable>
@@ -643,7 +624,8 @@ export function SearchPageView() {
                         />
                         <Text
                           selectable={false}
-                          className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
+                          className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none"
+                        >
                           {locale === 'bn'
                             ? 'দোয়া ও যিকির'
                             : 'Duas & Supplications'}{' '}
@@ -663,14 +645,16 @@ export function SearchPageView() {
                             <View className="flex-1 gap-1">
                               <Text
                                 selectable={true}
-                                className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb] select-text">
+                                className="font-bold text-sm text-[#050505] dark:text-[#e4e6eb] select-text"
+                              >
                                 {dua.title}
                               </Text>
                               {dua.category ? (
                                 <View className="self-start rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 select-none">
                                   <Text
                                     selectable={false}
-                                    className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 select-none">
+                                    className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 select-none"
+                                  >
                                     {dua.category.name}
                                   </Text>
                                 </View>
@@ -679,7 +663,8 @@ export function SearchPageView() {
                             <View className="rounded-lg bg-[#e6e9ef] dark:bg-[#3a3b3c] px-3 py-1.5 shrink-0 select-none">
                               <Text
                                 selectable={false}
-                                className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
+                                className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] select-none"
+                              >
                                 {locale === 'bn' ? 'দোয়া পড়ুন' : 'Read Dua'}
                               </Text>
                             </View>
@@ -688,7 +673,8 @@ export function SearchPageView() {
                           {dua.arabicText ? (
                             <Text
                               selectable={true}
-                              className="text-base text-right text-[#050505] dark:text-[#e4e6eb] leading-relaxed pt-1 select-text">
+                              className="text-base text-right text-[#050505] dark:text-[#e4e6eb] leading-relaxed pt-1 select-text"
+                            >
                               {dua.arabicText}
                             </Text>
                           ) : null}
@@ -717,7 +703,8 @@ export function SearchPageView() {
                         <AppIcon android="groups" size={16} color="#3b82f6" />
                         <Text
                           selectable={false}
-                          className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none">
+                          className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] select-none"
+                        >
                           {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} (
                           {results.groups.length})
                         </Text>
@@ -749,7 +736,8 @@ export function SearchPageView() {
                               </Text>
                               <Text
                                 selectable={false}
-                                className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none">
+                                className="text-xs text-[#65676b] dark:text-[#b0b3b8] select-none"
+                              >
                                 {group._count?.members || 0} members •{' '}
                                 {group.visibility.toLowerCase()}
                               </Text>
@@ -759,7 +747,8 @@ export function SearchPageView() {
                           <View className="rounded-lg bg-blue-50 dark:bg-blue-950/40 px-3 py-1.5 select-none">
                             <Text
                               selectable={false}
-                              className="text-xs font-bold text-blue-600 dark:text-blue-400 select-none">
+                              className="text-xs font-bold text-blue-600 dark:text-blue-400 select-none"
+                            >
                               {locale === 'bn' ? 'গ্রুপ দেখুন' : 'View Group'}
                             </Text>
                           </View>

@@ -18,7 +18,12 @@ import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { LocationValue } from '@/components/ui/LocationSelector';
 import { matchUserLocationToGeo } from '@/constants/bangladeshGeo';
-import { uploadsApi } from '@/features/uploads/api/uploads.api';
+import * as ImagePicker from 'expo-image-picker';
+import {
+  uploadsApi,
+  UploadableImage,
+  NativeUploadFile,
+} from '@/features/uploads/api/uploads.api';
 import { getFeelingById } from '@/features/feed/constants/feelings';
 import { formatUserFacingError } from '@/lib/utils/errorUtils';
 import {
@@ -392,7 +397,7 @@ export function MobileComposerModal() {
   };
 
   // Image Upload Handler
-  const uploadFiles = async (files: (File | Blob)[]) => {
+  const uploadFiles = async (files: UploadableImage[]) => {
     if (mediaUrls.length + files.length > 10) {
       setErrorMessage(
         locale === 'bn'
@@ -431,10 +436,12 @@ export function MobileComposerModal() {
     }
   };
 
-  const handlePickImages = () => {
+  const handlePickImages = async () => {
     setSelectedBackground(null);
     setShowBackgroundPicker(false);
     setShowBackgroundSheet(false);
+
+    // 1. Web File Input Fallback
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const input = document.createElement('input');
       input.type = 'file';
@@ -446,6 +453,84 @@ export function MobileComposerModal() {
         await uploadFiles(Array.from(files));
       };
       input.click();
+      return;
+    }
+
+    // 2. Native Mobile Gallery Picker (Android & iOS)
+    try {
+      let hasPermission = true;
+      try {
+        const permStatus = await ImagePicker.getMediaLibraryPermissionsAsync();
+        if (!permStatus.granted && permStatus.canAskAgain) {
+          const reqStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          hasPermission = reqStatus.granted;
+        } else if (permStatus.granted) {
+          hasPermission = true;
+        } else {
+          hasPermission = Platform.OS === 'android';
+        }
+      } catch {
+        hasPermission = Platform.OS === 'android';
+      }
+
+      if (!hasPermission && Platform.OS !== 'android') {
+        setErrorMessage(
+          locale === 'bn'
+            ? 'গ্যালারি থেকে ছবি নির্বাচন করতে পারমিশন প্রয়োজন।'
+            : 'Permission is required to select photos from gallery.'
+        );
+        return;
+      }
+
+      const remainingCount = Math.max(1, 10 - mediaUrls.length);
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        selectionLimit: remainingCount,
+        quality: 0.85,
+      });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return;
+      }
+
+      const nativeFiles: NativeUploadFile[] = result.assets.map((asset, idx) => {
+        let mimeType = (asset.mimeType || '').toLowerCase().trim();
+        let ext = 'jpg';
+        if (mimeType.startsWith('image/')) {
+          const subtype = mimeType.replace('image/', '').split(';')[0].trim();
+          ext = subtype === 'jpeg' ? 'jpg' : subtype;
+        } else if (asset.uri) {
+          const cleanUri = asset.uri.split('?')[0];
+          const uriExt = cleanUri.split('.').pop()?.toLowerCase();
+          if (uriExt && /^(jpg|jpeg|png|webp|gif|svg|heic|heif|avif|bmp|tiff|ico)$/.test(uriExt)) {
+            ext = uriExt === 'jpeg' ? 'jpg' : uriExt;
+          }
+        }
+
+        const filename =
+          asset.fileName ||
+          `photo_${Date.now()}_${idx}.${ext}`;
+
+        return {
+          uri: asset.uri,
+          name: filename,
+          type: mimeType || `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        };
+      });
+
+      await uploadFiles(nativeFiles);
+    } catch (err: any) {
+      setErrorMessage(
+        formatUserFacingError(
+          err,
+          locale === 'bn'
+            ? 'গ্যালারি ওপেন করতে ব্যর্থ হয়েছে।'
+            : 'Failed to launch photo gallery.',
+          locale
+        )
+      );
     }
   };
 

@@ -5,7 +5,9 @@ import {
   BackHandler,
   Easing,
   Platform,
+  ScrollView,
   ToastAndroid,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { router, Slot, usePathname } from 'expo-router';
@@ -31,6 +33,10 @@ import { GlobalPhotoViewerModal } from '@/components/feed/GlobalPhotoViewerModal
 import { AppSplashLoader } from '@/components/ui/AppSplashLoader';
 import { SearchPageView } from '@/features/search/components/SearchPageView';
 import { useUnreadBadgeSync } from '@/hooks/useUnreadBadgeSync';
+import HomeScreen from './index';
+import SavedScreen from './saved';
+import MessagesScreen from './messages';
+import NotificationsScreen from './notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -43,6 +49,8 @@ const COLLAPSIBLE_NAV_ROUTES = new Set([
   '/feedback',
   '/messages',
 ]);
+
+const TAB_ORDER = ['/', '/saved', '/messages', '/notifications'] as const;
 
 function MainContentSlot({
   topOffset,
@@ -63,6 +71,7 @@ function MainContentSlot({
 function AppShell() {
   useUnreadBadgeSync();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const pathname = usePathname();
   const {
     theme,
@@ -200,6 +209,91 @@ function AppShell() {
   const showSearchOverlay = isSearchOpen && !isMessagesActive;
   const isFullBleedRoute = COLLAPSIBLE_NAV_ROUTES.has(pathname);
 
+  const normalizedPath = pathname.replace(/\/$/, '') || '/';
+  const currentTabIndex = (TAB_ORDER as readonly string[]).indexOf(normalizedPath);
+  const isTabRoute = currentTabIndex !== -1;
+
+  const canSwipeTabs =
+    isTabRoute &&
+    !isInsideActiveChat &&
+    !isSearchOpen &&
+    !isMenuDrawerOpen &&
+    !isComposerModalOpen &&
+    !isPhotoViewerActive &&
+    !isProfileActive &&
+    !isSettingsProfile;
+
+  const [containerWidth, setContainerWidth] = React.useState<number>(0);
+  const effectiveWidth =
+    containerWidth > 0
+      ? containerWidth
+      : Math.max(0, screenWidth - insets.left - insets.right);
+
+  const [activeTab, setActiveTab] = React.useState<string>(normalizedPath);
+  const activeTabRef = useRef<string>(normalizedPath);
+  const currentScrolledIndexRef = useRef<number>(currentTabIndex);
+
+  const pagerRef = useRef<React.ElementRef<typeof ScrollView>>(null);
+  const isManualScrollingRef = useRef(false);
+  const hasInitialScrolledRef = useRef(false);
+
+  useEffect(() => {
+    if (isTabRoute) {
+      activeTabRef.current = normalizedPath;
+      setActiveTab(normalizedPath);
+    }
+  }, [normalizedPath, isTabRoute]);
+
+  // Sync horizontal pager when tab is switched via bottom bar or links
+  useEffect(() => {
+    if (currentScrolledIndexRef.current === currentTabIndex) {
+      return;
+    }
+    if (isManualScrollingRef.current) return;
+    currentScrolledIndexRef.current = currentTabIndex;
+    if (isTabRoute && pagerRef.current && effectiveWidth > 0 && currentTabIndex >= 0) {
+      const isInitial = !hasInitialScrolledRef.current;
+      hasInitialScrolledRef.current = true;
+      pagerRef.current.scrollTo({
+        x: currentTabIndex * effectiveWidth,
+        animated: !isInitial,
+      });
+    }
+  }, [currentTabIndex, isTabRoute, effectiveWidth]);
+
+  // Instant continuous active tab calculation during drag / momentum
+  const handleScroll = (offsetX: number) => {
+    if (effectiveWidth <= 0) return;
+    const rawIndex = offsetX / effectiveWidth;
+    const pageIndex = Math.min(
+      TAB_ORDER.length - 1,
+      Math.max(0, Math.round(rawIndex))
+    );
+    const route = TAB_ORDER[pageIndex];
+    if (route && route !== activeTabRef.current) {
+      activeTabRef.current = route;
+      setActiveTab(route);
+    }
+  };
+
+  const handleMomentumEnd = (offsetX: number) => {
+    isManualScrollingRef.current = false;
+    if (effectiveWidth <= 0) return;
+    const pageIndex = Math.min(
+      TAB_ORDER.length - 1,
+      Math.max(0, Math.round(offsetX / effectiveWidth))
+    );
+    currentScrolledIndexRef.current = pageIndex;
+    const route = TAB_ORDER[pageIndex];
+    if (route) {
+      activeTabRef.current = route;
+      setActiveTab(route);
+      if (route !== pathname) {
+        router.replace(route as any);
+      }
+    }
+  };
+
   useEffect(() => {
     if (
       !isFullBleedRoute ||
@@ -247,6 +341,22 @@ function AppShell() {
     }
   }, [bottomSafeColor]);
 
+  // Compact top safe area inset so top navbar is raised closer to status/network bar
+  const topInsetHeight =
+    insets.top > 0
+      ? Platform.OS === 'android'
+        ? Math.max(22, insets.top - 14)
+        : Math.max(0, insets.top - 8)
+      : 0;
+
+  // Compact bottom safe area inset so bottom navigation bar is lowered closer to gesture bar/screen bottom
+  const bottomInsetHeight =
+    insets.bottom > 0
+      ? Platform.OS === 'android'
+        ? Math.max(0, insets.bottom - 17)
+        : Math.max(0, insets.bottom - 8)
+      : 0;
+
   return (
     <View
       style={{ flex: 1, backgroundColor: canvasColor }}
@@ -263,10 +373,10 @@ function AppShell() {
       <AppSplashLoader />
 
       {/* Top Safe Area Inset seamlessly matches Navbar / active screen surface */}
-      {insets.top > 0 ? (
+      {topInsetHeight > 0 ? (
         <View
           style={{
-            height: insets.top,
+            height: topInsetHeight,
             backgroundColor: topSafeColor,
             zIndex: 60,
           }}
@@ -283,10 +393,70 @@ function AppShell() {
           overflow: 'hidden',
         }}
         className="flex-1 relative">
-        <MainContentSlot
-          topOffset={isFullBleedRoute ? 0 : showTopNav ? 60 : 0}
-          bottomOffset={isFullBleedRoute ? 0 : showBottomNav ? 56 : 0}
-        />
+        {/* Real Native Horizontal Tab Pager */}
+        <View
+          onLayout={(e) => {
+            const w = Math.round(e.nativeEvent.layout.width);
+            if (w > 0 && w !== containerWidth) {
+              setContainerWidth(w);
+            }
+          }}
+          style={{
+            flex: 1,
+            display: isTabRoute ? 'flex' : 'none',
+          }}>
+          <ScrollView
+            ref={pagerRef}
+            horizontal
+            pagingEnabled
+            snapToInterval={effectiveWidth}
+            snapToAlignment="start"
+            decelerationRate="fast"
+            disableIntervalMomentum={true}
+            showsHorizontalScrollIndicator={false}
+            scrollEnabled={canSwipeTabs}
+            bounces={false}
+            overScrollMode="never"
+            nestedScrollEnabled
+            directionalLockEnabled
+            onScrollBeginDrag={() => {
+              isManualScrollingRef.current = true;
+            }}
+            onScroll={(e) => {
+              handleScroll(e.nativeEvent.contentOffset.x);
+            }}
+            scrollEventThrottle={16}
+            onMomentumScrollEnd={(e) => {
+              handleMomentumEnd(e.nativeEvent.contentOffset.x);
+            }}
+            contentContainerStyle={{ flexGrow: 1 }}
+            style={{ flex: 1 }}>
+            <View style={{ width: effectiveWidth, flex: 1 }}>
+              <HomeScreen />
+            </View>
+            <View style={{ width: effectiveWidth, flex: 1 }}>
+              <SavedScreen />
+            </View>
+            <View style={{ width: effectiveWidth, flex: 1 }}>
+              <MessagesScreen />
+            </View>
+            <View style={{ width: effectiveWidth, flex: 1 }}>
+              <NotificationsScreen />
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Slot for Non-Tab Routes (e.g. /post/[id], /login, /blood, /settings) */}
+        <View
+          style={{
+            flex: 1,
+            display: isTabRoute ? 'none' : 'flex',
+          }}>
+          <MainContentSlot
+            topOffset={isFullBleedRoute ? 0 : showTopNav ? 60 : 0}
+            bottomOffset={isFullBleedRoute ? 0 : showBottomNav ? 56 : 0}
+          />
+        </View>
 
         {showSearchOverlay ? (
           <View
@@ -320,13 +490,19 @@ function AppShell() {
           pointerEvents="box-none"
           style={{
             position: 'absolute',
-            bottom: 0,
+            bottom: Platform.OS === 'android' ? -2.5 : 0,
             left: insets.left,
             right: insets.right,
             zIndex: 50,
             transform: [{ translateY: bottomNavTranslateY }],
           }}>
-          <MobileNav />
+          <MobileNav
+            activeTab={activeTab}
+            onTabPress={(href) => {
+              activeTabRef.current = href;
+              setActiveTab(href);
+            }}
+          />
         </Animated.View>
 
         <MenuDrawer />
@@ -335,10 +511,10 @@ function AppShell() {
       </View>
 
       {/* Bottom Safe Area Inset seamlessly matches MobileNav / active screen surface */}
-      {insets.bottom > 0 ? (
+      {bottomInsetHeight > 0 ? (
         <View
           style={{
-            height: insets.bottom,
+            height: bottomInsetHeight,
             backgroundColor: bottomSafeColor,
             zIndex: 60,
           }}

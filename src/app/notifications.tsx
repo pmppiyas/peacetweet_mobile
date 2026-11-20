@@ -229,9 +229,9 @@ export default function NotificationsScreen() {
           scrollEnabled={!isInitialLoading}
           onScroll={handleFeedScroll}
           scrollEventThrottle={16}
-          className="flex-1 px-2 sm:px-4 no-scrollbar scrollbar-none"
+          className="flex-1 no-scrollbar scrollbar-none"
           contentContainerStyle={{
-            paddingTop: 8,
+            paddingTop: 6,
             paddingBottom: 16,
           }}
           refreshControl={
@@ -247,7 +247,7 @@ export default function NotificationsScreen() {
           }>
           {/* Header (Desktop/Tablet only - hidden on mobile so top gap from Navbar matches Messages 100%) */}
           {isDesktop ? (
-            <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#e4e6eb]/60 dark:border-[#393a3b]/60 mb-2">
+            <View className="flex-row items-center justify-between px-3 py-3 border-b border-[#e4e6eb]/60 dark:border-[#393a3b]/60 mb-2">
               <View>
                 <Text className="text-xl sm:text-2xl font-bold tracking-tight text-[#050505] dark:text-[#e4e6eb]">
                   Notifications
@@ -275,8 +275,8 @@ export default function NotificationsScreen() {
             </View>
           ) : null}
 
-          {/* Notifications List - Matching Message page gap-1 */}
-          <View className="flex-col gap-1">
+          {/* Notifications List - Matching Feed and Save edge-to-edge layout */}
+          <View className="flex-col">
             {isInitialLoading ? (
               <NotificationSkeleton count={6} variant="page" />
             ) : error && notifications.length === 0 ? (

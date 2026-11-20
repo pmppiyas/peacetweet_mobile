@@ -42,11 +42,11 @@ export function NotificationSkeleton({
   }
 
   return (
-    <View className="flex-col gap-1">
+    <View className="flex-col">
       {items.map((i) => (
         <View
           key={i}
-          className="flex-row items-center gap-3 px-3 py-2.5 rounded-xl">
+          className="flex-row items-center gap-3 px-3 py-1.5">
           {/* Avatar with Badged Icon */}
           <View className="relative shrink-0">
             <Skeleton className="h-[52px] w-[52px] rounded-full" />

@@ -582,9 +582,7 @@ export default function SavedScreen() {
               ) : displayedItems.length === 0 ? (
                 <EmptyState
                   iconAndroid="bookmark"
-                  iconSize={28}
-                  iconColor="#d97706"
-                  iconBgClassName="bg-amber-50 dark:bg-amber-950/60"
+                  iconIos="bookmark"
                   title={
                     selectedSlot !== 'all'
                       ? locale === 'bn'
@@ -603,7 +601,6 @@ export default function SavedScreen() {
                         ? 'ফিড বা দোয়ার পাতা থেকে আপনার পছন্দের দোয়া ও পোস্টগুলো সেভ করে রাখুন।'
                         : 'Save your favorite duas and posts from the feed or dua library to review later.'
                   }
-                  className="w-full border-y border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] py-12"
                 />
               ) : (
                 <View className="w-full bg-white dark:bg-[#242526] border-y border-[#e4e6eb] dark:border-[#393a3b] overflow-hidden">

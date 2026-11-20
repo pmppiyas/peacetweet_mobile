@@ -35,7 +35,7 @@ export function EmptyState({
 
   return (
     <View
-      className={`flex-col items-center justify-center py-16 px-6 text-center ${className}`}>
+      className={`flex-col items-center justify-center py-6 px-6 text-center ${className}`}>
       <View
         className={`h-16 w-16 items-center justify-center rounded-full mb-3 ${iconBgClassName}`}>
         <AppIcon

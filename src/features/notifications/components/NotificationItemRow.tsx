@@ -95,7 +95,7 @@ export function NotificationItemRow({
   return (
     <Pressable
       onPress={() => onPress(item)}
-      className={`w-full relative flex-row items-center gap-3 px-3 py-2.5 rounded-xl ${
+      className={`w-full relative flex-row items-center gap-3 px-3 py-1.5 ${
         !item.isRead
           ? 'bg-[#edf2f7] dark:bg-[#2e3033] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]'
           : 'active:bg-[#e4e6eb]/70 dark:active:bg-[#3a3b3c]/60'

@@ -86,7 +86,7 @@ export function ConversationItemView({
   return (
     <Pressable
       onPress={onSelect}
-      className={`w-full flex-row items-center gap-3 px-3 py-2.5 rounded-xl ${
+      className={`w-full flex-row items-center gap-3 px-3 py-1.5 ${
         isSelected
           ? 'bg-[#e4e6eb] dark:bg-[#3a3b3c]'
           : 'active:bg-[#e4e6eb]/70 dark:active:bg-[#3a3b3c]/60'

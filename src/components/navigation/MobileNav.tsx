@@ -15,7 +15,12 @@ interface NavItem {
   badge?: number;
 }
 
-export function MobileNav() {
+interface MobileNavProps {
+  activeTab?: string;
+  onTabPress?: (href: string) => void;
+}
+
+export function MobileNav({ activeTab, onTabPress }: MobileNavProps = {}) {
   const pathname = usePathname();
   const {
     locale,
@@ -166,8 +171,9 @@ export function MobileNav() {
           }
 
           const href = item.href || '/';
+          const currentRoute = activeTab || pathname;
           const isActive =
-            href === '/' ? pathname === '/' : pathname.startsWith(href);
+            href === '/' ? currentRoute === '/' : currentRoute.startsWith(href);
 
           const iconColor = isActive
             ? '#0866FF'
@@ -180,6 +186,7 @@ export function MobileNav() {
               key={item.id}
               onPress={() => {
                 setSearchOpen(false);
+                onTabPress?.(href);
                 if (pathname === href) return;
                 router.navigate(href as any);
               }}
