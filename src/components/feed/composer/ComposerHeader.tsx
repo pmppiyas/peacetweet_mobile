@@ -121,20 +121,20 @@ export function ComposerHeader({
 
       {/* 2. POST TYPE SEGMENTED ROW (Only when creating new post) */}
       {!isEditing && (
-        <View className="px-4 py-2.5 border-b border-[#d9dde4]/60 dark:border-[#2d2e2f] bg-[#eef0f5] dark:bg-[#1f2022]">
-          <View className="flex-row gap-1.5 p-1 rounded-2xl bg-[#e6e9ef] dark:bg-[#2a2b2d]">
+        <View className="px-3.5 py-1.5 border-b border-[#d9dde4]/60 dark:border-[#2d2e2f] bg-[#eef0f5] dark:bg-[#1f2022]">
+          <View className="flex-row gap-1 p-0.5 rounded-xl bg-[#e6e9ef] dark:bg-[#2a2b2d]">
             <Pressable
               onPress={() => onChangePostType('TEXT')}
-              className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl ${
-                postType === 'TEXT' ? 'bg-white dark:bg-[#18191a]' : ''
+              className={`flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-lg ${
+                postType === 'TEXT' ? 'bg-white dark:bg-[#18191a] shadow-xs' : ''
               }`}>
               <AppIcon
                 android="edit"
-                size={16}
+                size={14}
                 color={postType === 'TEXT' ? '#0866FF' : '#65676b'}
               />
               <Text
-                className={`text-[13px] font-bold ${
+                className={`text-xs font-bold ${
                   postType === 'TEXT'
                     ? 'text-[#0866FF] dark:text-[#36a4fa]'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -145,16 +145,16 @@ export function ComposerHeader({
 
             <Pressable
               onPress={() => onChangePostType('DUA')}
-              className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl ${
-                postType === 'DUA' ? 'bg-white dark:bg-[#18191a]' : ''
+              className={`flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-lg ${
+                postType === 'DUA' ? 'bg-white dark:bg-[#18191a] shadow-xs' : ''
               }`}>
               <AppIcon
                 android="menu_book"
-                size={16}
+                size={14}
                 color={postType === 'DUA' ? '#059669' : '#65676b'}
               />
               <Text
-                className={`text-[13px] font-bold ${
+                className={`text-xs font-bold ${
                   postType === 'DUA'
                     ? 'text-emerald-600 dark:text-emerald-300'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -165,16 +165,16 @@ export function ComposerHeader({
 
             <Pressable
               onPress={() => onChangePostType('BLOOD_REQUEST')}
-              className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 rounded-xl ${
-                postType === 'BLOOD_REQUEST' ? 'bg-white dark:bg-[#18191a]' : ''
+              className={`flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-lg ${
+                postType === 'BLOOD_REQUEST' ? 'bg-white dark:bg-[#18191a] shadow-xs' : ''
               }`}>
               <AppIcon
                 android="water_drop"
-                size={16}
+                size={14}
                 color={postType === 'BLOOD_REQUEST' ? '#e11d48' : '#65676b'}
               />
               <Text
-                className={`text-[13px] font-bold ${
+                className={`text-xs font-bold ${
                   postType === 'BLOOD_REQUEST'
                     ? 'text-rose-600 dark:text-rose-300'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'

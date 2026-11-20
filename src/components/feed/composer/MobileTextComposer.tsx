@@ -8,9 +8,13 @@ import {
   ScrollView,
   Platform,
   StyleSheet,
+  Keyboard,
 } from 'react-native';
 import { AppIcon } from '@/components/ui/Icon';
-import { PostBackgroundOption } from '@/features/feed/constants/postBackgrounds';
+import {
+  PostBackgroundOption,
+  getBackgroundPostTypography,
+} from '@/features/feed/constants/postBackgrounds';
 import { PostBackgroundView } from '@/features/feed/components/PostBackgroundView';
 import {
   imageRatioCache,
@@ -93,6 +97,7 @@ export interface MobileTextComposerProps {
   locale?: string;
   selectedBackground: PostBackgroundOption | null;
   onClearBackground?: () => void;
+  onOpenBackgroundSheet?: () => void;
   mediaUrls: string[];
   mediaLayout: 'COLLAGE' | 'SWIPE';
   onChangeMediaLayout: (layout: 'COLLAGE' | 'SWIPE') => void;
@@ -114,6 +119,7 @@ export function MobileTextComposer({
   locale = 'bn',
   selectedBackground,
   onClearBackground,
+  onOpenBackgroundSheet,
   mediaUrls,
   mediaLayout,
   onChangeMediaLayout,
@@ -132,7 +138,7 @@ export function MobileTextComposer({
           style={{
             width: '100%',
             minHeight: 280,
-            borderRadius: 16,
+            borderRadius: 0,
             overflow: 'hidden',
             position: 'relative',
             justifyContent: 'center',
@@ -144,6 +150,40 @@ export function MobileTextComposer({
           } as any}
         >
           <PostBackgroundView background={selectedBackground} />
+
+          {/* Top-Right Style Button on Styled Card */}
+          {onOpenBackgroundSheet && (
+            <Pressable
+              onPress={() => {
+                Keyboard.dismiss();
+                onOpenBackgroundSheet();
+              }}
+              style={{
+                position: 'absolute',
+                top: 10,
+                right: 10,
+                zIndex: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                paddingHorizontal: 9,
+                paddingVertical: 5,
+                borderRadius: 14,
+                backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+              } as any}
+              hitSlop={6}
+              accessibilityLabel="Change background style"
+            >
+              <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#8b5cf6', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 9, fontWeight: '900', color: '#fff', lineHeight: 10 }}>Aa</Text>
+              </View>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#ffffff' }}>
+                {locale === 'bn' ? selectedBackground.nameBn : selectedBackground.nameEn}
+              </Text>
+              <AppIcon android="expand_more" ios="chevron.down" size={13} color="#ffffff" />
+            </Pressable>
+          )}
 
           {/* Centered Large Bold Input Wrapper */}
           <View
@@ -173,9 +213,9 @@ export function MobileTextComposer({
                   minHeight: 44,
                   paddingHorizontal: 16,
                   paddingVertical: 6,
-                  fontSize: content.length > 160 ? 17 : content.length > 85 ? 20 : 24,
-                  lineHeight: content.length > 160 ? 25 : content.length > 85 ? 28 : 34,
-                  fontWeight: '700',
+                  fontSize: getBackgroundPostTypography(content).fontSize,
+                  lineHeight: getBackgroundPostTypography(content).lineHeight,
+                  fontWeight: getBackgroundPostTypography(content).fontWeight,
                   color: selectedBackground.textColor,
                   textAlign: 'center',
                   textAlignVertical: 'center',
@@ -196,46 +236,70 @@ export function MobileTextComposer({
           </View>
         </Pressable>
       ) : (
-        /* Normal Text Input */
-        <TextInput
-          ref={contentInputRef}
-          value={content}
-          onChangeText={onChangeContent}
-          multiline
-          scrollEnabled={false}
-          onContentSizeChange={(e) => {
-            const h = e.nativeEvent?.contentSize?.height;
-            if (h && h > 0) {
-              onContentSizeChangeHeight(h);
+        /* Normal Text Input with Top-Right Style Button */
+        <View className="w-full">
+          {mediaUrls.length === 0 && onOpenBackgroundSheet && (
+            <View className="flex-row justify-end mb-1">
+              <Pressable
+                onPress={() => {
+                  Keyboard.dismiss();
+                  onOpenBackgroundSheet();
+                }}
+                className="flex-row items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800 active:scale-95"
+                hitSlop={6}
+                accessibilityLabel="Choose background style"
+              >
+                <View className="h-3.5 w-3.5 rounded-full items-center justify-center bg-[#8b5cf6]">
+                  <Text className="text-[9px] font-black text-white leading-none">Aa</Text>
+                </View>
+                <Text className="text-[11px] font-bold text-purple-700 dark:text-purple-300">
+                  {locale === 'bn' ? 'স্টাইল' : 'Style'}
+                </Text>
+                <AppIcon android="expand_more" ios="chevron.down" size={13} color="#7c3aed" />
+              </Pressable>
+            </View>
+          )}
+
+          <TextInput
+            ref={contentInputRef}
+            value={content}
+            onChangeText={onChangeContent}
+            multiline
+            scrollEnabled={false}
+            onContentSizeChange={(e) => {
+              const h = e.nativeEvent?.contentSize?.height;
+              if (h && h > 0) {
+                onContentSizeChangeHeight(h);
+              }
+            }}
+            placeholder={
+              locale === 'bn'
+                ? 'আপনার ভাবনা, কুরআন-হাদিসের সুন্দর নসিহত বা দোয়া শেয়ার করুন...'
+                : "What's on your mind? Share a reflection, reminder, or story..."
             }
-          }}
-          placeholder={
-            locale === 'bn'
-              ? 'আপনার ভাবনা, কুরআন-হাদিসের সুন্দর নসিহত বা দোয়া শেয়ার করুন...'
-              : "What's on your mind? Share a reflection, reminder, or story..."
-          }
-          placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
-          style={{
-            minHeight: mediaUrls.length > 0 ? 36 : 52,
-            height: Math.max(mediaUrls.length > 0 ? 36 : 52, contentHeight),
-            fontSize: isShortText ? 22 : 16,
-            lineHeight: isShortText ? 30 : 22,
-            width: '100%',
-            outlineStyle: 'none',
-            borderWidth: 0,
-            padding: 0,
-            margin: 0,
-            ...(Platform.OS === 'web'
-              ? {
-                  resize: 'none',
-                  overflow: 'hidden',
-                  boxSizing: 'border-box',
-                }
-              : {}),
-          } as any}
-          className="w-full text-[#050505] dark:text-[#e4e6eb]"
-          textAlignVertical="top"
-        />
+            placeholderTextColor={theme === 'dark' ? '#6e6e73' : '#8e8e93'}
+            style={{
+              minHeight: mediaUrls.length > 0 ? 36 : 52,
+              height: Math.max(mediaUrls.length > 0 ? 36 : 52, contentHeight),
+              fontSize: isShortText ? 22 : 16,
+              lineHeight: isShortText ? 30 : 22,
+              width: '100%',
+              outlineStyle: 'none',
+              borderWidth: 0,
+              padding: 0,
+              margin: 0,
+              ...(Platform.OS === 'web'
+                ? {
+                    resize: 'none',
+                    overflow: 'hidden',
+                    boxSizing: 'border-box',
+                  }
+                : {}),
+            } as any}
+            className="w-full text-[#050505] dark:text-[#e4e6eb]"
+            textAlignVertical="top"
+          />
+        </View>
       )}
 
       {/* Attached Photos Live Feed Preview */}

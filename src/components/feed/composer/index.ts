@@ -4,3 +4,4 @@ export * from './MobileBloodComposer';
 export * from './ComposerHeader';
 export * from './ComposerBottomBar';
 export * from './ComposerFeelingsModal';
+export * from './ComposerBackgroundSheetModal';

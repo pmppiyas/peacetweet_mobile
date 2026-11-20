@@ -4,6 +4,7 @@ import { FeedItem } from '@/features/feed/types/feed.types';
 import {
   getPostBackgroundById,
   PostBackgroundOption,
+  getBackgroundPostTypography,
 } from '../constants/postBackgrounds';
 import { PostBackgroundView } from './PostBackgroundView';
 
@@ -23,20 +24,7 @@ export function StyledBackgroundPostCard({
     return null;
   }
 
-  const charLength = content.length;
-  let fontSize = 24;
-  let lineHeight = 34;
-  let fontWeight: '700' | '600' = '700';
-
-  if (charLength > 160) {
-    fontSize = 16.5;
-    lineHeight = 24;
-    fontWeight = '600';
-  } else if (charLength > 85) {
-    fontSize = 20;
-    lineHeight = 28;
-    fontWeight = '700';
-  }
+  const { fontSize, lineHeight, fontWeight } = getBackgroundPostTypography(content);
 
   const textShadowStyle = bg.textShadow
     ? {
@@ -76,7 +64,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: '100%',
     minHeight: 270,
-    borderRadius: 16,
+    borderRadius: 0,
     overflow: 'hidden',
     position: 'relative',
     marginVertical: 4,

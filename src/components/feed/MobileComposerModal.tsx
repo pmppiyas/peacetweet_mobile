@@ -32,6 +32,7 @@ import {
   ComposerHeader,
   ComposerBottomBar,
   ComposerFeelingsModal,
+  ComposerBackgroundSheetModal,
   mapToBloodGroupValue,
 } from './composer';
 
@@ -53,8 +54,9 @@ export function MobileComposerModal() {
   const { user } = useAuth();
   const { createPost, updatePost } = useFeed();
 
-  // Keyboard height tracker for Android & iOS to raise bottom toolbar above software keyboard
+  // Keyboard visibility & height tracker for Android & iOS
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -64,6 +66,7 @@ export function MobileComposerModal() {
       try {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       } catch {}
+      setIsKeyboardVisible(true);
       setKeyboardHeight(e?.endCoordinates?.height || 0);
     });
 
@@ -71,6 +74,7 @@ export function MobileComposerModal() {
       try {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       } catch {}
+      setIsKeyboardVisible(false);
       setKeyboardHeight(0);
     });
 
@@ -126,6 +130,7 @@ export function MobileComposerModal() {
   // Styled Post Background (Facebook-like)
   const [selectedBackground, setSelectedBackground] = useState<PostBackgroundOption | null>(null);
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
+  const [showBackgroundSheet, setShowBackgroundSheet] = useState(false);
 
   // Dynamic Facebook-like typography: prominent large font for short thoughts, comfortable reading font for longer posts
   const isShortText = content.length < 85 && mediaUrls.length === 0;
@@ -353,6 +358,7 @@ export function MobileComposerModal() {
     setMediaLayout('COLLAGE');
     setSelectedBackground(null);
     setShowBackgroundPicker(false);
+    setShowBackgroundSheet(false);
     setFeeling(null);
     setShowFeelingPicker(false);
     setDuaTitle('');
@@ -428,6 +434,7 @@ export function MobileComposerModal() {
   const handlePickImages = () => {
     setSelectedBackground(null);
     setShowBackgroundPicker(false);
+    setShowBackgroundSheet(false);
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const input = document.createElement('input');
       input.type = 'file';
@@ -457,6 +464,7 @@ export function MobileComposerModal() {
     const pContent = content.trim();
     const pMediaUrls = [...mediaUrls];
     const pMediaLayout = mediaLayout;
+    const pSelectedBackground = selectedBackground;
     const pFeeling = feeling;
     const pDuaTitle = duaTitle.trim();
     const pDuaMeaning = duaMeaning.trim();
@@ -543,8 +551,8 @@ export function MobileComposerModal() {
               mediaLayout:
                 pMediaUrls.length > 1
                   ? pMediaLayout
-                  : selectedBackground && selectedBackground.type !== 'none'
-                    ? `BG:${selectedBackground.id}`
+                  : pSelectedBackground && pSelectedBackground.type !== 'none'
+                    ? `BG:${pSelectedBackground.id}`
                     : 'COLLAGE',
             });
           }
@@ -556,8 +564,8 @@ export function MobileComposerModal() {
             mediaLayout:
               pMediaUrls.length > 1
                 ? pMediaLayout
-                : selectedBackground && selectedBackground.type !== 'none'
-                  ? `BG:${selectedBackground.id}`
+                : pSelectedBackground && pSelectedBackground.type !== 'none'
+                  ? `BG:${pSelectedBackground.id}`
                   : 'COLLAGE',
             feeling: pFeeling || undefined,
             visibility: 'PUBLIC',
@@ -770,6 +778,10 @@ export function MobileComposerModal() {
                 setSelectedBackground(null);
                 setShowBackgroundPicker(false);
               }}
+              onOpenBackgroundSheet={() => {
+                Keyboard.dismiss();
+                setShowBackgroundSheet(true);
+              }}
               mediaUrls={mediaUrls}
               mediaLayout={mediaLayout}
               onChangeMediaLayout={setMediaLayout}
@@ -839,12 +851,17 @@ export function MobileComposerModal() {
           onSelectBackground={setSelectedBackground}
           showBackgroundPicker={showBackgroundPicker}
           onToggleBackgroundPicker={() => setShowBackgroundPicker((prev) => !prev)}
+          onOpenBackgroundSheet={() => {
+            Keyboard.dismiss();
+            setShowBackgroundSheet(true);
+          }}
           onPickImages={handlePickImages}
           isUploadingMedia={isUploadingMedia}
           selectedFeeling={selectedFeeling}
           onOpenFeelingPicker={() => setShowFeelingPicker(true)}
           contentLength={content.length}
           keyboardHeight={keyboardHeight}
+          isKeyboardVisible={isKeyboardVisible}
           insetsBottom={insets.bottom}
           theme={theme}
           locale={locale}
@@ -857,6 +874,21 @@ export function MobileComposerModal() {
           onClose={() => setShowFeelingPicker(false)}
           selectedFeelingId={feeling}
           onSelectFeeling={setFeeling}
+          theme={theme}
+          locale={locale}
+        />
+
+        {/* ────────────────── 5. BACKGROUND STYLE BOTTOM SHEET SLICE ────────────────── */}
+        <ComposerBackgroundSheetModal
+          visible={showBackgroundSheet}
+          onClose={() => setShowBackgroundSheet(false)}
+          selectedBackground={selectedBackground}
+          onSelectBackground={(bg) => {
+            setSelectedBackground(bg);
+            if (!bg) {
+              setShowBackgroundPicker(false);
+            }
+          }}
           theme={theme}
           locale={locale}
         />

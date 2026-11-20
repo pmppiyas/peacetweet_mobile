@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Platform,
   StyleSheet,
+  Keyboard,
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { ComposerMode } from '@/providers/UiProvider';
@@ -25,6 +26,7 @@ export interface ComposerBottomBarProps {
   onSelectBackground: (bg: PostBackgroundOption | null) => void;
   showBackgroundPicker: boolean;
   onToggleBackgroundPicker: () => void;
+  onOpenBackgroundSheet?: () => void;
   onPickImages: () => void;
   isUploadingMedia: boolean;
   selectedFeeling: any;
@@ -32,6 +34,7 @@ export interface ComposerBottomBarProps {
   contentLength: number;
   charLimit?: number;
   keyboardHeight: number;
+  isKeyboardVisible?: boolean;
   insetsBottom: number;
   theme?: 'light' | 'dark';
   locale?: string;
@@ -45,6 +48,7 @@ export function ComposerBottomBar({
   onSelectBackground,
   showBackgroundPicker,
   onToggleBackgroundPicker,
+  onOpenBackgroundSheet,
   onPickImages,
   isUploadingMedia,
   selectedFeeling,
@@ -52,11 +56,17 @@ export function ComposerBottomBar({
   contentLength,
   charLimit = 5000,
   keyboardHeight,
+  isKeyboardVisible = false,
   insetsBottom,
   theme = 'light',
   locale = 'bn',
   onFocusInput,
 }: ComposerBottomBarProps) {
+  // When keyboard is open, hide the bottom toolbar completely to leave full screen height for typing
+  if (keyboardHeight > 0 || isKeyboardVisible) {
+    return null;
+  }
+
   // Circular character progress ring
   const radius = 9;
   const circumference = 2 * Math.PI * radius;
@@ -70,8 +80,8 @@ export function ComposerBottomBar({
         backgroundColor: theme === 'dark' ? '#18191a' : '#ffffff',
       }}
     >
-      {/* ────────────────── 1. FACEBOOK-STYLE BACKGROUND SELECTOR BAR ────────────────── */}
-      {postType === 'TEXT' && mediaUrls.length === 0 && (showBackgroundPicker || selectedBackground) && (
+      {/* ────────────────── 1. FACEBOOK-STYLE BACKGROUND SELECTOR BAR (ONLY WHEN KEYBOARD IS CLOSED) ────────────────── */}
+      {postType === 'TEXT' && mediaUrls.length === 0 && keyboardHeight === 0 && (showBackgroundPicker || selectedBackground) && (
         <View className="py-2.5 px-3 border-t border-[#f0f2f5] dark:border-[#2d2e2f] bg-white dark:bg-[#18191a]">
           <ScrollView
             horizontal
@@ -101,7 +111,7 @@ export function ComposerBottomBar({
                     height: 36,
                     borderRadius: 10,
                     overflow: 'hidden',
-                    borderWidth: isSelected ? 2.5 : 1,
+                    borderWidth: isSelected ? 2.5 : bg.type === 'none' ? 1 : 0,
                     borderColor: isSelected
                       ? '#0866FF'
                       : theme === 'dark'
@@ -135,26 +145,26 @@ export function ComposerBottomBar({
           {/* Style / Background Button (Active in TEXT mode when no media attached) */}
           {postType === 'TEXT' && mediaUrls.length === 0 && (
             <Pressable
-              onPress={onToggleBackgroundPicker}
-              className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border active:scale-95 ${
+              onPress={() => {
+                Keyboard.dismiss();
+                if (onOpenBackgroundSheet) {
+                  onOpenBackgroundSheet();
+                } else {
+                  onToggleBackgroundPicker();
+                }
+              }}
+              className={`h-8 px-2.5 rounded-full border items-center justify-center active:scale-95 ${
                 selectedBackground && selectedBackground.type !== 'none'
-                  ? 'bg-purple-50 dark:bg-purple-950/60 border-purple-300 dark:border-purple-800'
+                  ? 'bg-purple-100 dark:bg-purple-950/80 border-purple-300 dark:border-purple-800'
                   : showBackgroundPicker
                     ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-300 dark:border-blue-800'
                     : 'bg-purple-50/70 dark:bg-purple-950/40 border-purple-200/60 dark:border-purple-900/50'
-              }`}>
-              <View className="h-4 w-4 rounded-full items-center justify-center bg-[#8b5cf6]">
-                <Text className="text-[10px] font-black text-white leading-none">Aa</Text>
+              }`}
+              hitSlop={6}
+              accessibilityLabel="Post style">
+              <View className="h-4.5 w-5 rounded-full items-center justify-center bg-[#8b5cf6]">
+                <Text className="text-[10.5px] font-black text-white leading-none">Aa</Text>
               </View>
-              <Text className="text-xs font-bold text-purple-700 dark:text-purple-300">
-                {selectedBackground && selectedBackground.type !== 'none'
-                  ? locale === 'bn'
-                    ? selectedBackground.nameBn
-                    : selectedBackground.nameEn
-                  : locale === 'bn'
-                    ? 'স্টাইল'
-                    : 'Style'}
-              </Text>
             </Pressable>
           )}
 
