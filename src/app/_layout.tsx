@@ -9,6 +9,8 @@ import {
   ToastAndroid,
   useWindowDimensions,
   View,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { router, Slot, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -89,6 +91,7 @@ function AppShell() {
     resetNavVisibility,
     topNavTranslateY,
     bottomNavTranslateY,
+    isTabSwipeLocked,
   } = useUi();
 
   const lastBackPressRef = useRef<number>(0);
@@ -221,7 +224,8 @@ function AppShell() {
     !isComposerModalOpen &&
     !isPhotoViewerActive &&
     !isProfileActive &&
-    !isSettingsProfile;
+    !isSettingsProfile &&
+    !isTabSwipeLocked;
 
   const [containerWidth, setContainerWidth] = React.useState<number>(0);
   const effectiveWidth =
@@ -265,15 +269,50 @@ function AppShell() {
   const handleScroll = (offsetX: number) => {
     if (effectiveWidth <= 0) return;
     const rawIndex = offsetX / effectiveWidth;
-    const pageIndex = Math.min(
-      TAB_ORDER.length - 1,
-      Math.max(0, Math.round(rawIndex))
-    );
+    const currentIndex = currentScrolledIndexRef.current;
+    const diff = rawIndex - currentIndex;
+
+    let pageIndex = currentIndex;
+    if (diff >= 0.4) {
+      pageIndex = Math.min(TAB_ORDER.length - 1, currentIndex + 1);
+    } else if (diff <= -0.4) {
+      pageIndex = Math.max(0, currentIndex - 1);
+    }
+
     const route = TAB_ORDER[pageIndex];
     if (route && route !== activeTabRef.current) {
       activeTabRef.current = route;
       setActiveTab(route);
     }
+  };
+
+  const handleScrollEndDrag = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (effectiveWidth <= 0) return;
+    const currentX = e.nativeEvent.contentOffset.x;
+    const velocityX = e.nativeEvent.velocity?.x ?? 0;
+    const startX = currentScrolledIndexRef.current * effectiveWidth;
+    const diffX = currentX - startX;
+
+    // Minimum gesture threshold: 40% of the screen width to swap tabs
+    const threshold = effectiveWidth * 0.4;
+
+    let targetIndex = currentScrolledIndexRef.current;
+
+    if (diffX >= threshold || (diffX >= effectiveWidth * 0.35 && velocityX > 1.0)) {
+      targetIndex = Math.min(TAB_ORDER.length - 1, currentScrolledIndexRef.current + 1);
+    } else if (diffX <= -threshold || (diffX <= -effectiveWidth * 0.35 && velocityX < -1.0)) {
+      targetIndex = Math.max(0, currentScrolledIndexRef.current - 1);
+    } else {
+      // Less than 40%: snap back to current tab!
+      targetIndex = currentScrolledIndexRef.current;
+    }
+
+    isManualScrollingRef.current = false;
+    currentScrolledIndexRef.current = targetIndex;
+    pagerRef.current?.scrollTo({
+      x: targetIndex * effectiveWidth,
+      animated: true,
+    });
   };
 
   const handleMomentumEnd = (offsetX: number) => {
@@ -408,7 +447,7 @@ function AppShell() {
           <ScrollView
             ref={pagerRef}
             horizontal
-            pagingEnabled
+            pagingEnabled={false}
             snapToInterval={effectiveWidth}
             snapToAlignment="start"
             decelerationRate="fast"
@@ -425,6 +464,7 @@ function AppShell() {
             onScroll={(e) => {
               handleScroll(e.nativeEvent.contentOffset.x);
             }}
+            onScrollEndDrag={handleScrollEndDrag}
             scrollEventThrottle={16}
             onMomentumScrollEnd={(e) => {
               handleMomentumEnd(e.nativeEvent.contentOffset.x);

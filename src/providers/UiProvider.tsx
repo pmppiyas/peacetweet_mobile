@@ -44,6 +44,8 @@ interface UiContextType {
   setMenuDrawerOpen: (open: boolean) => void;
   isSearchOpen: boolean;
   setSearchOpen: (open: boolean) => void;
+  isTabSwipeLocked: boolean;
+  setTabSwipeLocked: (locked: boolean) => void;
   isComposerModalOpen: boolean;
   setComposerModalOpen: (open: boolean) => void;
   composerInitialMode: ComposerMode;
@@ -98,6 +100,7 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<'bn' | 'en'>(getInitialLocale);
   const [isMenuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
+  const [isTabSwipeLocked, setTabSwipeLocked] = useState(false);
   const [isComposerModalOpen, setComposerModalOpenState] = useState(false);
   const [composerInitialMode, setComposerInitialMode] = useState<ComposerMode>('TEXT');
   const [composerInitialAction, setComposerInitialAction] = useState<ComposerAction>(null);
@@ -353,6 +356,8 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         setMenuDrawerOpen,
         isSearchOpen,
         setSearchOpen,
+        isTabSwipeLocked,
+        setTabSwipeLocked,
         isComposerModalOpen,
         setComposerModalOpen,
         composerInitialMode,

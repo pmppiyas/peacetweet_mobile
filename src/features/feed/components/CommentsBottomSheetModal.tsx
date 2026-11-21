@@ -568,9 +568,8 @@ export function CommentsBottomSheetModal({
     scrollOffsetY.current = y <= 6 ? 0 : y;
   };
 
-  const topSafe = Math.max(insets.top, 24);
+  const topSafe = Math.max(insets.top, Platform.OS === 'android' ? 24 : 12);
   const bottomSafe = Math.max(insets.bottom, 12);
-  const sheetHeight = Math.min(windowHeight * 0.88, windowHeight - topSafe - 16);
 
   return (
     <Modal
@@ -583,33 +582,16 @@ export function CommentsBottomSheetModal({
       <View
         style={{
           flex: 1,
-          backgroundColor: 'transparent',
-          justifyContent: 'flex-end',
+          backgroundColor: isDark ? '#242526' : '#ffffff',
         }}>
-        {/* Pinned light black backdrop overlay (fades in/out, does NOT slide from bottom) */}
+        {/* Full Screen Animated Container */}
         <Animated.View
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.45)',
-            opacity: backdropOpacity,
-          }}>
-          <Pressable
-            style={{ flex: 1, width: '100%', height: '100%' }}
-            onPress={closeWithSlideDown}
-          />
-        </Animated.View>
-
-        {/* Bottom Sheet Animated Container */}
-        <Animated.View
-          style={{
+            flex: 1,
             width: '100%',
             maxWidth: 720,
-            height: sheetHeight,
             alignSelf: 'center',
+            backgroundColor: isDark ? '#242526' : '#ffffff',
             transform: [{ translateY }],
           }}>
           <View
@@ -617,21 +599,13 @@ export function CommentsBottomSheetModal({
               flex: 1,
               width: '100%',
               backgroundColor: isDark ? '#242526' : '#ffffff',
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              borderTopWidth: 1,
-              borderColor: isDark ? '#393a3b' : '#e4e6eb',
               overflow: 'hidden',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: -4 },
-              shadowOpacity: isDark ? 0.35 : 0.1,
-              shadowRadius: 16,
-              elevation: 20,
             }}>
-            {/* 1. Draggable Top Handle Bar + Header */}
+            {/* 1. Full Screen Top Handle Bar + Header */}
             <View
               {...headerPanResponder.panHandlers}
               style={{
+                paddingTop: topSafe,
                 borderBottomWidth: 1,
                 borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
                 backgroundColor: isDark ? '#242526' : '#ffffff',
@@ -641,20 +615,32 @@ export function CommentsBottomSheetModal({
               {/* Center Drag Bar Pill */}
               <Pressable
                 onPress={closeWithSlideDown}
-                className="w-full items-center pt-3 pb-1 active:opacity-75">
+                className="w-full items-center pt-2 pb-1 active:opacity-75">
                 <View
                   style={{
-                    width: 44,
-                    height: 5,
+                    width: 40,
+                    height: 4.5,
                     borderRadius: 999,
-                    backgroundColor: isDark ? '#5a5b5c' : '#bcc0c4',
+                    backgroundColor: isDark ? '#4e4f50' : '#bcc0c4',
                   }}
                 />
               </Pressable>
 
-              {/* Sheet Header Row with Title, Badge & Close Button */}
-              <View className="flex-row items-center justify-between px-5 pt-1 pb-3">
+              {/* Sheet Header Row with Back Button, Title, Badge & Close Button */}
+              <View className="flex-row items-center justify-between px-4 pt-1 pb-3">
                 <View className="flex-row items-center gap-2">
+                  <Pressable
+                    onPress={closeWithSlideDown}
+                    hitSlop={8}
+                    className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:opacity-70">
+                    <AppIcon
+                      android="arrow_back"
+                      ios="chevron.left"
+                      size={18}
+                      weight="bold"
+                      color={isDark ? '#e4e6eb' : '#050505'}
+                    />
+                  </Pressable>
                   <Text className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'মন্তব্যসমূহ' : 'Comments'}
                   </Text>
@@ -680,7 +666,7 @@ export function CommentsBottomSheetModal({
               </View>
             </View>
 
-            {/* 2. Scrollable Comments List (pulls sheet down when at top & dragged down) */}
+            {/* 2. Scrollable Comments List (Zero scroll when comments don't fill the screen) */}
             <View
               {...bodyPanResponder.panHandlers}
               style={{ flex: 1, minHeight: 0 }}>
@@ -693,6 +679,8 @@ export function CommentsBottomSheetModal({
                   paddingBottom: 8,
                   flexGrow: 1,
                 }}
+                overScrollMode="never"
+                bounces={false}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={true}
                 scrollEventThrottle={16}
@@ -717,8 +705,8 @@ export function CommentsBottomSheetModal({
                 ) : comments.length === 0 ? (
                   <View
                     {...emptyAreaPanResponder.panHandlers}
-                    style={{ flex: 1, minHeight: 280 }}
-                    className="py-14 items-center justify-center px-6">
+                    style={{ flex: 1 }}
+                    className="py-12 items-center justify-center px-6">
                     <EmptyCommentsIllustration isDark={isDark} />
                     <Text className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
                       {locale === 'bn'
@@ -752,7 +740,6 @@ export function CommentsBottomSheetModal({
                       {...emptyAreaPanResponder.panHandlers}
                       style={{
                         flex: 1,
-                        minHeight: 140,
                         width: '100%',
                       }}
                       onTouchStart={() => {
@@ -767,27 +754,18 @@ export function CommentsBottomSheetModal({
             {/* 3. Fixed Bottom Add Comment / Reply Input Bar with Keyboard Support */}
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-              <ScrollView
-                scrollEnabled={false}
-                keyboardShouldPersistTaps="always"
-                bounces={false}
-                showsVerticalScrollIndicator={false}
-                showsHorizontalScrollIndicator={false}
-                keyboardDismissMode="none"
-                contentContainerStyle={{ flexGrow: 1 }}
-                style={{ flexGrow: 0 }}>
-                <View
-                  style={{
-                    borderTopWidth: 1,
-                    borderTopColor: isDark ? '#393a3b' : '#f0f2f5',
-                    backgroundColor: isDark ? '#242526' : '#ffffff',
-                    paddingBottom:
-                      Platform.OS === 'android'
-                        ? keyboardHeight > 0
-                          ? keyboardHeight + 8
-                          : bottomSafe
-                        : bottomSafe,
-                  }}>
+              <View
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: isDark ? '#393a3b' : '#f0f2f5',
+                  backgroundColor: isDark ? '#242526' : '#ffffff',
+                  paddingBottom:
+                    Platform.OS === 'android'
+                      ? keyboardHeight > 0
+                        ? keyboardHeight + 8
+                        : bottomSafe
+                      : bottomSafe,
+                }}>
                   {replyingTo && (
                     <View
                       style={{
@@ -892,7 +870,6 @@ export function CommentsBottomSheetModal({
                     </View>
                   </View>
                 </View>
-              </ScrollView>
             </KeyboardAvoidingView>
           </View>
         </Animated.View>

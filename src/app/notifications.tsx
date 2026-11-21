@@ -11,7 +11,6 @@ import { router } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { CACHE_KEYS, queryCache } from '@/lib/cache/queryCache';
 import { notificationsApi } from '@/features/notifications/api/notifications.api';
 import { NotificationItem } from '@/features/notifications/types/notification.types';
@@ -23,8 +22,13 @@ import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
 export default function NotificationsScreen() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 640;
-  const { locale, setUnreadNotificationsCount, theme, handleFeedScroll } =
-    useUi();
+  const {
+    locale,
+    setUnreadNotificationsCount,
+    theme,
+    handleFeedScroll,
+    setTabSwipeLocked,
+  } = useUi();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const [notifications, setNotificationsState] = useState<NotificationItem[]>(
@@ -36,10 +40,15 @@ export default function NotificationsScreen() {
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pendingDeleteItem, setPendingDeleteItem] =
-    useState<NotificationItem | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null);
   const hasAutoMarked = useRef(false);
+
+  useEffect(() => {
+    setTabSwipeLocked(Boolean(selectedNotificationId));
+    return () => {
+      setTabSwipeLocked(false);
+    };
+  }, [selectedNotificationId, setTabSwipeLocked]);
 
   const setNotifications = useCallback(
     (
@@ -184,20 +193,18 @@ export default function NotificationsScreen() {
     } catch {}
   };
 
-  const handleConfirmDelete = async () => {
-    if (!pendingDeleteItem) return;
-    const targetId = pendingDeleteItem.id;
-    setIsDeleting(true);
-    setNotifications((prev) => prev.filter((n) => n.id !== targetId));
-    try {
-      await notificationsApi.deleteNotification(targetId);
-    } catch {
-      loadNotifications(true);
-    } finally {
-      setIsDeleting(false);
-      setPendingDeleteItem(null);
-    }
-  };
+  const handleDirectDelete = useCallback(
+    async (targetId: string) => {
+      setNotifications((prev) => prev.filter((n) => n.id !== targetId));
+      setSelectedNotificationId(null);
+      try {
+        await notificationsApi.deleteNotification(targetId);
+      } catch {
+        loadNotifications(true);
+      }
+    },
+    [setNotifications, loadNotifications]
+  );
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const isInitialLoading = isLoading && notifications.length === 0;
@@ -222,12 +229,23 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
+    <View
+      onTouchEnd={() => {
+        if (selectedNotificationId) {
+          setSelectedNotificationId(null);
+        }
+      }}
+      className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
       <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b] pt-[60px] pb-[56px]">
         <ScrollView
           showsVerticalScrollIndicator={false}
-          scrollEnabled={!isInitialLoading}
+          scrollEnabled={!isInitialLoading && !selectedNotificationId}
           onScroll={handleFeedScroll}
+          onScrollBeginDrag={() => {
+            if (selectedNotificationId) {
+              setSelectedNotificationId(null);
+            }
+          }}
           scrollEventThrottle={16}
           className="flex-1 no-scrollbar scrollbar-none"
           contentContainerStyle={{
@@ -318,40 +336,29 @@ export default function NotificationsScreen() {
                 <NotificationItemRow
                   key={item.id}
                   item={item}
-                  onPress={handleNotificationPress}
-                  onRequestDelete={(target) => setPendingDeleteItem(target)}
+                  isSelected={selectedNotificationId === item.id}
+                  onPress={(clickedItem) => {
+                    if (selectedNotificationId) {
+                      setSelectedNotificationId(null);
+                      return;
+                    }
+                    handleNotificationPress(clickedItem);
+                  }}
+                  onSelect={(target) => {
+                    setSelectedNotificationId(target.id);
+                  }}
+                  onDeselect={() => {
+                    setSelectedNotificationId(null);
+                  }}
+                  onDirectDelete={(target) => {
+                    handleDirectDelete(target.id);
+                  }}
                 />
               ))
             )}
           </View>
         </ScrollView>
       </View>
-
-      {/* Reusable Delete Notification Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={Boolean(pendingDeleteItem)}
-        onClose={() => setPendingDeleteItem(null)}
-        onConfirm={handleConfirmDelete}
-        isLoading={isDeleting}
-        variant="danger"
-        title={
-          locale === 'bn'
-            ? 'বিজ্ঞপ্তি মুছে ফেলবেন?'
-            : 'Delete notification?'
-        }
-        subtitle={
-          locale === 'bn'
-            ? 'এই কাজটি বাতিল করা যাবে না।'
-            : 'This action cannot be undone.'
-        }
-        description={
-          locale === 'bn'
-            ? 'আপনি কি নিশ্চিতভাবে এই বিজ্ঞপ্তিটি তালিকা থেকে মুছে ফেলতে চান?'
-            : 'Are you sure you want to remove this notification from your list?'
-        }
-        confirmText={locale === 'bn' ? 'হ্যাঁ, মুছে ফেলুন' : 'Delete'}
-        cancelText={locale === 'bn' ? 'বাতিল করুন' : 'Cancel'}
-      />
     </View>
   );
 }
