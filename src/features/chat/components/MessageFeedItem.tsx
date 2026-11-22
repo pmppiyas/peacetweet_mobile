@@ -68,6 +68,7 @@ export function MessageFeedItem({
   onRequestDelete,
 }: MessageFeedItemProps) {
   const { locale, theme, isUserOnline } = useUi();
+  const isTemp = message.id.startsWith('temp');
   const resolvedOtherUserId =
     otherUser?.id ||
     (message.receiverId && message.receiverId !== message.senderId
@@ -76,7 +77,9 @@ export function MessageFeedItem({
   const isOtherOnline = resolvedOtherUserId
     ? isUserOnline(resolvedOtherUserId) || Boolean(otherUser?.isOnline)
     : Boolean(otherUser?.isOnline);
-  const isDelivered = Boolean(message.isDelivered || isOtherOnline);
+  const isDelivered =
+    !isTemp &&
+    Boolean(message.isDelivered || (isOtherOnline && !message.isRead));
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<any>(null);
 
@@ -101,7 +104,6 @@ export function MessageFeedItem({
     message.text === 'মেসেজ মুছে ফেলা হয়েছে' ||
     message.text === 'This message was deleted' ||
     message.text === 'Message was deleted';
-  const isTemp = message.id.startsWith('temp');
   const otherName = otherUser?.name || message.sender?.name || 'User';
 
   const handleCopy = () => {
@@ -321,10 +323,22 @@ export function MessageFeedItem({
             </View>
           </Pressable>
 
-          {/* Read / Delivered / Sent status below bubble for the last message from me */}
+          {/* Read / Delivered / Sent / Sending status below bubble for the last message from me */}
           {isMe && !isDeleted && isLastFromMe ? (
             <View className="flex-row items-center justify-end gap-1 mt-1 pr-1">
-              {message.isRead ? (
+              {isTemp ? (
+                <View className="flex-row items-center gap-1">
+                  <AppIcon
+                    android="schedule"
+                    ios="clock"
+                    size={11}
+                    color="#65676b"
+                  />
+                  <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'পাঠানো হচ্ছে...' : 'Sending...'}
+                  </Text>
+                </View>
+              ) : message.isRead ? (
                 <View className="flex-row items-center gap-1">
                   <Text className="text-[11px] font-semibold text-primary-600 dark:text-primary-400">
                     {locale === 'bn' ? 'দেখা হয়েছে' : 'Seen'}
@@ -341,13 +355,29 @@ export function MessageFeedItem({
                   ) : null}
                 </View>
               ) : isDelivered ? (
-                <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
-                  {locale === 'bn' ? 'পৌঁছেছে' : 'Delivered'}
-                </Text>
+                <View className="flex-row items-center gap-1">
+                  <AppIcon
+                    android="done_all"
+                    ios="checkmark.circle"
+                    size={11}
+                    color="#65676b"
+                  />
+                  <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'পৌঁছেছে' : 'Delivered'}
+                  </Text>
+                </View>
               ) : (
-                <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
-                  {locale === 'bn' ? 'পাঠানো হয়েছে' : 'Sent'}
-                </Text>
+                <View className="flex-row items-center gap-1">
+                  <AppIcon
+                    android="check"
+                    ios="checkmark"
+                    size={11}
+                    color="#65676b"
+                  />
+                  <Text className="text-[10px] text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'পাঠানো হয়েছে' : 'Sent'}
+                  </Text>
+                </View>
               )}
             </View>
           ) : null}

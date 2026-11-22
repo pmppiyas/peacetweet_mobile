@@ -62,6 +62,8 @@ export const API_ENDPOINTS = {
   },
   CHAT: {
     CONVERSATIONS: '/chat/conversations',
+    DELETE_CONVERSATION: (conversationId: string) =>
+      `/chat/conversations/${conversationId}`,
     MESSAGES: (conversationId: string) => `/chat/messages/${conversationId}`,
     SEND_MESSAGE: '/chat/messages',
     EDIT_MESSAGE: (messageId: string) => `/chat/messages/${messageId}`,

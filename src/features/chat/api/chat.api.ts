@@ -89,6 +89,18 @@ export const chatApi = {
     return (response.data?.data ?? response.data) as ChatMessage;
   },
 
+  deleteConversation: async (
+    conversationId: string
+  ): Promise<{ success: boolean; conversationId: string }> => {
+    const response = await apiClient.delete(
+      API_ENDPOINTS.CHAT.DELETE_CONVERSATION(conversationId)
+    );
+    return (response.data?.data ?? response.data) as {
+      success: boolean;
+      conversationId: string;
+    };
+  },
+
   markAsRead: async (conversationId: string): Promise<{ count: number }> => {
     const response = await apiClient.patch(
       API_ENDPOINTS.CHAT.MARK_READ(conversationId)

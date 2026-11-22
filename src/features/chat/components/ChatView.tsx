@@ -337,9 +337,10 @@ export function ChatView({
 
   const handleSendText = async (rawText: string) => {
     const trimmed = rawText.trim();
-    if (!trimmed || isSending) return;
+    if (!trimmed) return;
 
     if (editingMessage) {
+      if (isSending) return;
       setIsSending(true);
       try {
         const updated = await chatApi.editMessage(editingMessage.id, trimmed);
@@ -367,7 +368,9 @@ export function ChatView({
     const receiverId = otherUser?.id;
     if (!receiverId) return;
 
-    setIsSending(true);
+    // Clear input immediately so user can type the next message right away
+    setText('');
+
     const optimisticId = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const nowIso = new Date().toISOString();
 
@@ -382,7 +385,6 @@ export function ChatView({
     };
 
     setMessages((prev) => [...prev, optimisticMsg]);
-    setText('');
     scrollToBottom(true);
 
     // Stop typing indicator via socket
@@ -395,36 +397,35 @@ export function ChatView({
       });
     }
 
-    try {
-      const saved = await chatApi.sendMessage({
+    // Send in background without blocking future sends
+    chatApi
+      .sendMessage({
         receiverId,
         text: trimmed,
         conversationId: conversation.id,
-      });
+      })
+      .then((saved) => {
+        setMessages((prev) => {
+          const hasOptimistic = prev.some((m) => m.id === optimisticId);
+          if (hasOptimistic) {
+            return prev.map((m) => (m.id === optimisticId ? saved : m));
+          }
+          if (!prev.some((m) => m.id === saved.id)) {
+            return [...prev, saved];
+          }
+          return prev;
+        });
 
-      setMessages((prev) => {
-        const hasOptimistic = prev.some((m) => m.id === optimisticId);
-        if (hasOptimistic) {
-          return prev.map((m) => (m.id === optimisticId ? saved : m));
-        }
-        if (!prev.some((m) => m.id === saved.id)) {
-          return [...prev, saved];
-        }
-        return prev;
+        onConversationUpdated(
+          conversation.id,
+          saved.text || trimmed,
+          saved.createdAt || nowIso
+        );
+        scrollToBottom(true);
+      })
+      .catch(() => {
+        setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       });
-
-      onConversationUpdated(
-        conversation.id,
-        saved.text || trimmed,
-        saved.createdAt || nowIso
-      );
-      scrollToBottom(true);
-    } catch {
-      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
-      setText(trimmed);
-    } finally {
-      setIsSending(false);
-    }
   };
 
   const handleQuickSalam = () => {
@@ -484,6 +485,7 @@ export function ChatView({
           <ScrollView
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
             scrollEnabled={!isLoading || messages.length > 0}
             onContentSizeChange={handleContentSizeChange}
             className="flex-1 no-scrollbar scrollbar-none"

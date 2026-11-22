@@ -32,8 +32,12 @@ export interface ConversationSidebarProps {
   isRefreshing: boolean;
   onRefresh: () => void;
   selectedId: string | null;
+  selectedConversationId?: string | null;
   onSelectConversation: (conversation: ConversationItem) => void;
   onStartChatWithUser: (user: ChatUser) => Promise<void>;
+  onSelectRow?: (conversation: ConversationItem) => void;
+  onDeselectRow?: () => void;
+  onDirectDeleteConversation?: (conversation: ConversationItem) => void;
   currentUserId?: string;
   totalUnreadCount?: number;
 }
@@ -44,8 +48,12 @@ export function ConversationSidebar({
   isRefreshing,
   onRefresh,
   selectedId,
+  selectedConversationId,
   onSelectConversation,
   onStartChatWithUser,
+  onSelectRow,
+  onDeselectRow,
+  onDirectDeleteConversation,
   currentUserId,
   totalUnreadCount = 0,
 }: ConversationSidebarProps) {
@@ -176,9 +184,15 @@ export function ConversationSidebar({
       {/* Content Area: Conversations or Friends Search Results */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        scrollEnabled={!isInitialLoading}
+        keyboardShouldPersistTaps="handled"
+        scrollEnabled={!isInitialLoading && !selectedConversationId}
+        onScrollBeginDrag={() => {
+          if (selectedConversationId) {
+            onDeselectRow?.();
+          }
+        }}
         className="flex-1 no-scrollbar scrollbar-none"
-        contentContainerStyle={{ paddingTop: 6, paddingBottom: 16 }}
+        contentContainerStyle={{ paddingTop: 6, paddingBottom: 16, flexGrow: 1 }}
         contentContainerClassName={isInitialLoading ? 'pb-0' : 'pb-0 md:pb-2'}
         refreshControl={
           <RefreshControl
@@ -269,11 +283,24 @@ export function ConversationSidebar({
                     ...conv,
                     otherUser: other || undefined,
                   }}
-                  isSelected={selectedId === conv.id}
+                  isSelected={selectedConversationId === conv.id}
+                  isActiveChat={selectedId === conv.id}
                   onSelect={() => onSelectConversation(conv)}
+                  onSelectRow={onSelectRow}
+                  onDeselect={onDeselectRow}
+                  onDirectDelete={onDirectDeleteConversation}
                 />
               );
             })}
+            {/* Tapping empty space below conversations deselects row */}
+            <Pressable
+              className="flex-1 min-h-[120px]"
+              onPress={() => {
+                if (selectedConversationId) {
+                  onDeselectRow?.();
+                }
+              }}
+            />
           </View>
         )}
       </ScrollView>

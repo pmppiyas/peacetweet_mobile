@@ -40,8 +40,10 @@ export function MessageComposerView({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [attachmentNotice, setAttachmentNotice] = useState(false);
   const typingTimeoutRef = useRef<any>(null);
+  const inputRef = useRef<any>(null);
+  const editInputRef = useRef<any>(null);
 
-  const canSend = text.trim().length > 0 && !isSending;
+  const canSend = text.trim().length > 0 && (!editingMessage || !isSending);
 
   const handleTextChange = (val: string) => {
     onChangeText(val);
@@ -71,6 +73,9 @@ export function MessageComposerView({
 
   const handleAddEmoji = (emoji: string) => {
     handleTextChange(`${text}${emoji}`);
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
   };
 
   const handleAttachmentClick = () => {
@@ -86,6 +91,7 @@ export function MessageComposerView({
       {showEmojiPicker ? (
         <ScrollView
           horizontal
+          keyboardShouldPersistTaps="always"
           showsHorizontalScrollIndicator={false}
           className="mb-2 bg-[#e6e9ef] dark:bg-[#18191a] rounded-xl px-2 py-2"
           contentContainerClassName="flex-row items-center gap-1.5">
@@ -137,23 +143,39 @@ export function MessageComposerView({
 
           <View className="flex-row items-end gap-2">
             <TextInput
+              ref={editInputRef}
               value={text}
               onChangeText={onChangeText}
               multiline
+              blurOnSubmit={false}
               className="flex-1 max-h-32 min-h-[38px] rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c] px-3.5 py-2 text-sm text-[#050505] dark:text-[#e4e6eb]"
             />
             <Pressable
               disabled={!canSend}
-              onPress={onSubmit}
+              onPressIn={() => {
+                editInputRef.current?.focus();
+              }}
+              onPress={() => {
+                if (canSend) {
+                  onSubmit();
+                  requestAnimationFrame(() => {
+                    editInputRef.current?.focus();
+                  });
+                }
+              }}
               className={`p-2.5 rounded-full bg-primary-500 items-center justify-center shrink-0 ${
                 !canSend ? 'opacity-40' : ''
               }`}>
-              <AppIcon
-                android="check"
-                ios="checkmark"
-                size={16}
-                color="#ffffff"
-              />
+              {isSending ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <AppIcon
+                  android="check"
+                  ios="checkmark"
+                  size={16}
+                  color="#ffffff"
+                />
+              )}
             </Pressable>
           </View>
         </View>
@@ -191,6 +213,7 @@ export function MessageComposerView({
           {/* Multiline Message Input */}
           <View className="flex-1">
             <TextInput
+              ref={inputRef}
               value={text}
               onChangeText={handleTextChange}
               placeholder={
@@ -200,6 +223,7 @@ export function MessageComposerView({
               }
               placeholderTextColor={iconColor}
               multiline
+              blurOnSubmit={false}
               maxLength={2000}
               onKeyPress={(e: any) => {
                 if (
@@ -208,11 +232,21 @@ export function MessageComposerView({
                   !e.nativeEvent?.shiftKey
                 ) {
                   e.preventDefault?.();
-                  if (canSend) onSubmit();
+                  if (canSend) {
+                    onSubmit();
+                    requestAnimationFrame(() => {
+                      inputRef.current?.focus();
+                    });
+                  }
                 }
               }}
               onSubmitEditing={() => {
-                if (canSend) onSubmit();
+                if (canSend) {
+                  onSubmit();
+                  requestAnimationFrame(() => {
+                    inputRef.current?.focus();
+                  });
+                }
               }}
               className="w-full max-h-32 min-h-[40px] rounded-2xl bg-[#e6e9ef] dark:bg-[#3a3b3c] px-4 py-2.5 text-sm text-[#050505] dark:text-[#e4e6eb]"
             />
@@ -221,22 +255,28 @@ export function MessageComposerView({
           {/* Send Action Button */}
           <Pressable
             disabled={!canSend}
-            onPress={onSubmit}
+            onPressIn={() => {
+              inputRef.current?.focus();
+            }}
+            onPress={() => {
+              if (canSend) {
+                onSubmit();
+                requestAnimationFrame(() => {
+                  inputRef.current?.focus();
+                });
+              }
+            }}
             className={`p-2.5 sm:p-3 rounded-full items-center justify-center shrink-0 ${
               canSend
                 ? 'bg-primary-500 active:scale-95'
                 : 'bg-primary-200 dark:bg-primary-950/50 opacity-50'
             }`}>
-            {isSending ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <AppIcon
-                android="send"
-                ios="paperplane.fill"
-                size={16}
-                color={canSend ? '#ffffff' : '#60a5fa'}
-              />
-            )}
+            <AppIcon
+              android="send"
+              ios="paperplane.fill"
+              size={16}
+              color={canSend ? '#ffffff' : '#60a5fa'}
+            />
           </Pressable>
         </View>
       )}

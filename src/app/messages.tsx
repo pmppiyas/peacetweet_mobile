@@ -16,7 +16,11 @@ import { ChatView } from '@/features/chat/components/ChatView';
 import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
 
 export default function MessagesScreen() {
-  const { setActiveConversationId, setUnreadMessagesCount } = useUi();
+  const {
+    setActiveConversationId,
+    setUnreadMessagesCount,
+    setTabSwipeLocked,
+  } = useUi();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const params = useLocalSearchParams<{
     conversationId?: string;
@@ -30,10 +34,19 @@ export default function MessagesScreen() {
   );
   const [selectedConversation, setSelectedConversation] =
     useState<ConversationItem | null>(null);
+  const [selectedConversationId, setSelectedConversationId] =
+    useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(
     () => !queryCache.has(CACHE_KEYS.CHAT_CONVERSATIONS)
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    setTabSwipeLocked(Boolean(selectedConversationId));
+    return () => {
+      setTabSwipeLocked(false);
+    };
+  }, [selectedConversationId, setTabSwipeLocked]);
 
   const setConversations = useCallback(
     (
@@ -81,6 +94,18 @@ export default function MessagesScreen() {
     });
     return () => sub.remove();
   }, [selectedConversation, closeConversation]);
+
+  // Android back press when a conversation row is selected deselects it
+  useEffect(() => {
+    if (Platform.OS !== 'android' || !selectedConversationId) {
+      return;
+    }
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setSelectedConversationId(null);
+      return true;
+    });
+    return () => sub.remove();
+  }, [selectedConversationId]);
 
   const loadChatData = useCallback(
     async (silent = false) => {
@@ -234,6 +259,23 @@ export default function MessagesScreen() {
     [user?.id, setConversations]
   );
 
+  const handleDirectDeleteConversation = useCallback(
+    async (conversation: ConversationItem) => {
+      const targetId = conversation.id;
+      setConversations((prev) => prev.filter((c) => c.id !== targetId));
+      setSelectedConversationId(null);
+      if (selectedConversationRef.current?.id === targetId) {
+        closeConversation();
+      }
+      try {
+        await chatApi.deleteConversation(targetId);
+      } catch {
+        loadChatData(true);
+      }
+    },
+    [setConversations, closeConversation, loadChatData]
+  );
+
   // Real-time Socket.io update for conversations sidebar
   useEffect(() => {
     const s = initAppSocket() || getAppSocket();
@@ -255,11 +297,23 @@ export default function MessagesScreen() {
       );
     };
 
+    const handleConvDeleted = (data: { conversationId: string }) => {
+      if (!data?.conversationId) return;
+      setConversations((prev) =>
+        prev.filter((c) => c.id !== data.conversationId)
+      );
+      if (selectedConversationRef.current?.id === data.conversationId) {
+        closeConversation();
+      }
+    };
+
     s.on('conversation:updated', handleConvUpdated);
+    s.on('conversation:deleted', handleConvDeleted);
     return () => {
       s.off('conversation:updated', handleConvUpdated);
+      s.off('conversation:deleted', handleConvDeleted);
     };
-  }, [handleConversationUpdated]);
+  }, [handleConversationUpdated, closeConversation, setConversations]);
 
   const handleConversationMarkedRead = useCallback(
     (conversationId: string) => {
@@ -318,7 +372,21 @@ export default function MessagesScreen() {
               loadChatData(true);
             }}
             selectedId={selectedConversation?.id || null}
-            onSelectConversation={openConversation}
+            selectedConversationId={selectedConversationId}
+            onSelectConversation={(conv) => {
+              if (selectedConversationId) {
+                setSelectedConversationId(null);
+                return;
+              }
+              openConversation(conv);
+            }}
+            onSelectRow={(conv) => {
+              setSelectedConversationId(conv.id);
+            }}
+            onDeselectRow={() => {
+              setSelectedConversationId(null);
+            }}
+            onDirectDeleteConversation={handleDirectDeleteConversation}
             onStartChatWithUser={handleStartChatWithUser}
             currentUserId={user?.id}
             totalUnreadCount={totalUnreadCount}

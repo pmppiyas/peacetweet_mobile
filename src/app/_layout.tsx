@@ -236,6 +236,7 @@ function AppShell() {
   const [activeTab, setActiveTab] = React.useState<string>(normalizedPath);
   const activeTabRef = useRef<string>(normalizedPath);
   const currentScrolledIndexRef = useRef<number>(currentTabIndex);
+  const dragStartIndexRef = useRef<number>(currentTabIndex);
 
   const pagerRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const isManualScrollingRef = useRef(false);
@@ -245,6 +246,11 @@ function AppShell() {
     if (isTabRoute) {
       activeTabRef.current = normalizedPath;
       setActiveTab(normalizedPath);
+      const idx = (TAB_ORDER as readonly string[]).indexOf(normalizedPath);
+      if (idx !== -1) {
+        currentScrolledIndexRef.current = idx;
+        dragStartIndexRef.current = idx;
+      }
     }
   }, [normalizedPath, isTabRoute]);
 
@@ -255,6 +261,7 @@ function AppShell() {
     }
     if (isManualScrollingRef.current) return;
     currentScrolledIndexRef.current = currentTabIndex;
+    dragStartIndexRef.current = currentTabIndex;
     if (isTabRoute && pagerRef.current && effectiveWidth > 0 && currentTabIndex >= 0) {
       const isInitial = !hasInitialScrolledRef.current;
       hasInitialScrolledRef.current = true;
@@ -273,10 +280,12 @@ function AppShell() {
     const diff = rawIndex - currentIndex;
 
     let pageIndex = currentIndex;
-    if (diff >= 0.4) {
-      pageIndex = Math.min(TAB_ORDER.length - 1, currentIndex + 1);
-    } else if (diff <= -0.4) {
-      pageIndex = Math.max(0, currentIndex - 1);
+    if (diff >= 0.2) {
+      const step = Math.max(1, Math.round(diff));
+      pageIndex = Math.min(TAB_ORDER.length - 1, currentIndex + step);
+    } else if (diff <= -0.2) {
+      const step = Math.min(-1, Math.round(diff));
+      pageIndex = Math.max(0, currentIndex + step);
     }
 
     const route = TAB_ORDER[pageIndex];
@@ -289,30 +298,24 @@ function AppShell() {
   const handleScrollEndDrag = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (effectiveWidth <= 0) return;
     const currentX = e.nativeEvent.contentOffset.x;
-    const velocityX = e.nativeEvent.velocity?.x ?? 0;
-    const startX = currentScrolledIndexRef.current * effectiveWidth;
-    const diffX = currentX - startX;
+    const rawIndex = currentX / effectiveWidth;
+    const currentIndex = currentScrolledIndexRef.current;
+    const diff = rawIndex - currentIndex;
 
-    // Minimum gesture threshold: 40% of the screen width to swap tabs
-    const threshold = effectiveWidth * 0.4;
-
-    let targetIndex = currentScrolledIndexRef.current;
-
-    if (diffX >= threshold || (diffX >= effectiveWidth * 0.35 && velocityX > 1.0)) {
-      targetIndex = Math.min(TAB_ORDER.length - 1, currentScrolledIndexRef.current + 1);
-    } else if (diffX <= -threshold || (diffX <= -effectiveWidth * 0.35 && velocityX < -1.0)) {
-      targetIndex = Math.max(0, currentScrolledIndexRef.current - 1);
-    } else {
-      // Less than 40%: snap back to current tab!
-      targetIndex = currentScrolledIndexRef.current;
+    let pageIndex = currentIndex;
+    if (diff >= 0.2) {
+      const step = Math.max(1, Math.round(diff));
+      pageIndex = Math.min(TAB_ORDER.length - 1, currentIndex + step);
+    } else if (diff <= -0.2) {
+      const step = Math.min(-1, Math.round(diff));
+      pageIndex = Math.max(0, currentIndex + step);
     }
 
-    isManualScrollingRef.current = false;
-    currentScrolledIndexRef.current = targetIndex;
-    pagerRef.current?.scrollTo({
-      x: targetIndex * effectiveWidth,
-      animated: true,
-    });
+    const route = TAB_ORDER[pageIndex];
+    if (route && route !== activeTabRef.current) {
+      activeTabRef.current = route;
+      setActiveTab(route);
+    }
   };
 
   const handleMomentumEnd = (offsetX: number) => {
@@ -323,6 +326,7 @@ function AppShell() {
       Math.max(0, Math.round(offsetX / effectiveWidth))
     );
     currentScrolledIndexRef.current = pageIndex;
+    dragStartIndexRef.current = pageIndex;
     const route = TAB_ORDER[pageIndex];
     if (route) {
       activeTabRef.current = route;
@@ -447,17 +451,12 @@ function AppShell() {
           <ScrollView
             ref={pagerRef}
             horizontal
-            pagingEnabled={false}
-            snapToInterval={effectiveWidth}
-            snapToAlignment="start"
-            decelerationRate="fast"
-            disableIntervalMomentum={true}
+            pagingEnabled
+            keyboardShouldPersistTaps="handled"
             showsHorizontalScrollIndicator={false}
             scrollEnabled={canSwipeTabs}
             bounces={false}
             overScrollMode="never"
-            nestedScrollEnabled
-            directionalLockEnabled
             onScrollBeginDrag={() => {
               isManualScrollingRef.current = true;
             }}
@@ -539,6 +538,18 @@ function AppShell() {
           <MobileNav
             activeTab={activeTab}
             onTabPress={(href) => {
+              isManualScrollingRef.current = false;
+              const idx = (TAB_ORDER as readonly string[]).indexOf(href);
+              if (idx !== -1) {
+                currentScrolledIndexRef.current = idx;
+                dragStartIndexRef.current = idx;
+                if (pagerRef.current && effectiveWidth > 0) {
+                  pagerRef.current.scrollTo({
+                    x: idx * effectiveWidth,
+                    animated: true,
+                  });
+                }
+              }
               activeTabRef.current = href;
               setActiveTab(href);
             }}
