@@ -2,9 +2,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
-  Pressable,
   Animated,
   PanResponder,
+  Platform,
   useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -96,143 +96,269 @@ export interface NotificationItemRowProps {
   onRequestDelete?: (item: NotificationItem) => void;
 }
 
-export function NotificationItemRow({
-  item,
-  isSelected = false,
-  onPress,
-  onSelect,
-  onDeselect,
-  onDirectDelete,
-  onRequestDelete,
-}: NotificationItemRowProps) {
-  const { theme, locale } = useUi();
-  const isDark = theme === 'dark';
-  const badge = getNotificationBadgeConfig(item.type);
-  const actorName = item.actor?.name || 'Someone';
+export const NotificationItemRow = React.memo(
+  function NotificationItemRow({
+    item,
+    isSelected = false,
+    onPress,
+    onSelect,
+    onDeselect,
+    onDirectDelete,
+    onRequestDelete,
+  }: NotificationItemRowProps) {
+    const { theme, locale, setTabSwipeLocked } = useUi();
+    const isDark = theme === 'dark';
+    const badge = getNotificationBadgeConfig(item.type);
+    const actorName = item.actor?.name || 'Someone';
 
-  const isSelectedRef = useRef(isSelected);
-  isSelectedRef.current = isSelected;
+    const [localSelected, setLocalSelected] = useState(isSelected);
+    useEffect(() => {
+      setLocalSelected(isSelected);
+    }, [isSelected]);
 
-  const onDeselectRef = useRef(onDeselect);
-  onDeselectRef.current = onDeselect;
+    const effectiveSelected = isSelected || localSelected;
 
-  const onDirectDeleteRef = useRef(onDirectDelete || onRequestDelete);
-  onDirectDeleteRef.current = onDirectDelete || onRequestDelete;
+    const isSelectedRef = useRef(effectiveSelected);
+    isSelectedRef.current = effectiveSelected;
 
-  const itemRef = useRef(item);
-  itemRef.current = item;
+    const onPressRef = useRef(onPress);
+    onPressRef.current = onPress;
 
-  const displayMessage = (() => {
-    if (item.type === 'POST_COMMENT') {
-      if (item.message && item.message.toLowerCase().includes('replied')) {
-        return 'replied to your comment';
+    const onSelectRef = useRef(onSelect);
+    onSelectRef.current = onSelect;
+
+    const onDeselectRef = useRef(onDeselect);
+    onDeselectRef.current = onDeselect;
+
+    const onDirectDeleteRef = useRef(onDirectDelete || onRequestDelete);
+    onDirectDeleteRef.current = onDirectDelete || onRequestDelete;
+
+    const setTabSwipeLockedRef = useRef(setTabSwipeLocked);
+    setTabSwipeLockedRef.current = setTabSwipeLocked;
+
+    const itemRef = useRef(item);
+    itemRef.current = item;
+
+    const displayMessage = (() => {
+      if (item.type === 'POST_COMMENT') {
+        if (item.message && item.message.toLowerCase().includes('replied')) {
+          return 'replied to your comment';
+        }
+        return 'commented on your post.';
       }
-      return 'commented on your post.';
-    }
-    return item.message;
-  })();
+      return item.message;
+    })();
 
-  const { width: windowWidth } = useWindowDimensions();
-  const [rowWidth, setRowWidth] = useState(windowWidth);
-  const rowWidthRef = useRef(windowWidth);
-  rowWidthRef.current = rowWidth;
+    const { width: windowWidth } = useWindowDimensions();
+    const [rowWidth, setRowWidth] = useState(windowWidth);
+    const rowWidthRef = useRef(windowWidth);
+    rowWidthRef.current = rowWidth;
 
-  const translateX = useRef(new Animated.Value(0)).current;
+    const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+      null
+    );
+    const selectedDuringThisTouchRef = useRef(false);
+    const dragOffsetXRef = useRef(0);
+    const lastDxRef = useRef(0);
+    const isAvatarTouchRef = useRef(false);
+    const wasSelectedRef = useRef(false);
 
-  useEffect(() => {
-    if (!isSelected) {
-      Animated.spring(translateX, {
-        toValue: 0,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [isSelected, translateX]);
+    const clearLongPressTimer = () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+    };
 
-  useEffect(() => {
-    translateX.setValue(0);
-  }, [item.id, translateX]);
+    useEffect(() => {
+      return () => {
+        clearLongPressTimer();
+      };
+    }, []);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => Boolean(isSelectedRef.current),
-      onStartShouldSetPanResponderCapture: () => Boolean(isSelectedRef.current),
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return (
-          Boolean(isSelectedRef.current) &&
-          (Math.abs(gestureState.dx) > 6 || Math.abs(gestureState.vx) > 0.15)
-        );
-      },
-      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
-        return (
-          Boolean(isSelectedRef.current) &&
-          (Math.abs(gestureState.dx) > 6 || Math.abs(gestureState.vx) > 0.15)
-        );
-      },
-      onPanResponderGrant: () => {},
-      onPanResponderMove: (_, gestureState) => {
-        if (!isSelectedRef.current) return;
-        if (gestureState.dx <= 0) {
-          translateX.setValue(gestureState.dx);
-        } else {
-          translateX.setValue(gestureState.dx * 0.12);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (!isSelectedRef.current) return;
+    const translateX = useRef(new Animated.Value(0)).current;
 
-        // 1. Did the user tap without dragging? (less than 10px move)
-        if (Math.abs(gestureState.dx) < 10 && Math.abs(gestureState.dy) < 10) {
-          onDeselectRef.current?.();
-          return;
-        }
-
-        // 2. Minimum 40% swipe required to delete
-        const threshold = -(rowWidthRef.current * 0.4);
-        const isSwipeDelete = gestureState.dx < threshold;
-
-        if (isSwipeDelete) {
-          Animated.timing(translateX, {
-            toValue: -rowWidthRef.current - 50,
-            duration: 160,
-            useNativeDriver: true,
-          }).start(() => {
-            onDirectDeleteRef.current?.(itemRef.current);
-          });
-        } else {
-          Animated.spring(translateX, {
-            toValue: 0,
-            friction: 8,
-            tension: 60,
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderTerminate: () => {
+    useEffect(() => {
+      if (effectiveSelected) {
+        wasSelectedRef.current = true;
+      } else if (wasSelectedRef.current) {
+        wasSelectedRef.current = false;
         Animated.spring(translateX, {
           toValue: 0,
-          friction: 8,
-          tension: 60,
           useNativeDriver: true,
         }).start();
-      },
-    })
-  ).current;
+      }
+    }, [effectiveSelected, translateX]);
 
-  return (
-    <View
-      onLayout={(e) => {
-        const w = e.nativeEvent.layout.width;
-        if (w > 0 && Math.abs(w - rowWidthRef.current) > 2) {
-          rowWidthRef.current = w;
-          setRowWidth(w);
-        }
-      }}
-      className="w-full relative overflow-hidden"
-    >
-      {/* Revealed delete background behind row when sliding left (Neutral styling, no red) */}
-      {isSelected ? (
-        <View className="absolute inset-0 bg-[#e4e6eb] dark:bg-[#2e3033] flex-row items-center justify-end px-5 gap-2">
+    useEffect(() => {
+      translateX.setValue(0);
+    }, [item.id, translateX]);
+
+    const panResponder = useRef(
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponderCapture: () => true,
+        onMoveShouldSetPanResponder: () => Boolean(isSelectedRef.current),
+        onMoveShouldSetPanResponderCapture: () =>
+          Boolean(isSelectedRef.current),
+        onShouldBlockNativeResponder: () => Boolean(isSelectedRef.current),
+        onPanResponderGrant: () => {
+          clearLongPressTimer();
+          translateX.stopAnimation();
+          lastDxRef.current = 0;
+          dragOffsetXRef.current = 0;
+
+          if (isSelectedRef.current) {
+            selectedDuringThisTouchRef.current = false;
+            return;
+          }
+
+          selectedDuringThisTouchRef.current = false;
+
+          longPressTimerRef.current = setTimeout(() => {
+            longPressTimerRef.current = null;
+            if (!isSelectedRef.current) {
+              isSelectedRef.current = true;
+              selectedDuringThisTouchRef.current = true;
+              dragOffsetXRef.current = lastDxRef.current;
+              setTabSwipeLockedRef.current?.(true);
+              setLocalSelected(true);
+              onSelectRef.current?.(itemRef.current);
+            }
+          }, 220);
+        },
+        onPanResponderMove: (_, gestureState) => {
+          lastDxRef.current = gestureState.dx;
+
+          if (!isSelectedRef.current) {
+            if (
+              Math.abs(gestureState.dx) > 10 ||
+              Math.abs(gestureState.dy) > 10
+            ) {
+              if (longPressTimerRef.current) {
+                clearLongPressTimer();
+              }
+            }
+            return;
+          }
+
+          const effectiveDx = gestureState.dx - dragOffsetXRef.current;
+          if (effectiveDx <= 0) {
+            translateX.setValue(effectiveDx);
+          } else {
+            translateX.setValue(effectiveDx * 0.12);
+          }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          const hadPendingLongPress = Boolean(longPressTimerRef.current);
+          const touchedAvatar = isAvatarTouchRef.current;
+          isAvatarTouchRef.current = false;
+          clearLongPressTimer();
+
+          if (!isSelectedRef.current) {
+            if (
+              hadPendingLongPress &&
+              Math.abs(gestureState.dx) < 10 &&
+              Math.abs(gestureState.dy) < 10
+            ) {
+              const currentItem = itemRef.current;
+              if (touchedAvatar && currentItem.actor?.username) {
+                router.push(`/${currentItem.actor.username}` as any);
+              } else {
+                onPressRef.current?.(currentItem);
+              }
+            }
+            return;
+          }
+
+          const effectiveDx = gestureState.dx - dragOffsetXRef.current;
+
+          // 1. Did the user tap/release without dragging? (< 10px move)
+          if (Math.abs(effectiveDx) < 10 && Math.abs(gestureState.dy) < 10) {
+            if (!selectedDuringThisTouchRef.current) {
+              isSelectedRef.current = false;
+              setLocalSelected(false);
+              onDeselectRef.current?.();
+            } else {
+              Animated.spring(translateX, {
+                toValue: 0,
+                friction: 8,
+                tension: 60,
+                useNativeDriver: true,
+              }).start();
+            }
+            selectedDuringThisTouchRef.current = false;
+            return;
+          }
+
+          selectedDuringThisTouchRef.current = false;
+
+          // 2. Minimum 40% swipe required to delete
+          const threshold = -(rowWidthRef.current * 0.4);
+          const isSwipeDelete = effectiveDx < threshold;
+
+          if (isSwipeDelete) {
+            Animated.timing(translateX, {
+              toValue: -rowWidthRef.current - 50,
+              duration: 160,
+              useNativeDriver: true,
+            }).start(() => {
+              onDirectDeleteRef.current?.(itemRef.current);
+            });
+          } else {
+            Animated.spring(translateX, {
+              toValue: 0,
+              friction: 8,
+              tension: 60,
+              useNativeDriver: true,
+            }).start();
+          }
+        },
+        onPanResponderTerminationRequest: () => !Boolean(isSelectedRef.current),
+        onPanResponderTerminate: () => {
+          isAvatarTouchRef.current = false;
+          clearLongPressTimer();
+          selectedDuringThisTouchRef.current = false;
+          if (isSelectedRef.current) {
+            Animated.spring(translateX, {
+              toValue: 0,
+              friction: 8,
+              tension: 60,
+              useNativeDriver: true,
+            }).start();
+          }
+        },
+      })
+    ).current;
+
+    const rowBgColor = effectiveSelected
+      ? isDark
+        ? '#202938'
+        : '#edf4ff'
+      : !item.isRead
+        ? isDark
+          ? '#2e3033'
+          : '#edf2f7'
+        : isDark
+          ? '#18191a'
+          : '#ffffff';
+
+    return (
+      <View
+        onLayout={(e) => {
+          const w = e.nativeEvent.layout.width;
+          if (w > 0 && Math.abs(w - rowWidthRef.current) > 2) {
+            rowWidthRef.current = w;
+            setRowWidth(w);
+          }
+        }}
+        className="w-full relative overflow-hidden"
+      >
+        {/* Revealed delete background behind row when sliding left (Always opacity 1 underneath opaque row so it reveals immediately with 0ms delay) */}
+        <View
+          pointerEvents="none"
+          className="absolute inset-0 bg-[#e4e6eb] dark:bg-[#2e3033] flex-row items-center justify-end px-4 gap-2"
+        >
           <AppIcon
             android="delete"
             ios="trash"
@@ -243,137 +369,118 @@ export function NotificationItemRow({
             {locale === 'bn' ? 'মুছে ফেলতে টানুন' : 'Swipe to delete'}
           </Text>
         </View>
-      ) : null}
 
-      {/* Foreground sliding row */}
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={{
-          transform: [{ translateX }],
-        }}
-        className="w-full"
-      >
-        <Pressable
-          pointerEvents={isSelected ? 'none' : 'auto'}
-          onPress={() => {
-            if (isSelected) {
-              onDeselect?.();
-              return;
-            }
-            onPress(item);
+        {/* Foreground sliding row */}
+        <Animated.View
+          onTouchStartCapture={() => {
+            isAvatarTouchRef.current = false;
           }}
-          onLongPress={() => {
-            if (!isSelected) {
-              onSelect?.(item);
-            }
+          {...panResponder.panHandlers}
+          {...(Platform.OS === 'web'
+            ? {
+                onMouseDownCapture: () => {
+                  isAvatarTouchRef.current = false;
+                },
+                onDragStart: (e: any) => e.preventDefault?.(),
+                onContextMenu: (e: any) => e.preventDefault?.(),
+              }
+            : {})}
+          style={{
+            transform: [{ translateX }],
           }}
-          delayLongPress={350}
-          android_ripple={{
-            color: isDark
-              ? 'rgba(8, 102, 255, 0.20)'
-              : 'rgba(8, 102, 255, 0.12)',
-          }}
-          className={`w-full relative flex-row items-center gap-3 px-3 py-1.5 transition-colors ${
-            isSelected
-              ? 'bg-[#edf4ff] dark:bg-[#202938]'
-              : !item.isRead
-                ? 'bg-[#edf2f7] dark:bg-[#2e3033] active:bg-[#0866FF]/10 dark:active:bg-[#0866FF]/20'
-                : 'bg-white dark:bg-[#18191a] active:bg-[#0866FF]/8 dark:active:bg-[#0866FF]/15'
-          }`}
-          style={({ pressed }) =>
-            pressed && !isSelected
-              ? {
-                  backgroundColor: isDark
-                    ? 'rgba(8, 102, 255, 0.18)'
-                    : !item.isRead
-                      ? 'rgba(8, 102, 255, 0.10)'
-                      : 'rgba(8, 102, 255, 0.08)',
-                }
-              : undefined
-          }
+          className="w-full"
         >
-          {/* Avatar with badge */}
-          <Pressable
-            onPress={(e) => {
-              if (isSelected) {
-                onDeselect?.();
-                return;
-              }
-              if (item.actor?.username) {
-                e.stopPropagation();
-                router.push(`/${item.actor.username}` as any);
-              } else {
-                onPress(item);
-              }
-            }}
-            className="relative shrink-0 active:opacity-80"
+          <View
+            style={{ backgroundColor: rowBgColor }}
+            className="w-full relative flex-row items-center gap-3 px-3 py-1.5 select-none"
           >
-            <UserAvatar
-              avatarUrl={item.actor?.avatarUrl || (item.actor as any)?.avatar}
-              name={actorName}
-              size="lg"
-            />
-
+            {/* Avatar with badge */}
             <View
-              className={`absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white dark:border-[#242526] ${badge.bgColor}`}
+              onTouchStart={() => {
+                isAvatarTouchRef.current = true;
+              }}
+              {...(Platform.OS === 'web'
+                ? {
+                    onMouseDown: () => {
+                      isAvatarTouchRef.current = true;
+                    },
+                  }
+                : {})}
+              className="relative shrink-0"
             >
-              <AppIcon
-                android={badge.android}
-                ios={badge.ios}
-                size={12}
-                color="#ffffff"
+              <UserAvatar
+                avatarUrl={item.actor?.avatarUrl || (item.actor as any)?.avatar}
+                name={actorName}
+                size="lg"
               />
+
+              <View
+                className={`absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white dark:border-[#242526] ${badge.bgColor}`}
+              >
+                <AppIcon
+                  android={badge.android}
+                  ios={badge.ios}
+                  size={12}
+                  color="#ffffff"
+                />
+              </View>
             </View>
-          </Pressable>
 
-          {/* Content */}
-          <View className="flex-1 min-w-0 pr-1">
-            <Text
-              numberOfLines={2}
-              className="text-[15px] leading-[20px] text-[#050505] dark:text-[#e4e6eb]"
-            >
+            {/* Content */}
+            <View className="flex-1 min-w-0 pr-1">
               <Text
-                className={`${
-                  !item.isRead
-                    ? 'font-bold text-[#050505] dark:text-white'
-                    : 'font-semibold text-[#050505] dark:text-[#e4e6eb]'
-                }`}
+                numberOfLines={2}
+                className="text-[15px] leading-[20px] text-[#050505] dark:text-[#e4e6eb]"
               >
-                {actorName}
-              </Text>{' '}
-              <Text
-                className={`${
-                  !item.isRead
-                    ? 'font-medium text-[#050505] dark:text-[#e4e6eb]'
-                    : 'font-normal text-[#4b4c4f] dark:text-[#b0b3b8]'
-                }`}
-              >
-                {displayMessage}
+                <Text
+                  className={`${
+                    !item.isRead
+                      ? 'font-bold text-[#050505] dark:text-white'
+                      : 'font-semibold text-[#050505] dark:text-[#e4e6eb]'
+                  }`}
+                >
+                  {actorName}
+                </Text>{' '}
+                <Text
+                  className={`${
+                    !item.isRead
+                      ? 'font-medium text-[#050505] dark:text-[#e4e6eb]'
+                      : 'font-normal text-[#4b4c4f] dark:text-[#b0b3b8]'
+                  }`}
+                >
+                  {displayMessage}
+                </Text>
               </Text>
-            </Text>
 
-            <View className="flex-row items-center gap-1 mt-1">
-              <Text
-                numberOfLines={1}
-                className={`text-[12px] leading-[16px] font-medium ${
-                  !item.isRead
-                    ? 'font-semibold text-primary-600 dark:text-primary-400'
-                    : 'text-[#65676b] dark:text-[#b0b3b8]'
-                }`}
-              >
-                {formatNotificationTimeAgo(item.createdAt)}
-              </Text>
+              <View className="flex-row items-center gap-1 mt-1">
+                <Text
+                  numberOfLines={1}
+                  className={`text-[12px] leading-[16px] font-medium ${
+                    !item.isRead
+                      ? 'font-semibold text-primary-600 dark:text-primary-400'
+                      : 'text-[#65676b] dark:text-[#b0b3b8]'
+                  }`}
+                >
+                  {formatNotificationTimeAgo(item.createdAt)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Actions */}
+            <View className="flex-row items-center gap-1.5 shrink-0">
+              {!item.isRead ? (
+                <View className="h-2.5 w-2.5 rounded-full bg-primary-600 dark:bg-primary-400" />
+              ) : null}
             </View>
           </View>
-
-          {/* Actions */}
-          <View className="flex-row items-center gap-1.5 shrink-0">
-            {!item.isRead ? (
-              <View className="h-2.5 w-2.5 rounded-full bg-primary-600 dark:bg-primary-400" />
-            ) : null}
-          </View>
-        </Pressable>
-      </Animated.View>
-    </View>
-  );
-}
+        </Animated.View>
+      </View>
+    );
+  },
+  (prevProps, nextProps) =>
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.item.isRead === nextProps.item.isRead &&
+    prevProps.item.message === nextProps.item.message &&
+    prevProps.item.createdAt === nextProps.item.createdAt
+);

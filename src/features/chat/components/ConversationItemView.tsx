@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  Pressable,
   Animated,
   PanResponder,
+  Platform,
   useWindowDimensions,
 } from 'react-native';
 import { useUi } from '@/providers/UiProvider';
@@ -82,149 +82,259 @@ export function formatConversationTime(
   });
 }
 
-export function ConversationItemView({
-  conversation,
-  isSelected = false,
-  isActiveChat = false,
-  onSelect,
-  onSelectRow,
-  onDeselect,
-  onDirectDelete,
-}: ConversationItemViewProps) {
-  const { theme, locale, isUserOnline } = useUi();
-  const isDark = theme === 'dark';
-  const participant = getOtherUserFromConversation(conversation);
-  const unreadCount = conversation.unreadCount || 0;
-  const hasUnread = unreadCount > 0;
-  const displayName =
-    participant?.name || (locale === 'bn' ? 'ইউজার' : 'User');
-  const isOnline =
-    isUserOnline(participant?.id) || Boolean(participant?.isOnline);
+export const ConversationItemView = React.memo(
+  function ConversationItemView({
+    conversation,
+    isSelected = false,
+    isActiveChat = false,
+    onSelect,
+    onSelectRow,
+    onDeselect,
+    onDirectDelete,
+  }: ConversationItemViewProps) {
+    const { theme, locale, isUserOnline, setTabSwipeLocked } = useUi();
+    const isDark = theme === 'dark';
+    const participant = getOtherUserFromConversation(conversation);
+    const unreadCount = conversation.unreadCount || 0;
+    const hasUnread = unreadCount > 0;
+    const displayName =
+      participant?.name || (locale === 'bn' ? 'ইউজার' : 'User');
+    const isOnline =
+      isUserOnline(participant?.id) || Boolean(participant?.isOnline);
 
-  const isSelectedRef = useRef(isSelected);
-  isSelectedRef.current = isSelected;
+    const [localSelected, setLocalSelected] = useState(isSelected);
+    useEffect(() => {
+      setLocalSelected(isSelected);
+    }, [isSelected]);
 
-  const onDeselectRef = useRef(onDeselect);
-  onDeselectRef.current = onDeselect;
+    const effectiveSelected = isSelected || localSelected;
 
-  const onDirectDeleteRef = useRef(onDirectDelete);
-  onDirectDeleteRef.current = onDirectDelete;
+    const isSelectedRef = useRef(effectiveSelected);
+    isSelectedRef.current = effectiveSelected;
 
-  const conversationRef = useRef(conversation);
-  conversationRef.current = conversation;
+    const onSelectRef = useRef(onSelect);
+    onSelectRef.current = onSelect;
 
-  const { width: windowWidth } = useWindowDimensions();
-  const [rowWidth, setRowWidth] = useState(windowWidth);
-  const rowWidthRef = useRef(windowWidth);
-  rowWidthRef.current = rowWidth;
+    const onSelectRowRef = useRef(onSelectRow);
+    onSelectRowRef.current = onSelectRow;
 
-  const selectedTimeRef = useRef<number>(0);
-  useEffect(() => {
-    if (isSelected) {
-      selectedTimeRef.current = Date.now();
-    }
-  }, [isSelected]);
+    const onDeselectRef = useRef(onDeselect);
+    onDeselectRef.current = onDeselect;
 
-  const translateX = useRef(new Animated.Value(0)).current;
+    const onDirectDeleteRef = useRef(onDirectDelete);
+    onDirectDeleteRef.current = onDirectDelete;
 
-  useEffect(() => {
-    if (!isSelected) {
-      Animated.spring(translateX, {
-        toValue: 0,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [isSelected, translateX]);
+    const setTabSwipeLockedRef = useRef(setTabSwipeLocked);
+    setTabSwipeLockedRef.current = setTabSwipeLocked;
 
-  useEffect(() => {
-    translateX.setValue(0);
-  }, [conversation.id, translateX]);
+    const conversationRef = useRef(conversation);
+    conversationRef.current = conversation;
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => Boolean(isSelectedRef.current),
-      onStartShouldSetPanResponderCapture: () => Boolean(isSelectedRef.current),
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return (
-          Boolean(isSelectedRef.current) &&
-          (Math.abs(gestureState.dx) > 6 || Math.abs(gestureState.vx) > 0.15)
-        );
-      },
-      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
-        return (
-          Boolean(isSelectedRef.current) &&
-          (Math.abs(gestureState.dx) > 6 || Math.abs(gestureState.vx) > 0.15)
-        );
-      },
-      onPanResponderGrant: () => {},
-      onPanResponderMove: (_, gestureState) => {
-        if (!isSelectedRef.current) return;
-        if (gestureState.dx <= 0) {
-          translateX.setValue(gestureState.dx);
-        } else {
-          translateX.setValue(gestureState.dx * 0.12);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (!isSelectedRef.current) return;
+    const { width: windowWidth } = useWindowDimensions();
+    const [rowWidth, setRowWidth] = useState(windowWidth);
+    const rowWidthRef = useRef(windowWidth);
+    rowWidthRef.current = rowWidth;
 
-        // Ignore release if it happened immediately after selection (the finger-up of the long-press)
-        if (Date.now() - selectedTimeRef.current < 350) {
-          return;
-        }
+    const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+      null
+    );
+    const selectedDuringThisTouchRef = useRef(false);
+    const dragOffsetXRef = useRef(0);
+    const lastDxRef = useRef(0);
+    const wasSelectedRef = useRef(false);
 
-        // 1. Did the user tap without dragging? (less than 10px move)
-        if (Math.abs(gestureState.dx) < 10 && Math.abs(gestureState.dy) < 10) {
-          onDeselectRef.current?.();
-          return;
-        }
+    const clearLongPressTimer = () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+    };
 
-        // 2. Minimum 40% swipe required to delete
-        const threshold = -(rowWidthRef.current * 0.4);
-        const isSwipeDelete = gestureState.dx < threshold;
+    useEffect(() => {
+      return () => {
+        clearLongPressTimer();
+      };
+    }, []);
 
-        if (isSwipeDelete) {
-          Animated.timing(translateX, {
-            toValue: -rowWidthRef.current - 50,
-            duration: 160,
-            useNativeDriver: true,
-          }).start(() => {
-            onDirectDeleteRef.current?.(conversationRef.current);
-          });
-        } else {
-          Animated.spring(translateX, {
-            toValue: 0,
-            friction: 8,
-            tension: 60,
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderTerminate: () => {
+    const translateX = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      if (effectiveSelected) {
+        wasSelectedRef.current = true;
+      } else if (wasSelectedRef.current) {
+        wasSelectedRef.current = false;
         Animated.spring(translateX, {
           toValue: 0,
-          friction: 8,
-          tension: 60,
           useNativeDriver: true,
         }).start();
-      },
-    })
-  ).current;
+      }
+    }, [effectiveSelected, translateX]);
 
-  return (
-    <View
-      onLayout={(e) => {
-        const w = e.nativeEvent.layout.width;
-        if (w > 0 && Math.abs(w - rowWidthRef.current) > 2) {
-          rowWidthRef.current = w;
-          setRowWidth(w);
-        }
-      }}
-      className="w-full relative overflow-hidden">
-      {/* Revealed delete background behind row when sliding left (Neutral styling, matching NotificationItemRow) */}
-      {isSelected ? (
-        <View className="absolute inset-0 bg-[#e4e6eb] dark:bg-[#2e3033] flex-row items-center justify-end px-5 gap-2">
+    useEffect(() => {
+      translateX.setValue(0);
+    }, [conversation.id, translateX]);
+
+    const panResponder = useRef(
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponderCapture: () => true,
+        onMoveShouldSetPanResponder: () => Boolean(isSelectedRef.current),
+        onMoveShouldSetPanResponderCapture: () =>
+          Boolean(isSelectedRef.current),
+        onShouldBlockNativeResponder: () => Boolean(isSelectedRef.current),
+        onPanResponderGrant: () => {
+          clearLongPressTimer();
+          translateX.stopAnimation();
+          lastDxRef.current = 0;
+          dragOffsetXRef.current = 0;
+
+          if (isSelectedRef.current) {
+            selectedDuringThisTouchRef.current = false;
+            return;
+          }
+
+          selectedDuringThisTouchRef.current = false;
+
+          longPressTimerRef.current = setTimeout(() => {
+            longPressTimerRef.current = null;
+            if (!isSelectedRef.current) {
+              isSelectedRef.current = true;
+              selectedDuringThisTouchRef.current = true;
+              dragOffsetXRef.current = lastDxRef.current;
+              setTabSwipeLockedRef.current?.(true);
+              setLocalSelected(true);
+              onSelectRowRef.current?.(conversationRef.current);
+            }
+          }, 220);
+        },
+        onPanResponderMove: (_, gestureState) => {
+          lastDxRef.current = gestureState.dx;
+
+          if (!isSelectedRef.current) {
+            if (
+              Math.abs(gestureState.dx) > 10 ||
+              Math.abs(gestureState.dy) > 10
+            ) {
+              if (longPressTimerRef.current) {
+                clearLongPressTimer();
+              }
+            }
+            return;
+          }
+
+          const effectiveDx = gestureState.dx - dragOffsetXRef.current;
+          if (effectiveDx <= 0) {
+            translateX.setValue(effectiveDx);
+          } else {
+            translateX.setValue(effectiveDx * 0.12);
+          }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          const hadPendingLongPress = Boolean(longPressTimerRef.current);
+          clearLongPressTimer();
+
+          if (!isSelectedRef.current) {
+            if (
+              hadPendingLongPress &&
+              Math.abs(gestureState.dx) < 10 &&
+              Math.abs(gestureState.dy) < 10
+            ) {
+              onSelectRef.current?.();
+            }
+            return;
+          }
+
+          const effectiveDx = gestureState.dx - dragOffsetXRef.current;
+
+          // 1. Did the user tap/release without dragging? (< 10px move)
+          if (Math.abs(effectiveDx) < 10 && Math.abs(gestureState.dy) < 10) {
+            if (!selectedDuringThisTouchRef.current) {
+              isSelectedRef.current = false;
+              setLocalSelected(false);
+              onDeselectRef.current?.();
+            } else {
+              Animated.spring(translateX, {
+                toValue: 0,
+                friction: 8,
+                tension: 60,
+                useNativeDriver: true,
+              }).start();
+            }
+            selectedDuringThisTouchRef.current = false;
+            return;
+          }
+
+          selectedDuringThisTouchRef.current = false;
+
+          // 2. Minimum 40% swipe required to delete
+          const threshold = -(rowWidthRef.current * 0.4);
+          const isSwipeDelete = effectiveDx < threshold;
+
+          if (isSwipeDelete) {
+            Animated.timing(translateX, {
+              toValue: -rowWidthRef.current - 50,
+              duration: 160,
+              useNativeDriver: true,
+            }).start(() => {
+              onDirectDeleteRef.current?.(conversationRef.current);
+            });
+          } else {
+            Animated.spring(translateX, {
+              toValue: 0,
+              friction: 8,
+              tension: 60,
+              useNativeDriver: true,
+            }).start();
+          }
+        },
+        onPanResponderTerminationRequest: () => !Boolean(isSelectedRef.current),
+        onPanResponderTerminate: () => {
+          clearLongPressTimer();
+          selectedDuringThisTouchRef.current = false;
+          if (isSelectedRef.current) {
+            Animated.spring(translateX, {
+              toValue: 0,
+              friction: 8,
+              tension: 60,
+              useNativeDriver: true,
+            }).start();
+          }
+        },
+      })
+    ).current;
+
+    const rowBgColor = effectiveSelected
+      ? isDark
+        ? '#202938'
+        : '#edf4ff'
+      : isActiveChat
+        ? isDark
+          ? '#3a3b3c'
+          : '#e4e6eb'
+        : hasUnread
+          ? isDark
+            ? '#2e3033'
+            : '#edf2f7'
+          : isDark
+            ? '#18191a'
+            : '#ffffff';
+
+    return (
+      <View
+        onLayout={(e) => {
+          const w = e.nativeEvent.layout.width;
+          if (w > 0 && Math.abs(w - rowWidthRef.current) > 2) {
+            rowWidthRef.current = w;
+            setRowWidth(w);
+          }
+        }}
+        className="w-full relative overflow-hidden"
+      >
+        {/* Revealed delete background behind row when sliding left (Always opacity 1 underneath opaque row so it reveals immediately with 0ms delay) */}
+        <View
+          pointerEvents="none"
+          className="absolute inset-0 bg-[#e4e6eb] dark:bg-[#2e3033] flex-row items-center justify-end px-4 gap-2"
+        >
           <AppIcon
             android="delete"
             ios="trash"
@@ -235,102 +345,105 @@ export function ConversationItemView({
             {locale === 'bn' ? 'মুছে ফেলতে টানুন' : 'Swipe to delete'}
           </Text>
         </View>
-      ) : null}
 
-      {/* Foreground sliding row */}
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={{
-          transform: [{ translateX }],
-        }}
-        className="w-full">
-        <Pressable
-          onPress={() => {
-            if (isSelected) {
-              onDeselect?.();
-              return;
-            }
-            onSelect();
+        {/* Foreground sliding row */}
+        <Animated.View
+          {...panResponder.panHandlers}
+          {...(Platform.OS === 'web'
+            ? {
+                onDragStart: (e: any) => e.preventDefault?.(),
+                onContextMenu: (e: any) => e.preventDefault?.(),
+              }
+            : {})}
+          style={{
+            transform: [{ translateX }],
           }}
-          onLongPress={() => {
-            if (!isSelected) {
-              onSelectRow?.(conversation);
-            }
-          }}
-          delayLongPress={300}
-          android_ripple={{
-            color: isDark
-              ? 'rgba(8, 102, 255, 0.20)'
-              : 'rgba(8, 102, 255, 0.12)',
-          }}
-          className={`w-full relative flex-row items-center gap-3 px-3 py-1.5 transition-colors ${
-            isSelected
-              ? 'bg-[#edf4ff] dark:bg-[#202938]'
-              : isActiveChat
-                ? 'bg-[#e4e6eb] dark:bg-[#3a3b3c]'
-                : hasUnread
-                  ? 'bg-[#edf2f7] dark:bg-[#2e3033] active:bg-[#0866FF]/10 dark:active:bg-[#0866FF]/20'
-                  : 'bg-white dark:bg-[#18191a] active:bg-[#0866FF]/8 dark:active:bg-[#0866FF]/15'
-          }`}>
-          <ChatAvatar
-            name={displayName}
-            avatarUrl={participant?.avatarUrl}
-            size="lg"
-            isOnline={isOnline}
-            showOnlineBadge
-          />
+          className="w-full"
+        >
+          <View
+            style={{ backgroundColor: rowBgColor }}
+            className="w-full relative flex-row items-center gap-3 px-3 py-1.5 select-none"
+          >
+            <ChatAvatar
+              name={displayName}
+              avatarUrl={participant?.avatarUrl}
+              size="lg"
+              isOnline={isOnline}
+              showOnlineBadge
+            />
 
-          <View className="flex-1 min-w-0">
-            <View className="flex-row items-center justify-between gap-1.5">
-              <Text
-                numberOfLines={1}
-                className={`flex-1 text-[15px] leading-[20px] ${
-                  isSelected
-                    ? 'font-bold text-primary-700 dark:text-primary-400'
-                    : hasUnread
-                      ? 'font-bold text-[#050505] dark:text-white'
-                      : 'font-semibold text-[#050505] dark:text-[#e4e6eb]'
-                }`}>
-                {displayName}
-              </Text>
-
-              {conversation.lastMessageAt ? (
+            <View className="flex-1 min-w-0">
+              <View className="flex-row items-center justify-between gap-1.5">
                 <Text
-                  className={`text-[12px] shrink-0 font-medium ${
-                    hasUnread
-                      ? 'font-semibold text-primary-600 dark:text-primary-400'
-                      : 'text-[#65676b] dark:text-[#b0b3b8]'
-                  }`}>
-                  {formatConversationTime(conversation.lastMessageAt, locale)}
+                  numberOfLines={1}
+                  style={{
+                    fontWeight: effectiveSelected || hasUnread ? '700' : '600',
+                    color: effectiveSelected
+                      ? isDark
+                        ? '#4a80f5'
+                        : '#1054be'
+                      : hasUnread
+                        ? isDark
+                          ? '#ffffff'
+                          : '#050505'
+                        : isDark
+                          ? '#e4e6eb'
+                          : '#050505',
+                  }}
+                  className="flex-1 text-[15px] leading-[20px]"
+                >
+                  {displayName}
                 </Text>
-              ) : null}
-            </View>
 
-            <View className="flex-row items-center justify-between gap-2 mt-1">
-              <Text
-                numberOfLines={1}
-                className={`flex-1 text-[13.5px] leading-[18px] ${
-                  hasUnread
-                    ? 'font-semibold text-[#050505] dark:text-[#e6e9ef]'
-                    : 'text-[#65676b] dark:text-[#b0b3b8]'
-                }`}>
-                {formatConversationLastMessage(
-                  conversation.lastMessageText,
-                  locale
-                )}
-              </Text>
-
-              {hasUnread ? (
-                <View className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary-600 items-center justify-center shrink-0">
-                  <Text className="text-[10px] font-bold text-white">
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                {conversation.lastMessageAt ? (
+                  <Text
+                    className={`text-[12px] shrink-0 font-medium ${
+                      hasUnread
+                        ? 'font-semibold text-primary-600 dark:text-primary-400'
+                        : 'text-[#65676b] dark:text-[#b0b3b8]'
+                    }`}
+                  >
+                    {formatConversationTime(conversation.lastMessageAt, locale)}
                   </Text>
-                </View>
-              ) : null}
+                ) : null}
+              </View>
+
+              <View className="flex-row items-center justify-between gap-2 mt-1">
+                <Text
+                  numberOfLines={1}
+                  className={`flex-1 text-[13.5px] leading-[18px] ${
+                    hasUnread
+                      ? 'font-semibold text-[#050505] dark:text-[#e6e9ef]'
+                      : 'text-[#65676b] dark:text-[#b0b3b8]'
+                  }`}
+                >
+                  {formatConversationLastMessage(
+                    conversation.lastMessageText,
+                    locale
+                  )}
+                </Text>
+
+                {hasUnread ? (
+                  <View className="h-5 min-w-[20px] px-1.5 rounded-full bg-primary-600 items-center justify-center shrink-0">
+                    <Text className="text-[10px] font-bold text-white">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
             </View>
           </View>
-        </Pressable>
-      </Animated.View>
-    </View>
-  );
-}
+        </Animated.View>
+      </View>
+    );
+  },
+  (prevProps, nextProps) =>
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isActiveChat === nextProps.isActiveChat &&
+    prevProps.conversation.id === nextProps.conversation.id &&
+    prevProps.conversation.lastMessageText ===
+      nextProps.conversation.lastMessageText &&
+    prevProps.conversation.lastMessageAt ===
+      nextProps.conversation.lastMessageAt &&
+    prevProps.conversation.unreadCount === nextProps.conversation.unreadCount
+);

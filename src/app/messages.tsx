@@ -381,6 +381,7 @@ export default function MessagesScreen() {
               openConversation(conv);
             }}
             onSelectRow={(conv) => {
+              setTabSwipeLocked(true);
               setSelectedConversationId(conv.id);
             }}
             onDeselectRow={() => {

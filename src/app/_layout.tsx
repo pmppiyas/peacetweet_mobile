@@ -92,6 +92,7 @@ function AppShell() {
     topNavTranslateY,
     bottomNavTranslateY,
     isTabSwipeLocked,
+    registerTabPager,
   } = useUi();
 
   const lastBackPressRef = useRef<number>(0);
@@ -449,7 +450,10 @@ function AppShell() {
             display: isTabRoute ? 'flex' : 'none',
           }}>
           <ScrollView
-            ref={pagerRef}
+            ref={(node) => {
+              (pagerRef as any).current = node;
+              registerTabPager(node);
+            }}
             horizontal
             pagingEnabled
             keyboardShouldPersistTaps="handled"

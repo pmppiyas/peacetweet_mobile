@@ -5,6 +5,8 @@ import {
   ScrollView,
   RefreshControl,
   Pressable,
+  BackHandler,
+  Platform,
   useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -42,6 +44,7 @@ export default function NotificationsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null);
   const hasAutoMarked = useRef(false);
+  const scrollViewRef = useRef<any>(null);
 
   useEffect(() => {
     setTabSwipeLocked(Boolean(selectedNotificationId));
@@ -49,6 +52,17 @@ export default function NotificationsScreen() {
       setTabSwipeLocked(false);
     };
   }, [selectedNotificationId, setTabSwipeLocked]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android' || !selectedNotificationId) {
+      return;
+    }
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setSelectedNotificationId(null);
+      return true;
+    });
+    return () => sub.remove();
+  }, [selectedNotificationId]);
 
   const setNotifications = useCallback(
     (
@@ -229,16 +243,12 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <View
-      onTouchEnd={() => {
-        if (selectedNotificationId) {
-          setSelectedNotificationId(null);
-        }
-      }}
-      className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
+    <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
       <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b] pt-[60px] pb-[56px]">
         <ScrollView
+          ref={scrollViewRef}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           scrollEnabled={!isInitialLoading && !selectedNotificationId}
           onScroll={handleFeedScroll}
           onScrollBeginDrag={() => {
@@ -251,6 +261,7 @@ export default function NotificationsScreen() {
           contentContainerStyle={{
             paddingTop: 6,
             paddingBottom: 16,
+            flexGrow: 1,
           }}
           refreshControl={
             <RefreshControl
@@ -294,7 +305,7 @@ export default function NotificationsScreen() {
           ) : null}
 
           {/* Notifications List - Matching Feed and Save edge-to-edge layout */}
-          <View className="flex-col">
+          <View className="flex-col flex-1">
             {isInitialLoading ? (
               <NotificationSkeleton count={6} variant="page" />
             ) : error && notifications.length === 0 ? (
@@ -332,29 +343,44 @@ export default function NotificationsScreen() {
                 }
               />
             ) : (
-              notifications.map((item) => (
-                <NotificationItemRow
-                  key={item.id}
-                  item={item}
-                  isSelected={selectedNotificationId === item.id}
-                  onPress={(clickedItem) => {
+              <>
+                {notifications.map((item) => (
+                  <NotificationItemRow
+                    key={item.id}
+                    item={item}
+                    isSelected={selectedNotificationId === item.id}
+                    onPress={(clickedItem) => {
+                      if (selectedNotificationId) {
+                        setSelectedNotificationId(null);
+                        return;
+                      }
+                      handleNotificationPress(clickedItem);
+                    }}
+                    onSelect={(target) => {
+                      scrollViewRef.current?.setNativeProps?.({
+                        scrollEnabled: false,
+                      });
+                      setTabSwipeLocked(true);
+                      setSelectedNotificationId(target.id);
+                    }}
+                    onDeselect={() => {
+                      setSelectedNotificationId(null);
+                    }}
+                    onDirectDelete={(target) => {
+                      handleDirectDelete(target.id);
+                    }}
+                  />
+                ))}
+                {/* Tapping empty space below notifications deselects row */}
+                <Pressable
+                  className="flex-1 min-h-[120px]"
+                  onPress={() => {
                     if (selectedNotificationId) {
                       setSelectedNotificationId(null);
-                      return;
                     }
-                    handleNotificationPress(clickedItem);
-                  }}
-                  onSelect={(target) => {
-                    setSelectedNotificationId(target.id);
-                  }}
-                  onDeselect={() => {
-                    setSelectedNotificationId(null);
-                  }}
-                  onDirectDelete={(target) => {
-                    handleDirectDelete(target.id);
                   }}
                 />
-              ))
+              </>
             )}
           </View>
         </ScrollView>

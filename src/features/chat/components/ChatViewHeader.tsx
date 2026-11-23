@@ -29,7 +29,7 @@ export function ChatViewHeader({
   const isOnline = isUserOnline(user?.id) || Boolean(user?.isOnline);
 
   return (
-    <View className="h-14 sm:h-16 px-3.5 sm:px-5 border-b border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] flex-row items-center justify-between gap-3 shrink-0 z-10">
+    <View className="h-[60px] px-3.5 sm:px-5 border-b border-[#e4e6eb] dark:border-[#393a3b] bg-white dark:bg-[#242526] flex-row items-center justify-between gap-3 shrink-0 z-10">
       <View className="flex-row items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
         {/* Mobile Back Button */}
         {onBack ? (

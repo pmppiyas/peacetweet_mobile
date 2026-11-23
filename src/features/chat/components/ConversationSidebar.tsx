@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -58,6 +58,7 @@ export function ConversationSidebar({
   totalUnreadCount = 0,
 }: ConversationSidebarProps) {
   const { locale, chatSearchQuery, setChatSearchQuery, theme, isUserOnline } = useUi();
+  const scrollViewRef = useRef<any>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [creatingForUserId, setCreatingForUserId] = useState<string | null>(
     null
@@ -183,6 +184,7 @@ export function ConversationSidebar({
     <View className="w-full flex-1 flex-col bg-white dark:bg-[#18191a] overflow-hidden">
       {/* Content Area: Conversations or Friends Search Results */}
       <ScrollView
+        ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         scrollEnabled={!isInitialLoading && !selectedConversationId}
@@ -286,7 +288,12 @@ export function ConversationSidebar({
                   isSelected={selectedConversationId === conv.id}
                   isActiveChat={selectedId === conv.id}
                   onSelect={() => onSelectConversation(conv)}
-                  onSelectRow={onSelectRow}
+                  onSelectRow={(target) => {
+                    scrollViewRef.current?.setNativeProps?.({
+                      scrollEnabled: false,
+                    });
+                    onSelectRow?.(target);
+                  }}
                   onDeselect={onDeselectRow}
                   onDirectDelete={onDirectDeleteConversation}
                 />

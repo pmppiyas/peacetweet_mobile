@@ -46,6 +46,7 @@ interface UiContextType {
   setSearchOpen: (open: boolean) => void;
   isTabSwipeLocked: boolean;
   setTabSwipeLocked: (locked: boolean) => void;
+  registerTabPager: (node: any) => void;
   isComposerModalOpen: boolean;
   setComposerModalOpen: (open: boolean) => void;
   composerInitialMode: ComposerMode;
@@ -100,7 +101,30 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<'bn' | 'en'>(getInitialLocale);
   const [isMenuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
-  const [isTabSwipeLocked, setTabSwipeLocked] = useState(false);
+  const isTabSwipeLockedRef = useRef(false);
+  const tabPagerRef = useRef<any>(null);
+
+  const registerTabPager = useCallback((node: any) => {
+    tabPagerRef.current = node;
+  }, []);
+
+  const setTabSwipeLocked = useCallback((locked: boolean) => {
+    if (isTabSwipeLockedRef.current === locked) return;
+    isTabSwipeLockedRef.current = locked;
+    const node = tabPagerRef.current;
+    if (node) {
+      if (typeof node.setNativeProps === 'function') {
+        node.setNativeProps({ scrollEnabled: !locked });
+      }
+      const domNode =
+        typeof node.getScrollableNode === 'function'
+          ? node.getScrollableNode()
+          : node;
+      if (domNode && domNode.style) {
+        domNode.style.overflowX = locked ? 'hidden' : 'auto';
+      }
+    }
+  }, []);
   const [isComposerModalOpen, setComposerModalOpenState] = useState(false);
   const [composerInitialMode, setComposerInitialMode] = useState<ComposerMode>('TEXT');
   const [composerInitialAction, setComposerInitialAction] = useState<ComposerAction>(null);
@@ -356,8 +380,9 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         setMenuDrawerOpen,
         isSearchOpen,
         setSearchOpen,
-        isTabSwipeLocked,
+        isTabSwipeLocked: isTabSwipeLockedRef.current,
         setTabSwipeLocked,
+        registerTabPager,
         isComposerModalOpen,
         setComposerModalOpen,
         composerInitialMode,
