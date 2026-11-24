@@ -3,11 +3,12 @@ import {
   Modal,
   View,
   Text,
+  TextInput,
   Pressable,
   ScrollView,
   Platform,
   Keyboard,
-  LayoutAnimation,
+  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -59,26 +60,149 @@ export function MobileComposerModal() {
   const { user } = useAuth();
   const { createPost, updatePost } = useFeed();
 
-  // Keyboard visibility & height tracker for Android & iOS
+  // Keyboard visibility & height tracker for Android, iOS, and Mobile Web
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const isKeyboardVisibleRef = useRef(false);
+  const [containerHeight, setContainerHeight] = useState(0);
+  const unadjustedHeightRef = useRef(0);
+  const scrollViewRef = useRef<any>(null);
+  const currentScrollYRef = useRef(0);
+  const lastScrollViewHeightRef = useRef(0);
+  const scrollFocusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scrollFocusedInputIntoView = () => {
+    if (Platform.OS === 'web') return;
+    const sv = scrollViewRef.current;
+    if (!sv || typeof sv.measure !== 'function') return;
+    const focusedInput = (TextInput as any)?.State?.currentlyFocusedInput?.();
+    if (!focusedInput || typeof focusedInput.measure !== 'function') return;
+
+    try {
+      sv.measure(
+        (
+          _sx: number,
+          _sy: number,
+          _sw: number,
+          scrollVisibleH: number,
+          _spx: number,
+          scrollPageY: number
+        ) => {
+          if (!scrollVisibleH || scrollVisibleH <= 0) return;
+          focusedInput.measure(
+            (
+              _ix: number,
+              _iy: number,
+              _iw: number,
+              inputH: number,
+              _ipx: number,
+              inputPageY: number
+            ) => {
+              const visibleBottom = scrollPageY + scrollVisibleH;
+              const inputBottom = inputPageY + inputH;
+              if (inputBottom > visibleBottom - 10) {
+                const delta = inputBottom - visibleBottom + 12;
+                const targetY = Math.max(0, currentScrollYRef.current + delta);
+                sv.scrollTo?.({ y: targetY, animated: true });
+              } else if (inputPageY < scrollPageY + 8) {
+                const delta = scrollPageY + 8 - inputPageY;
+                const targetY = Math.max(0, currentScrollYRef.current - delta);
+                sv.scrollTo?.({ y: targetY, animated: true });
+              }
+            }
+          );
+        }
+      );
+    } catch {}
+  };
+
+  const scheduleScrollFocusedInput = (delayMs = 80) => {
+    if (scrollFocusTimerRef.current) {
+      clearTimeout(scrollFocusTimerRef.current);
+    }
+    scrollFocusTimerRef.current = setTimeout(() => {
+      scrollFocusTimerRef.current = null;
+      scrollFocusedInputIntoView();
+    }, delayMs);
+  };
 
   useEffect(() => {
+    return () => {
+      if (scrollFocusTimerRef.current) {
+        clearTimeout(scrollFocusTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isComposerModalOpen) {
+      isKeyboardVisibleRef.current = false;
+      setIsKeyboardVisible(false);
+      setKeyboardHeight(0);
+      unadjustedHeightRef.current = 0;
+      lastScrollViewHeightRef.current = 0;
+      currentScrollYRef.current = 0;
+    }
+  }, [isComposerModalOpen]);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      if (
+        !isComposerModalOpen ||
+        typeof window === 'undefined' ||
+        !(window as any).visualViewport
+      ) {
+        return;
+      }
+      const vv = (window as any).visualViewport;
+      const updateFromVisualViewport = () => {
+        if (vv.scale && vv.scale > 1.05) return;
+        const overlap = Math.max(
+          0,
+          Math.round(window.innerHeight - (vv.height + (vv.offsetTop || 0)))
+        );
+        if (overlap > 100) {
+          isKeyboardVisibleRef.current = true;
+          setIsKeyboardVisible(true);
+          setKeyboardHeight(overlap);
+        } else {
+          isKeyboardVisibleRef.current = false;
+          setIsKeyboardVisible(false);
+          setKeyboardHeight(0);
+        }
+      };
+      vv.addEventListener('resize', updateFromVisualViewport);
+      vv.addEventListener('scroll', updateFromVisualViewport);
+      return () => {
+        vv.removeEventListener('resize', updateFromVisualViewport);
+        vv.removeEventListener('scroll', updateFromVisualViewport);
+      };
+    }
+
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
     const showSub = Keyboard.addListener(showEvent, (e) => {
-      try {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      } catch {}
-      setIsKeyboardVisible(true);
-      setKeyboardHeight(e?.endCoordinates?.height || 0);
+      const screenHeight = Dimensions.get('screen').height;
+      const coordHeight = e?.endCoordinates?.height || 0;
+      const fromScreenY =
+        typeof e?.endCoordinates?.screenY === 'number' &&
+        e.endCoordinates.screenY > 0
+          ? screenHeight - e.endCoordinates.screenY
+          : 0;
+      const measured =
+        fromScreenY > 0
+          ? fromScreenY
+          : coordHeight + (Platform.OS === 'android' ? insets.bottom : 0);
+      const nextVisible = measured > 0 || coordHeight > 0;
+      isKeyboardVisibleRef.current = nextVisible;
+      setIsKeyboardVisible(nextVisible);
+      setKeyboardHeight(measured);
+      scheduleScrollFocusedInput(90);
     });
 
     const hideSub = Keyboard.addListener(hideEvent, () => {
-      try {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      } catch {}
+      isKeyboardVisibleRef.current = false;
       setIsKeyboardVisible(false);
       setKeyboardHeight(0);
     });
@@ -87,7 +211,18 @@ export function MobileComposerModal() {
       showSub.remove();
       hideSub.remove();
     };
-  }, []);
+  }, [insets.bottom, isComposerModalOpen]);
+
+  const effectiveKeyboardPadding =
+    keyboardHeight > 0
+      ? Math.max(
+          0,
+          keyboardHeight -
+            (containerHeight > 0 && unadjustedHeightRef.current > containerHeight
+              ? unadjustedHeightRef.current - containerHeight
+              : 0)
+        )
+      : 0;
 
   const isEditing = Boolean(composerEditingPost);
 
@@ -752,11 +887,20 @@ export function MobileComposerModal() {
       onRequestClose={handleClose}>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
       <View
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          if (h > 0) {
+            setContainerHeight(h);
+            if (!isKeyboardVisibleRef.current || h > unadjustedHeightRef.current) {
+              unadjustedHeightRef.current = h;
+            }
+          }
+        }}
         style={{
           flex: 1,
           backgroundColor: theme === 'dark' ? '#18191a' : '#ffffff',
           paddingTop: insets.top,
-          paddingBottom: 0,
+          paddingBottom: effectiveKeyboardPadding,
         }}
         className="flex-1 bg-white dark:bg-[#18191a]">
         {/* ────────────────── 1. TOP HEADER & MODE SELECTOR ────────────────── */}
@@ -766,6 +910,8 @@ export function MobileComposerModal() {
           onChangePostType={(type) => {
             setPostType(type);
             setErrorMessage(null);
+            currentScrollYRef.current = 0;
+            scrollViewRef.current?.scrollTo?.({ y: 0, animated: false });
           }}
           isPostValid={isPostValid}
           isSubmitting={isSubmitting}
@@ -778,8 +924,27 @@ export function MobileComposerModal() {
 
         {/* ────────────────── 2. SCROLLABLE WRITING CANVAS ────────────────── */}
         <ScrollView
-          className="flex-1 px-4 py-3.5"
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+          ref={scrollViewRef}
+          onLayout={(e) => {
+            const h = e.nativeEvent.layout.height;
+            const prevH = lastScrollViewHeightRef.current;
+            lastScrollViewHeightRef.current = h;
+            if (isKeyboardVisibleRef.current && prevH > 0 && h < prevH - 20) {
+              requestAnimationFrame(() => {
+                scrollFocusedInputIntoView();
+              });
+            }
+          }}
+          onScroll={(e) => {
+            currentScrollYRef.current = e.nativeEvent.contentOffset.y;
+          }}
+          scrollEventThrottle={16}
+          className="flex-1 px-4"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingTop: 14,
+            paddingBottom: 12,
+          }}
           keyboardShouldPersistTaps="handled">
           {/* Error Message */}
           {errorMessage && (
@@ -800,13 +965,13 @@ export function MobileComposerModal() {
                 size="md"
               />
               <View>
-                <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                <Text className="text-[15.5px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                   {user?.name || 'PeaceTweet User'}
                 </Text>
                 <View className="flex-row items-center gap-1.5 mt-0.5 flex-wrap">
                   <View className="flex-row items-center gap-1 bg-primary-50 dark:bg-primary-950/60 px-2 py-0.5 rounded-full border border-primary-200/50 dark:border-primary-900/50">
-                    <AppIcon android="public" size={11} color="#1054be" />
-                    <Text className="text-[11px] font-semibold text-primary-700 dark:text-primary-300">
+                    <AppIcon android="public" size={12} color="#1054be" />
+                    <Text className="text-[11.5px] font-semibold text-primary-700 dark:text-primary-300">
                       Public
                     </Text>
                   </View>
@@ -893,6 +1058,7 @@ export function MobileComposerModal() {
               onChangeDuaFadilah={setDuaFadilah}
               theme={theme}
               locale={locale}
+              onInputFocus={() => scheduleScrollFocusedInput(70)}
             />
           )}
 
@@ -924,6 +1090,7 @@ export function MobileComposerModal() {
               user={user}
               theme={theme}
               locale={locale}
+              onInputFocus={() => scheduleScrollFocusedInput(70)}
             />
           )}
         </ScrollView>

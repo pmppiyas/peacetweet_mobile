@@ -59,7 +59,7 @@ export function ComposerHeader({
                 : '#0866FF'
             }
           />
-          <Text className="font-bold text-sm text-[#1e2329] dark:text-[#e4e6eb]">
+          <Text className="font-bold text-[15.5px] text-[#1e2329] dark:text-[#e4e6eb]">
             {isEditing
               ? postType === 'BLOOD_REQUEST'
                 ? locale === 'bn'
@@ -134,7 +134,7 @@ export function ComposerHeader({
                 color={postType === 'TEXT' ? '#0866FF' : '#65676b'}
               />
               <Text
-                className={`text-xs font-bold ${
+                className={`text-[13px] font-bold ${
                   postType === 'TEXT'
                     ? 'text-[#0866FF] dark:text-[#36a4fa]'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -150,11 +150,11 @@ export function ComposerHeader({
               }`}>
               <AppIcon
                 android="menu_book"
-                size={14}
+                size={15}
                 color={postType === 'DUA' ? '#059669' : '#65676b'}
               />
               <Text
-                className={`text-xs font-bold ${
+                className={`text-[13px] font-bold ${
                   postType === 'DUA'
                     ? 'text-emerald-600 dark:text-emerald-300'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -170,11 +170,11 @@ export function ComposerHeader({
               }`}>
               <AppIcon
                 android="water_drop"
-                size={14}
+                size={15}
                 color={postType === 'BLOOD_REQUEST' ? '#e11d48' : '#65676b'}
               />
               <Text
-                className={`text-xs font-bold ${
+                className={`text-[13px] font-bold ${
                   postType === 'BLOOD_REQUEST'
                     ? 'text-rose-600 dark:text-rose-300'
                     : 'text-[#65676b] dark:text-[#b0b3b8]'

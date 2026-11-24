@@ -171,12 +171,13 @@ export function LocationSelector({
   };
 
   return (
-    <View className="gap-3">
-      {/* Row 1: Division & District */}
+    <>
+      <View style={{ gap: 12 }}>
+        {/* Row 1: Division & District */}
       <View className="flex-row gap-2.5">
         {/* 1. Division Selector */}
         <View className="flex-1">
-          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
+          <Text className="text-[13.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1.5">
             {locale === 'bn' ? 'বিভাগ' : 'Division'} {required ? '*' : ''}
           </Text>
           <Pressable
@@ -185,10 +186,10 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('division');
             }}
-            className="h-11 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-xl px-3 border border-transparent active:opacity-80">
+            className="h-12 flex-row items-center justify-between bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-2xl px-3.5 border border-transparent active:opacity-80">
             <Text
               numberOfLines={1}
-              className={`text-xs flex-1 pr-1 ${
+              className={`text-[14.5px] flex-1 pr-1 ${
                 selectedDivision
                   ? 'font-bold text-[#050505] dark:text-[#e4e6eb]'
                   : 'text-[#8a8d91] dark:text-[#b0b3b8]'
@@ -201,13 +202,13 @@ export function LocationSelector({
                 ? 'বিভাগ নির্বাচন'
                 : 'Select Division'}
             </Text>
-            <AppIcon android="arrow_drop_down" size={18} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
+            <AppIcon android="arrow_drop_down" size={19} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
           </Pressable>
         </View>
 
         {/* 2. District Selector (Enabled when Division is chosen) */}
         <View className="flex-1">
-          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
+          <Text className="text-[13.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1.5">
             {locale === 'bn' ? 'জেলা' : 'District'} {required ? '*' : ''}
           </Text>
           <Pressable
@@ -217,14 +218,14 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('district');
             }}
-            className={`h-11 flex-row items-center justify-between rounded-xl px-3 border ${
+            className={`h-12 flex-row items-center justify-between rounded-2xl px-3.5 border ${
               !value?.divisionId
                 ? 'bg-[#f0f2f5]/50 dark:bg-[#3a3b3c]/40 border-dashed border-[#ced0d4] dark:border-[#4a4b4d] opacity-60'
                 : 'bg-[#f0f2f5] dark:bg-[#3a3b3c] border-transparent active:opacity-80'
             }`}>
             <Text
               numberOfLines={1}
-              className={`text-xs flex-1 pr-1 ${
+              className={`text-[14.5px] flex-1 pr-1 ${
                 selectedDistrict
                   ? 'font-bold text-[#050505] dark:text-[#e4e6eb]'
                   : 'text-[#8a8d91] dark:text-[#b0b3b8]'
@@ -241,7 +242,7 @@ export function LocationSelector({
                 ? 'Select District'
                 : 'Select Division'}
             </Text>
-            <AppIcon android="arrow_drop_down" size={18} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
+            <AppIcon android="arrow_drop_down" size={19} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
           </Pressable>
         </View>
       </View>
@@ -250,7 +251,7 @@ export function LocationSelector({
       <View className="flex-row gap-2.5">
         {/* 3. Upazila / Area Selector (Enabled when District is chosen) */}
         <View className="flex-1">
-          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
+          <Text className="text-[13.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1.5">
             {locale === 'bn' ? 'উপজেলা / থানা' : 'Upazila / Area'}
           </Text>
           <Pressable
@@ -260,14 +261,14 @@ export function LocationSelector({
               setSearchQuery('');
               setActivePicker('upazila');
             }}
-            className={`h-11 flex-row items-center justify-between rounded-xl px-3 border ${
+            className={`h-12 flex-row items-center justify-between rounded-2xl px-3.5 border ${
               !value?.districtId
                 ? 'bg-[#f0f2f5]/50 dark:bg-[#3a3b3c]/40 border-dashed border-[#ced0d4] dark:border-[#4a4b4d] opacity-60'
                 : 'bg-[#f0f2f5] dark:bg-[#3a3b3c] border-transparent active:opacity-80'
             }`}>
             <Text
               numberOfLines={1}
-              className={`text-xs flex-1 pr-1 ${
+              className={`text-[14.5px] flex-1 pr-1 ${
                 selectedUpazila
                   ? 'font-bold text-[#050505] dark:text-[#e4e6eb]'
                   : 'text-[#8a8d91] dark:text-[#b0b3b8]'
@@ -284,13 +285,13 @@ export function LocationSelector({
                 ? 'Upazila (Opt.)'
                 : 'District First'}
             </Text>
-            <AppIcon android="arrow_drop_down" size={18} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
+            <AppIcon android="arrow_drop_down" size={19} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
           </Pressable>
         </View>
 
         {/* 4. Detailed Address / Landmark / Area */}
         <View className="flex-1">
-          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1">
+          <Text className="text-[13.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8] mb-1.5">
             {locale === 'bn' ? 'রোড / এলাকা' : 'Area / Road'}
           </Text>
           <TextInput
@@ -303,7 +304,7 @@ export function LocationSelector({
                 : 'Road 3, Mirpur'
             }
             placeholderTextColor={theme === 'dark' ? '#65676b' : '#8a8d91'}
-            className="h-11 bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-xl px-3 text-xs text-[#050505] dark:text-[#e4e6eb] border border-transparent focus:border-primary-500"
+            className="h-12 bg-[#f0f2f5] dark:bg-[#3a3b3c] rounded-2xl px-3.5 text-[14.5px] text-[#050505] dark:text-[#e4e6eb] border border-transparent focus:border-primary-500"
           />
         </View>
       </View>
@@ -311,12 +312,13 @@ export function LocationSelector({
       {/* Formatted Location Preview */}
       {value?.location && value.location !== 'Bangladesh' ? (
         <View className="flex-row items-center gap-2 px-3.5 py-2.5 rounded-xl bg-primary-50 dark:bg-primary-950/40 border border-primary-200/80 dark:border-primary-900/40">
-          <AppIcon android="location_on" size={16} color="#0866FF" />
-          <Text className="text-xs font-semibold text-primary-700 dark:text-primary-300 flex-1">
+          <AppIcon android="location_on" size={17} color="#0866FF" />
+          <Text className="text-[13.5px] font-semibold text-primary-700 dark:text-primary-300 flex-1">
             {value.location}
           </Text>
         </View>
       ) : null}
+      </View>
 
       {/* Searchable Picker Modal */}
       <Modal
@@ -348,32 +350,32 @@ export function LocationSelector({
 
             {/* Modal Top Header */}
             <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#e6e9ef] dark:border-[#242526]">
-              <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+              <Text className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {getPickerTitle()}
               </Text>
               <Pressable
                 onPress={() => setActivePicker(null)}
                 className="p-1 rounded-full active:bg-[#e6e9ef] dark:active:bg-[#242526]">
-                <AppIcon android="close" size={20} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
+                <AppIcon android="close" size={22} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
               </Pressable>
             </View>
 
             {/* Search Input Bar inside Modal */}
-            <View className="px-4 py-2 border-b border-[#e6e9ef] dark:border-[#242526]">
-              <View className="flex-row items-center bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3 py-2">
-                <AppIcon android="search" size={16} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
+            <View className="px-4 py-2.5 border-b border-[#e6e9ef] dark:border-[#242526]">
+              <View className="flex-row items-center bg-[#e6e9ef] dark:bg-[#242526] rounded-xl px-3.5 py-2.5">
+                <AppIcon android="search" size={19} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
                 <TextInput
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   style={webNoOutline}
                   placeholder={locale === 'bn' ? 'খুঁজুন...' : 'Search...'}
                   placeholderTextColor={theme === 'dark' ? '#65676b' : '#8a8d91'}
-                  className="flex-1 ml-2 text-xs text-[#050505] dark:text-[#e4e6eb] py-0"
+                  className="flex-1 ml-2 text-base text-[#050505] dark:text-[#e4e6eb] py-0"
                   autoFocus={false}
                 />
                 {searchQuery ? (
                   <Pressable onPress={() => setSearchQuery('')}>
-                    <AppIcon android="cancel" size={16} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
+                    <AppIcon android="cancel" size={18} color={theme === 'dark' ? '#b0b3b8' : '#65676b'} />
                   </Pressable>
                 ) : null}
               </View>
@@ -386,7 +388,7 @@ export function LocationSelector({
               contentContainerStyle={{ paddingBottom: 24 }}>
               {filteredItems.length === 0 ? (
                 <View className="p-8 items-center justify-center">
-                  <Text className="text-xs text-[#8a8d91] dark:text-[#65676b]">
+                  <Text className="text-base text-[#8a8d91] dark:text-[#65676b]">
                     {locale === 'bn' ? 'কিছু পাওয়া যায়নি' : 'No matches found'}
                   </Text>
                 </View>
@@ -405,26 +407,26 @@ export function LocationSelector({
                         else if (activePicker === 'district') handleSelectDistrict(item);
                         else if (activePicker === 'upazila') handleSelectUpazila(item);
                       }}
-                      className={`flex-row items-center justify-between px-3 py-3 rounded-xl mx-1 my-0.5 ${
+                      className={`flex-row items-center justify-between px-3.5 py-3.5 rounded-xl mx-1 my-0.5 ${
                         isSelected
                           ? 'bg-rose-50 dark:bg-rose-950/40'
                           : 'active:bg-[#e6e9ef] dark:active:bg-[#242526]'
                       }`}>
-                      <View className="flex-row items-center gap-2">
+                      <View className="flex-row items-center gap-2 flex-1 pr-2">
                         <Text
-                          className={`text-xs ${
+                          className={`text-base ${
                             isSelected
                               ? 'font-bold text-rose-600 dark:text-rose-400'
                               : 'font-medium text-[#050505] dark:text-[#e4e6eb]'
                           }`}>
                           {locale === 'bn' ? item.bn_name : item.name}
                         </Text>
-                        <Text className="text-[11px] text-[#8a8d91] dark:text-[#65676b]">
+                        <Text className="text-sm text-[#8a8d91] dark:text-[#65676b]">
                           ({item.name})
                         </Text>
                       </View>
                       {isSelected ? (
-                        <AppIcon android="check" size={18} color="#e11d48" />
+                        <AppIcon android="check" size={20} color="#e11d48" />
                       ) : null}
                     </Pressable>
                   );
@@ -434,6 +436,6 @@ export function LocationSelector({
           </View>
         </SafeAreaView>
       </Modal>
-    </View>
+    </>
   );
 }
