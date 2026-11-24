@@ -125,16 +125,17 @@ export default function ZakatScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1 bg-white dark:bg-[#18191a]"
+      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
     >
-      {/* Main Scrollable Body with Accordions (No Header Bar) */}
+      {/* Main Scrollable Body with Accordions */}
       <ScrollView
         className="flex-1"
         scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
-          paddingHorizontal: 12,
+          paddingHorizontal: 14,
           paddingTop: 72,
-          paddingBottom: 76,
+          paddingBottom: 62,
         }}
         showsVerticalScrollIndicator={false}
       >

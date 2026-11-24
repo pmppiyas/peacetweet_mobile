@@ -24,88 +24,182 @@ export function ZakatOverviewChips({
   isDark = false,
   locale = 'bn',
 }: ZakatOverviewChipsProps) {
+  const nisabProgress =
+    results.nisabThreshold > 0
+      ? Math.min(100, Math.max(0, (results.netZakatableWealth / results.nisabThreshold) * 100))
+      : 0;
+
   return (
     <View
-      style={{ backgroundColor: isDark ? '#242526' : '#f5f6f8' }}
-      className="p-3.5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs mb-3">
-      <View className="flex-row items-center justify-between mb-2.5 flex-wrap gap-y-1.5">
-        <Text className="text-xs font-bold uppercase tracking-wider text-gray-500">
-          {locale === 'bn' ? 'যাকাত হিসাব একনজরে' : 'Real-time Overview'}
-        </Text>
-        <View className="flex-row items-center gap-1.5 flex-wrap">
-          {onReset && (
-            <Pressable
-              onPress={onReset}
-              className="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-white/10 active:opacity-70">
-              <Text className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                {locale === 'bn' ? 'রিসেট' : 'Reset'}
-              </Text>
-            </Pressable>
-          )}
+      style={{
+        backgroundColor: isDark ? '#242526' : '#ffffff',
+        borderColor: isDark ? '#393a3b' : '#e4e6eb',
+      }}
+      className="p-4 rounded-2xl border mb-3.5">
+      {/* Top Action Row */}
+      <View className="flex-row items-center justify-between gap-2 mb-3.5 flex-wrap">
+        <View className="flex-row items-center gap-2 flex-wrap">
+          <Pressable
+            onPress={() => onToggleAll(!isAllOpen)}
+            className="px-3 py-1.5 rounded-xl bg-[#f0f2f5] dark:bg-white/10 active:opacity-70">
+            <Text className="text-[13.5px] font-bold text-emerald-700 dark:text-emerald-400">
+              {isAllOpen
+                ? locale === 'bn'
+                  ? 'সব গুটান'
+                  : 'Collapse All'
+                : locale === 'bn'
+                  ? 'সব খুলুন'
+                  : 'Expand All'}
+            </Text>
+          </Pressable>
           {onSave && (
             <Pressable
               onPress={onSave}
-              className="px-2.5 py-1 rounded-lg bg-emerald-600 active:bg-emerald-700">
-              <Text className="text-[11px] font-bold text-white">
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 active:bg-emerald-700">
+              <Text className="text-[13.5px] font-bold text-white">
                 {locale === 'bn' ? 'সংরক্ষণ' : 'Save'}
               </Text>
             </Pressable>
           )}
-          <Pressable
-            onPress={() => onToggleAll(!isAllOpen)}
-            className="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-white/10 active:opacity-70">
-            <Text className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-              {isAllOpen
-                ? locale === 'bn'
-                  ? 'সব গুটিয়ে নিন'
-                  : 'Collapse'
-                : locale === 'bn'
-                ? 'সব খুলুন'
-                : 'Expand'}
-            </Text>
-          </Pressable>
-          {onToggleLanguage && (
+          {onReset && (
             <Pressable
-              onPress={onToggleLanguage}
-              className="px-2.5 py-1 rounded-lg border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-950/40 active:opacity-70">
-              <Text className="text-[11px] font-bold text-primary-700 dark:text-primary-300">
-                {locale === 'bn' ? 'English' : 'বাংলা'}
+              onPress={onReset}
+              className="px-3 py-1.5 rounded-xl bg-[#f0f2f5] dark:bg-white/10 active:opacity-70">
+              <Text className="text-[13.5px] font-semibold text-[#1c1e21] dark:text-[#e4e6eb]">
+                {locale === 'bn' ? 'রিসেট' : 'Reset'}
               </Text>
             </Pressable>
           )}
         </View>
+
+        {onToggleLanguage && (
+          <Pressable
+            onPress={onToggleLanguage}
+            style={{
+              borderColor: isDark ? '#1d4ed8' : '#93c5fd',
+            }}
+            className="px-3 py-1.5 rounded-xl border bg-primary-50 dark:bg-primary-950/40 active:opacity-70">
+            <Text className="text-[13.5px] font-bold text-primary-700 dark:text-primary-300">
+              {locale === 'bn' ? 'English' : 'বাংলা'}
+            </Text>
+          </Pressable>
+        )}
       </View>
 
+      {/* Live Payable Zakat Hero Strip */}
+      <View
+        style={{
+          backgroundColor: isDark ? 'rgba(5, 150, 105, 0.14)' : '#ecfdf5',
+          borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0',
+        }}
+        className="p-3.5 rounded-2xl border mb-3">
+        <View className="flex-row items-center justify-between gap-2">
+          <View className="flex-1">
+            <Text className="text-[14px] font-semibold text-emerald-900 dark:text-emerald-200">
+              {locale === 'bn' ? 'প্রদেয় যাকাত' : 'Payable Zakat'}
+            </Text>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              className="text-[26px] font-black text-emerald-700 dark:text-emerald-300 mt-0.5">
+              {formatBangladeshiCurrency(results.payableZakat, locale)}
+            </Text>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: results.isEligibleForZakat
+                ? '#059669'
+                : isDark
+                  ? '#242526'
+                  : '#ffffff',
+              borderColor: results.isEligibleForZakat
+                ? '#059669'
+                : isDark
+                  ? 'rgba(16, 185, 129, 0.35)'
+                  : '#a7f3d0',
+            }}
+            className="px-3 py-1.5 rounded-full border">
+            <Text
+              className={`text-[13px] font-bold ${
+                results.isEligibleForZakat
+                  ? 'text-white'
+                  : 'text-emerald-800 dark:text-emerald-300'
+              }`}>
+              {results.isEligibleForZakat
+                ? locale === 'bn'
+                  ? 'যাকাত ফরজ'
+                  : 'Obligatory'
+                : locale === 'bn'
+                  ? 'নিসাব পৌঁছেনি'
+                  : 'Below Nisab'}
+            </Text>
+          </View>
+        </View>
+
+        {results.nisabThreshold > 0 && (
+          <View className="mt-2.5">
+            <View className="h-1.5 w-full rounded-full bg-emerald-200/70 dark:bg-emerald-950 overflow-hidden">
+              <View
+                style={{ width: `${nisabProgress}%` }}
+                className="h-full rounded-full bg-emerald-600 dark:bg-emerald-400"
+              />
+            </View>
+            <Text className="text-[13px] font-medium text-emerald-900/80 dark:text-emerald-200/80 mt-1.5">
+              {locale === 'bn'
+                ? `নিসাব সীমা: ${formatBangladeshiCurrency(results.nisabThreshold, locale)}`
+                : `Nisab: ${formatBangladeshiCurrency(results.nisabThreshold, locale)}`}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* 3 Compact Borderless Summary Tiles */}
       <View className="flex-row gap-2">
-        <View className="flex-1 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40">
-          <Text className="text-[10px] text-emerald-800 dark:text-emerald-300 font-semibold">
-            {locale === 'bn' ? 'মোট সম্পদ (+)' : 'Total Assets (+)'}
+        <View
+          style={{
+            backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ecfdf5',
+          }}
+          className="flex-1 p-2.5 rounded-xl">
+          <Text className="text-[13px] text-emerald-800 dark:text-emerald-300 font-semibold">
+            {locale === 'bn' ? 'মোট সম্পদ' : 'Assets'}
           </Text>
           <Text
             numberOfLines={1}
-            className="text-xs font-bold text-emerald-700 dark:text-emerald-200 mt-0.5">
+            adjustsFontSizeToFit
+            className="text-[15px] font-bold text-emerald-700 dark:text-emerald-200 mt-0.5">
             {formatBangladeshiCurrency(results.totalAssets, locale)}
           </Text>
         </View>
 
-        <View className="flex-1 p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40">
-          <Text className="text-[10px] text-rose-800 dark:text-rose-300 font-semibold">
-            {locale === 'bn' ? 'মোট দেনা (-)' : 'Total Debts (-)'}
+        <View
+          style={{
+            backgroundColor: isDark ? 'rgba(244, 63, 94, 0.12)' : '#fff1f2',
+          }}
+          className="flex-1 p-2.5 rounded-xl">
+          <Text className="text-[13px] text-rose-800 dark:text-rose-300 font-semibold">
+            {locale === 'bn' ? 'মোট দেনা' : 'Debts'}
           </Text>
           <Text
             numberOfLines={1}
-            className="text-xs font-bold text-rose-700 dark:text-rose-200 mt-0.5">
-            - {formatBangladeshiCurrency(results.totalLiabilities, locale)}
+            adjustsFontSizeToFit
+            className="text-[15px] font-bold text-rose-700 dark:text-rose-200 mt-0.5">
+            {formatBangladeshiCurrency(results.totalLiabilities, locale)}
           </Text>
         </View>
 
-        <View className="flex-1 p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40">
-          <Text className="text-[10px] text-blue-800 dark:text-blue-300 font-semibold">
-            {locale === 'bn' ? 'নিট সম্পদ' : 'Net Wealth'}
+        <View
+          style={{
+            backgroundColor: isDark ? 'rgba(59, 130, 246, 0.12)' : '#eff6ff',
+          }}
+          className="flex-1 p-2.5 rounded-xl">
+          <Text className="text-[13px] text-blue-800 dark:text-blue-300 font-semibold">
+            {locale === 'bn' ? 'নিট সম্পদ' : 'Net'}
           </Text>
           <Text
             numberOfLines={1}
-            className="text-xs font-bold text-blue-700 dark:text-blue-200 mt-0.5">
+            adjustsFontSizeToFit
+            className="text-[15px] font-bold text-blue-700 dark:text-blue-200 mt-0.5">
             {formatBangladeshiCurrency(results.netZakatableWealth, locale)}
           </Text>
         </View>
