@@ -46,3 +46,42 @@ function getDebugReplacer()`;
     console.log('[patch-css-interop] react-native-css-interop is already patched or up-to-date.');
   }
 }
+
+const appearanceFile = path.join(
+  __dirname,
+  '..',
+  'node_modules',
+  'react-native-css-interop',
+  'dist',
+  'runtime',
+  'native',
+  'appearance-observables.js'
+);
+
+if (fs.existsSync(appearanceFile)) {
+  let appContent = fs.readFileSync(appearanceFile, 'utf8');
+  if (appContent.includes('if (process.env.NODE_ENV === "test")')) {
+    appContent = appContent.replace(
+      /set\(value\)\s*\{[\s\S]*?if\s*\(process\.env\.NODE_ENV\s*===\s*"test"\)\s*\{[\s\S]*?\}\s*\},/,
+      `set(value) {
+        if (value === "system") {
+            colorSchemeObservable.set(undefined);
+            if ((react_native_1.Platform.constants?.reactNativeVersion?.minor ?? 0) >= 82) {
+                appearance.setColorScheme("unspecified");
+            }
+            else {
+                appearance.setColorScheme(null);
+            }
+            exports.systemColorScheme.set(resolveColorScheme(appearance.getColorScheme()));
+        }
+        else {
+            colorSchemeObservable.set(value);
+            exports.systemColorScheme.set(value);
+            appearance.setColorScheme(value);
+        }
+    },`
+    );
+    fs.writeFileSync(appearanceFile, appContent, 'utf8');
+    console.log('[patch-css-interop] Successfully patched appearance-observables.js for synchronous colorScheme.set');
+  }
+}

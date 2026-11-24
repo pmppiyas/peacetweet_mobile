@@ -52,6 +52,45 @@ const COLLAPSIBLE_NAV_ROUTES = new Set([
   '/messages',
 ]);
 
+const NON_PROFILE_ROOT_SEGMENTS = new Set([
+  '',
+  'saved',
+  'messages',
+  'message',
+  'notifications',
+  'blood',
+  'friends',
+  'groups',
+  'zakat',
+  'purpose',
+  'feedback',
+  'settings',
+  'login',
+  'register',
+  'create',
+  'search',
+  'explore',
+  'post',
+  'duas',
+  'categories',
+  'users',
+  'terms',
+  'privacy',
+  'admin',
+  'auth',
+  'api',
+]);
+
+export function isProfilePathname(pathname: string): boolean {
+  const clean = pathname.replace(/\/$/, '') || '/';
+  if (clean === '/profile' || clean.startsWith('/profile/')) return true;
+  const parts = clean.split('/').filter(Boolean);
+  if (parts.length === 1 && !NON_PROFILE_ROOT_SEGMENTS.has(parts[0].toLowerCase())) {
+    return true;
+  }
+  return false;
+}
+
 const TAB_ORDER = ['/', '/saved', '/messages', '/notifications'] as const;
 
 function MainContentSlot({
@@ -87,23 +126,16 @@ function AppShell() {
     isComposerModalOpen,
     setComposerModalOpen,
     activeConversationId,
-    isProfileActive,
+    setIsProfileActive,
     resetNavVisibility,
     topNavTranslateY,
     bottomNavTranslateY,
     isTabSwipeLocked,
+    isTabSwipeLockedRef,
     registerTabPager,
   } = useUi();
 
   const lastBackPressRef = useRef<number>(0);
-
-  // Reset double-back timer and reveal nav bars whenever route changes
-  useEffect(() => {
-    if (pathname !== '/') {
-      lastBackPressRef.current = 0;
-    }
-    resetNavVisibility();
-  }, [pathname, resetNavVisibility]);
 
   const latestBackStateRef = useRef({
     pathname,
@@ -202,12 +234,17 @@ function AppShell() {
   const isInsideActiveChat =
     isMessagesActive && Boolean(activeConversationId);
   const isSettingsProfile = pathname === '/settings/profile';
+  const isProfileRoute = isProfilePathname(pathname);
+
+  useEffect(() => {
+    setIsProfileActive(isProfileRoute || isSettingsProfile);
+  }, [isProfileRoute, isSettingsProfile, setIsProfileActive]);
 
   const showTopNav =
     !isAuthPage &&
     !isPostViewerPage &&
     !isInsideActiveChat &&
-    !isProfileActive &&
+    !isProfileRoute &&
     !isSettingsProfile;
   const showBottomNav = showTopNav && !isSearchOpen;
   const showSearchOverlay = isSearchOpen && !isMessagesActive;
@@ -224,7 +261,7 @@ function AppShell() {
     !isMenuDrawerOpen &&
     !isComposerModalOpen &&
     !isPhotoViewerActive &&
-    !isProfileActive &&
+    !isProfileRoute &&
     !isSettingsProfile &&
     !isTabSwipeLocked;
 
@@ -242,6 +279,13 @@ function AppShell() {
   const pagerRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const isManualScrollingRef = useRef(false);
   const hasInitialScrolledRef = useRef(false);
+
+  useEffect(() => {
+    if (activeTab !== '/' || pathname !== '/') {
+      lastBackPressRef.current = 0;
+    }
+    resetNavVisibility();
+  }, [activeTab, pathname, resetNavVisibility]);
 
   useEffect(() => {
     if (isTabRoute) {
@@ -273,12 +317,16 @@ function AppShell() {
     }
   }, [currentTabIndex, isTabRoute, effectiveWidth]);
 
-  // Instant continuous active tab calculation during drag / momentum
+  //Instant continuous active tab calculation during drag / momentum
   const handleScroll = (offsetX: number) => {
     if (effectiveWidth <= 0) return;
     const rawIndex = offsetX / effectiveWidth;
     const currentIndex = currentScrolledIndexRef.current;
     const diff = rawIndex - currentIndex;
+
+    if (Math.abs(diff) > 0.02) {
+      resetNavVisibility();
+    }
 
     let pageIndex = currentIndex;
     if (diff >= 0.2) {
@@ -293,6 +341,7 @@ function AppShell() {
     if (route && route !== activeTabRef.current) {
       activeTabRef.current = route;
       setActiveTab(route);
+      resetNavVisibility();
     }
   };
 
@@ -313,9 +362,14 @@ function AppShell() {
     }
 
     const route = TAB_ORDER[pageIndex];
-    if (route && route !== activeTabRef.current) {
-      activeTabRef.current = route;
-      setActiveTab(route);
+    if (route) {
+      if (route !== activeTabRef.current) {
+        activeTabRef.current = route;
+        setActiveTab(route);
+      }
+      if (route !== '/') {
+        resetNavVisibility();
+      }
     }
   };
 
@@ -332,6 +386,9 @@ function AppShell() {
     if (route) {
       activeTabRef.current = route;
       setActiveTab(route);
+      if (route !== '/') {
+        resetNavVisibility();
+      }
       if (route !== pathname) {
         router.replace(route as any);
       }
@@ -360,24 +417,19 @@ function AppShell() {
   // Pure white (#ffffff) in light mode, rich dark card (#242526) in dark mode
   const surfaceColor = isDark ? '#242526' : '#ffffff';
   const canvasColor = isDark ? '#18191a' : '#ffffff';
-  const settingsCanvasColor = isDark ? '#18191a' : '#f0f2f5';
   const photoViewerColor = isDark ? '#000000' : '#0b0e14';
 
   const topSafeColor = isPhotoViewerActive
     ? photoViewerColor
     : isSettingsProfile
       ? surfaceColor
-      : isAuthPage || isProfileActive
+      : isAuthPage || isProfileRoute
         ? canvasColor
         : surfaceColor;
 
   const bottomSafeColor = isPhotoViewerActive
     ? photoViewerColor
-    : isSettingsProfile
-      ? settingsCanvasColor
-      : isAuthPage || isProfileActive
-        ? canvasColor
-        : surfaceColor;
+    : surfaceColor;
 
   useEffect(() => {
     if (Platform.OS !== 'web') {
@@ -385,21 +437,35 @@ function AppShell() {
     }
   }, [bottomSafeColor]);
 
+  const maxTopInsetRef = useRef(insets.top);
+  if (insets.top > maxTopInsetRef.current) {
+    maxTopInsetRef.current = insets.top;
+  }
+  const effectiveTopInset =
+    insets.top > 0 ? insets.top : maxTopInsetRef.current;
+
+  const maxBottomInsetRef = useRef(insets.bottom);
+  if (insets.bottom > maxBottomInsetRef.current) {
+    maxBottomInsetRef.current = insets.bottom;
+  }
+  const effectiveBottomInset =
+    insets.bottom > 0 ? insets.bottom : maxBottomInsetRef.current;
+
   // Compact top safe area inset so top navbar is raised closer to status/network bar
   const topInsetHeight =
-    insets.top > 0
-      ? Platform.OS === 'android'
-        ? Math.max(22, insets.top - 14)
-        : Math.max(0, insets.top - 8)
-      : 0;
+    Platform.OS === 'android'
+      ? Math.max(22, effectiveTopInset - 14)
+      : effectiveTopInset > 0
+        ? Math.max(0, effectiveTopInset - 8)
+        : 0;
 
-  // Compact bottom safe area inset so bottom navigation bar is lowered closer to gesture bar/screen bottom
+  // Compact bottom safe area inset persisted across all routes & modals
   const bottomInsetHeight =
-    insets.bottom > 0
-      ? Platform.OS === 'android'
-        ? Math.max(0, insets.bottom - 17)
-        : Math.max(0, insets.bottom - 8)
-      : 0;
+    Platform.OS === 'android'
+      ? Math.max(8, effectiveBottomInset - 17)
+      : effectiveBottomInset > 0
+        ? Math.max(0, effectiveBottomInset - 8)
+        : 0;
 
   return (
     <View
@@ -411,7 +477,7 @@ function AppShell() {
       />
       {Platform.OS === 'android' ? (
         <NavigationBar
-          style={isDark || isPhotoViewerActive ? 'dark' : 'light'}
+          style={isPhotoViewerActive || isDark ? 'light' : 'dark'}
         />
       ) : null}
       <AppSplashLoader />
@@ -459,10 +525,19 @@ function AppShell() {
             keyboardShouldPersistTaps="handled"
             showsHorizontalScrollIndicator={false}
             scrollEnabled={canSwipeTabs}
+            {...({
+              onScrollShouldSetResponderCapture: (e: any) => {
+                if (isTabSwipeLockedRef.current) {
+                  e?.stopPropagation?.();
+                }
+                return false;
+              },
+            } as any)}
             bounces={false}
             overScrollMode="never"
             onScrollBeginDrag={() => {
               isManualScrollingRef.current = true;
+              resetNavVisibility();
             }}
             onScroll={(e) => {
               handleScroll(e.nativeEvent.contentOffset.x);
@@ -543,6 +618,7 @@ function AppShell() {
             activeTab={activeTab}
             onTabPress={(href) => {
               isManualScrollingRef.current = false;
+              resetNavVisibility();
               const idx = (TAB_ORDER as readonly string[]).indexOf(href);
               if (idx !== -1) {
                 currentScrolledIndexRef.current = idx;

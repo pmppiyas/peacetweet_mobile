@@ -509,7 +509,6 @@ export default function SavedScreen() {
 
       <ScrollView
         className="flex-1"
-        onScroll={handleFeedScroll}
         scrollEventThrottle={16}
         contentContainerStyle={{
           paddingTop: 60 + routineBarHeight,

@@ -130,7 +130,6 @@ export default function ZakatScreen() {
       {/* Main Scrollable Body with Accordions (No Header Bar) */}
       <ScrollView
         className="flex-1"
-        onScroll={handleFeedScroll}
         scrollEventThrottle={16}
         contentContainerStyle={{
           paddingHorizontal: 12,

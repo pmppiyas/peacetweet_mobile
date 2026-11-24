@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { router, usePathname } from 'expo-router';
+import { isProfilePathname } from '@/app/_layout';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon, type AndroidSymbol } from '@/components/ui/Icon';
@@ -47,6 +48,7 @@ export function MobileNav({ activeTab, onTabPress }: MobileNavProps = {}) {
     isMessagesActive && Boolean(activeConversationId);
 
   const isSettingsProfile = pathname === '/settings/profile';
+  const isProfileRoute = isProfilePathname(pathname);
 
   // NOTE: MobileNav intentionally stays mounted while the photo viewer is open
   // (the viewer fully covers it) so the feed layout never resizes/jumps.
@@ -55,7 +57,7 @@ export function MobileNav({ activeTab, onTabPress }: MobileNavProps = {}) {
     isPostViewerPage ||
     isInsideActiveChat ||
     isSearchOpen ||
-    isProfileActive ||
+    isProfileRoute ||
     isSettingsProfile
   )
     return null;

@@ -57,8 +57,41 @@ export function ConversationSidebar({
   currentUserId,
   totalUnreadCount = 0,
 }: ConversationSidebarProps) {
-  const { locale, chatSearchQuery, setChatSearchQuery, theme, isUserOnline } = useUi();
+  const {
+    locale,
+    chatSearchQuery,
+    setChatSearchQuery,
+    theme,
+    isUserOnline,
+    isTabSwipeLockedRef,
+  } = useUi();
   const scrollViewRef = useRef<any>(null);
+
+  const setVerticalScrollLocked = React.useCallback((locked: boolean) => {
+    const node = scrollViewRef.current;
+    if (!node) return;
+    if (locked && typeof node.getScrollResponder === 'function') {
+      const responder = node.getScrollResponder();
+      if (responder) {
+        responder.isTouching = false;
+      }
+    }
+    if (typeof node.setNativeProps === 'function') {
+      node.setNativeProps({ scrollEnabled: !locked });
+    }
+    const domNode =
+      typeof node.getScrollableNode === 'function'
+        ? node.getScrollableNode()
+        : node;
+    if (domNode && domNode.style) {
+      domNode.style.overflowY = locked ? 'hidden' : 'auto';
+      domNode.style.touchAction = locked ? 'none' : 'auto';
+    }
+  }, []);
+
+  useEffect(() => {
+    setVerticalScrollLocked(Boolean(selectedConversationId));
+  }, [selectedConversationId, setVerticalScrollLocked]);
   const [isSearching, setIsSearching] = useState(false);
   const [creatingForUserId, setCreatingForUserId] = useState<string | null>(
     null
@@ -188,6 +221,14 @@ export function ConversationSidebar({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         scrollEnabled={!isInitialLoading && !selectedConversationId}
+        {...({
+          onScrollShouldSetResponderCapture: (e: any) => {
+            if (isTabSwipeLockedRef.current || Boolean(selectedConversationId)) {
+              e?.stopPropagation?.();
+            }
+            return false;
+          },
+        } as any)}
         onScrollBeginDrag={() => {
           if (selectedConversationId) {
             onDeselectRow?.();
@@ -289,9 +330,7 @@ export function ConversationSidebar({
                   isActiveChat={selectedId === conv.id}
                   onSelect={() => onSelectConversation(conv)}
                   onSelectRow={(target) => {
-                    scrollViewRef.current?.setNativeProps?.({
-                      scrollEnabled: false,
-                    });
+                    setVerticalScrollLocked(true);
                     onSelectRow?.(target);
                   }}
                   onDeselect={onDeselectRow}

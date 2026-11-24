@@ -210,6 +210,7 @@ export const NotificationItemRow = React.memo(
 
           if (isSelectedRef.current) {
             selectedDuringThisTouchRef.current = false;
+            setTabSwipeLockedRef.current?.(true);
             return;
           }
 

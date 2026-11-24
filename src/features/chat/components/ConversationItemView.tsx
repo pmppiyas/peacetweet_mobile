@@ -190,6 +190,7 @@ export const ConversationItemView = React.memo(
 
           if (isSelectedRef.current) {
             selectedDuringThisTouchRef.current = false;
+            setTabSwipeLockedRef.current?.(true);
             return;
           }
 

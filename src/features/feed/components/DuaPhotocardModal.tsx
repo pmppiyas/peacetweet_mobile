@@ -254,6 +254,7 @@ export function DuaPhotocardModal({
       transparent
       animationType="fade"
       statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onClose}
     >
       <View style={styles.modalBackdrop}>

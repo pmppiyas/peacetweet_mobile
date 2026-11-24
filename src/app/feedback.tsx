@@ -53,7 +53,6 @@ export default function FeedbackScreen() {
   return (
     <ScrollView
       className="flex-1 bg-white dark:bg-[#18191a]"
-      onScroll={handleFeedScroll}
       scrollEventThrottle={16}
       contentContainerStyle={{
         paddingHorizontal: 6,

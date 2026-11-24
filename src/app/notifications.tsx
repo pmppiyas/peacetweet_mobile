@@ -28,8 +28,8 @@ export default function NotificationsScreen() {
     locale,
     setUnreadNotificationsCount,
     theme,
-    handleFeedScroll,
     setTabSwipeLocked,
+    isTabSwipeLockedRef,
   } = useUi();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
@@ -46,12 +46,37 @@ export default function NotificationsScreen() {
   const hasAutoMarked = useRef(false);
   const scrollViewRef = useRef<any>(null);
 
+  const setVerticalScrollLocked = useCallback((locked: boolean) => {
+    const node = scrollViewRef.current;
+    if (!node) return;
+    if (locked && typeof node.getScrollResponder === 'function') {
+      const responder = node.getScrollResponder();
+      if (responder) {
+        responder.isTouching = false;
+      }
+    }
+    if (typeof node.setNativeProps === 'function') {
+      node.setNativeProps({ scrollEnabled: !locked });
+    }
+    const domNode =
+      typeof node.getScrollableNode === 'function'
+        ? node.getScrollableNode()
+        : node;
+    if (domNode && domNode.style) {
+      domNode.style.overflowY = locked ? 'hidden' : 'auto';
+      domNode.style.touchAction = locked ? 'none' : 'auto';
+    }
+  }, []);
+
   useEffect(() => {
-    setTabSwipeLocked(Boolean(selectedNotificationId));
+    const locked = Boolean(selectedNotificationId);
+    setTabSwipeLocked(locked);
+    setVerticalScrollLocked(locked);
     return () => {
       setTabSwipeLocked(false);
+      setVerticalScrollLocked(false);
     };
-  }, [selectedNotificationId, setTabSwipeLocked]);
+  }, [selectedNotificationId, setTabSwipeLocked, setVerticalScrollLocked]);
 
   useEffect(() => {
     if (Platform.OS !== 'android' || !selectedNotificationId) {
@@ -250,7 +275,17 @@ export default function NotificationsScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           scrollEnabled={!isInitialLoading && !selectedNotificationId}
-          onScroll={handleFeedScroll}
+          {...({
+            onScrollShouldSetResponderCapture: (e: any) => {
+              if (
+                isTabSwipeLockedRef.current ||
+                Boolean(selectedNotificationId)
+              ) {
+                e?.stopPropagation?.();
+              }
+              return false;
+            },
+          } as any)}
           onScrollBeginDrag={() => {
             if (selectedNotificationId) {
               setSelectedNotificationId(null);
@@ -357,9 +392,7 @@ export default function NotificationsScreen() {
                       handleNotificationPress(clickedItem);
                     }}
                     onSelect={(target) => {
-                      scrollViewRef.current?.setNativeProps?.({
-                        scrollEnabled: false,
-                      });
+                      setVerticalScrollLocked(true);
                       setTabSwipeLocked(true);
                       setSelectedNotificationId(target.id);
                     }}

@@ -11,6 +11,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { router, usePathname } from 'expo-router';
+import { isProfilePathname } from '@/app/_layout';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { searchApi } from '@/features/search/api/search.api';
@@ -127,11 +128,12 @@ export function Navbar() {
   }, [pathname]);
 
   const isSettingsProfile = pathname === '/settings/profile';
+  const isProfileRoute = isProfilePathname(pathname);
   if (
     isAuthPage ||
     isPostViewerPage ||
     isInsideActiveChat ||
-    isProfileActive ||
+    isProfileRoute ||
     isSettingsProfile
   ) {
     return null;
