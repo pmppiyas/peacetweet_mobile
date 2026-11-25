@@ -15,6 +15,7 @@ import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { FeedPostCard } from '@/features/feed/components/FeedPostCard';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
 
 export default function HomeScreen() {
   const { locale, setComposerModalOpen, openComposer, handleFeedScroll } =
@@ -38,7 +39,7 @@ export default function HomeScreen() {
       className="flex-1 bg-white dark:bg-[#18191a]"
       onScroll={handleFeedScroll}
       scrollEventThrottle={8}
-      contentContainerStyle={{ paddingTop: 60, paddingBottom: 60 }}
+      contentContainerStyle={{ paddingTop: 60, paddingBottom: BOTTOM_NAV_CLEARANCE }}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}

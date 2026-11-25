@@ -2,9 +2,15 @@ import React from 'react';
 import { ScrollView, View, Text, Pressable, Linking } from 'react-native';
 import { useUi } from '@/providers/UiProvider';
 import { AppIcon } from '@/components/ui/Icon';
+import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
 
 export default function PurposeScreen() {
-  const { locale, handleFeedScroll } = useUi();
+  const { locale, theme } = useUi();
+  const isDark = theme === 'dark';
+
+  const cardSurfaceStyle = {
+    backgroundColor: isDark ? '#242526' : '#ffffff',
+  };
 
   const handleEmailPress = () => {
     Linking.openURL('mailto:connect.peacetweet@gmail.com').catch(() => {});
@@ -59,35 +65,39 @@ export default function PurposeScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-white dark:bg-[#18191a]"
+      className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
       scrollEventThrottle={16}
       contentContainerStyle={{
-        paddingHorizontal: 6,
-        paddingTop: 70,
-        paddingBottom: 76,
-      }}>
-      <View className="w-full max-w-[768px] mx-auto space-y-3">
+        paddingTop: 60,
+        paddingBottom: BOTTOM_NAV_CLEARANCE,
+      }}
+      showsVerticalScrollIndicator={false}>
+      <View className="w-full max-w-[768px] mx-auto" style={{ gap: 8 }}>
         {/* Hero Card */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 sm:p-4 shadow-xs">
-          <View className="flex-row items-center gap-3">
-            <View className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 items-center justify-center shrink-0">
-              <AppIcon android="auto_awesome" size={20} color="#059669" />
+        <View style={cardSurfaceStyle} className="w-full px-3.5 py-4">
+          <View className="flex-row items-center gap-3 mb-2.5">
+            <View
+              style={{
+                backgroundColor: isDark ? 'rgba(5, 150, 105, 0.16)' : '#ecfdf5',
+              }}
+              className="h-11 w-11 rounded-2xl items-center justify-center shrink-0">
+              <AppIcon android="auto_awesome" size={22} color="#059669" />
             </View>
             <View className="flex-1 min-w-0">
-              <Text numberOfLines={1} className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+              <Text className="text-[18px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'আমাদের উদ্দেশ্য ও নীতিমালা' : 'Our Purpose & Mission'}
-              </Text>
-              <Text numberOfLines={2} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] leading-tight">
-                {locale === 'bn'
-                  ? 'চোখের যিনামুক্ত, পরিচ্ছন্ন ও প্রামাণিক দ্বীনি জ্ঞানের ডিজিটাল সোশ্যাল স্পেস।'
-                  : 'A gaze-protected, ad-free space dedicated to authentic Islamic knowledge.'}
               </Text>
             </View>
           </View>
+          <Text className="text-[15px] leading-[22px] text-[#65676b] dark:text-[#b0b3b8]">
+            {locale === 'bn'
+              ? 'চোখের যিনামুক্ত, বিজ্ঞাপনমুক্ত ও প্রামাণিক দ্বীনি জ্ঞানের একটি পরিচ্ছন্ন ডিজিটাল সোশ্যাল স্পেস।'
+              : 'A gaze-protected, ad-free social space dedicated to authentic Islamic knowledge and peace of heart.'}
+          </Text>
         </View>
 
         {/* Pillars */}
-        <View className="space-y-3">
+        <View style={{ gap: 8 }}>
           {principles.map((item) => {
             const title = locale === 'bn' ? item.titleBn : item.titleEn;
             const desc = locale === 'bn' ? item.descBn : item.descEn;
@@ -95,17 +105,18 @@ export default function PurposeScreen() {
             return (
               <View
                 key={item.id}
-                className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3 shadow-xs flex-row items-start gap-3.5">
+                style={cardSurfaceStyle}
+                className="w-full px-3.5 py-4 flex-row items-start gap-3.5">
                 <View
-                  style={{ backgroundColor: `${item.color}15` }}
+                  style={{ backgroundColor: `${item.color}18` }}
                   className="h-11 w-11 rounded-2xl items-center justify-center shrink-0 mt-0.5">
                   <AppIcon android={item.icon} size={22} color={item.color} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] mb-1">
+                  <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] mb-1.5">
                     {title}
                   </Text>
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] leading-relaxed">
+                  <Text className="text-[15px] text-[#65676b] dark:text-[#b0b3b8] leading-[22px]">
                     {desc}
                   </Text>
                 </View>
@@ -115,20 +126,31 @@ export default function PurposeScreen() {
         </View>
 
         {/* Official Contact Footer */}
-        <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs items-center text-center">
-          <AppIcon android="mail" size={24} color="#0866FF" />
-          <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] mt-2 mb-1">
+        <View style={cardSurfaceStyle} className="w-full px-3.5 py-4 items-center">
+          <View
+            style={{
+              backgroundColor: isDark ? 'rgba(8, 102, 255, 0.16)' : '#eff6ff',
+            }}
+            className="h-11 w-11 rounded-2xl items-center justify-center mb-2.5">
+            <AppIcon android="mail" size={22} color="#0866FF" />
+          </View>
+          <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] mb-1">
             {locale === 'bn' ? 'অফিসিয়াল যোগাযোগ' : 'Official Contact'}
           </Text>
-          <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] text-center mb-3">
+          <Text className="text-[15px] leading-[22px] text-[#65676b] dark:text-[#b0b3b8] text-center mb-3.5">
             {locale === 'bn'
-              ? 'যেকোনো পরামর্শ, সহযোগিতা বা সংশোধনের জন্য সরাসরি ইমেইল করুন:'
-              : 'For suggestions, collaborations, or content verification, reach us at:'}
+              ? 'পরামর্শ, সহযোগিতা বা সংশোধনের জন্য সরাসরি ইমেইল করুন:'
+              : 'For suggestions, collaborations, or verification, reach us at:'}
           </Text>
           <Pressable
             onPress={handleEmailPress}
-            className="px-4 py-2 rounded-xl bg-primary-50 dark:bg-primary-950/60 border border-primary-200 dark:border-primary-800">
-            <Text className="text-xs font-bold font-mono text-primary-600 dark:text-primary-400">
+            style={{
+              backgroundColor: isDark ? 'rgba(8, 102, 255, 0.16)' : '#eff6ff',
+              borderColor: isDark ? 'rgba(59, 130, 246, 0.35)' : '#bfdbfe',
+            }}
+            className="w-full py-3 px-4 rounded-xl border flex-row items-center justify-center gap-2 active:opacity-80">
+            <AppIcon android="mail" size={18} color="#0866FF" />
+            <Text className="text-[15px] font-bold text-[#0866FF] dark:text-[#60a5fa]">
               connect.peacetweet@gmail.com
             </Text>
           </Pressable>

@@ -26,6 +26,7 @@ import { queryCache } from '@/lib/cache/queryCache';
 export default function FriendsScreen() {
   const { locale, theme } = useUi();
   const { isAuthenticated, user } = useAuth();
+  const isDark = theme === 'dark';
 
   const params = useLocalSearchParams<{ tab?: string }>();
   const tabParam = params.tab?.toLowerCase();
@@ -224,20 +225,67 @@ export default function FriendsScreen() {
     } as any);
   };
 
-  return (
-    <ScrollView
-      className="flex-1 bg-white dark:bg-[#18191a]"
-      stickyHeaderIndices={[0]}
-      contentContainerStyle={{ paddingBottom: 24 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          tintColor={theme === 'dark' ? '#ffffff' : '#4f46e5'}
+  const renderEmptyState = (
+    icon: React.ComponentProps<typeof AppIcon>['android'],
+    text: string
+  ) => (
+    <View
+      style={{ borderColor: isDark ? '#393a3b' : '#e4e6eb' }}
+      className="rounded-2xl border border-dashed p-8 items-center justify-center my-4">
+      <AppIcon android={icon} size={26} color={isDark ? '#b0b3b8' : '#65676b'} />
+      <Text className="text-[15px] leading-[22px] text-[#65676b] dark:text-[#b0b3b8] mt-2.5 font-medium text-center">
+        {text}
+      </Text>
+    </View>
+  );
+
+  const renderUserInfo = (
+    u: { name: string; username: string; avatar?: string | null; avatarUrl?: string | null; location?: string | null },
+    clickable: boolean
+  ) => {
+    const content = (
+      <>
+        <UserAvatar
+          avatarUrl={u.avatar || u.avatarUrl}
+          name={u.name}
+          size="md"
         />
-      }>
-      {/* Index 0: Sticky Tab Switcher (No Header) */}
-      <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e4e6eb] dark:border-[#242526] px-3 py-2">
+        <View className="flex-1 min-w-0">
+          <Text
+            numberOfLines={1}
+            className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
+            {u.name}
+          </Text>
+          <Text
+            numberOfLines={1}
+            className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+            @{u.username} {u.location ? `• ${u.location}` : ''}
+          </Text>
+        </View>
+      </>
+    );
+
+    if (clickable) {
+      return (
+        <Pressable
+          onPress={() => router.push(`/${u.username}` as any)}
+          className="flex-row items-center gap-3 flex-1 pr-2 active:opacity-80">
+          {content}
+        </Pressable>
+      );
+    }
+
+    return (
+      <View className="flex-row items-center gap-3 flex-1 pr-2">
+        {content}
+      </View>
+    );
+  };
+
+  return (
+    <View className="flex-1 bg-white dark:bg-[#18191a]">
+      {/* Fixed Top Tab Switcher (Outside ScrollView so it never jitters on scroll) */}
+      <View className="w-full bg-white dark:bg-[#18191a] z-20 px-3.5 py-2.5">
         <View className="w-full max-w-[768px] mx-auto flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
           {[
             { key: 'all', bn: 'আমার ফ্রেন্ডস', en: 'My Friends' },
@@ -255,7 +303,7 @@ export default function FriendsScreen() {
                     : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
                 }`}>
                 <Text
-                  className={`text-xs font-bold ${
+                  className={`text-[14px] font-bold ${
                     isSelected ? 'text-white' : 'text-[#65676b] dark:text-[#b0b3b8]'
                   }`}>
                   {locale === 'bn' ? t.bn : t.en}
@@ -266,10 +314,20 @@ export default function FriendsScreen() {
         </View>
       </View>
 
-      {/* Index 1: Content Section (Flat) */}
-      <View className="w-full max-w-[768px] mx-auto px-3">
+      <ScrollView
+        className="flex-1 bg-white dark:bg-[#18191a]"
+        contentContainerStyle={{ paddingBottom: 0 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={isDark ? '#ffffff' : '#4f46e5'}
+          />
+        }>
+        {/* Content Section */}
+      <View className="w-full max-w-[768px] mx-auto px-3.5">
 
-        {/* Content Section (Flat) */}
+        {/* Content Section */}
         {activeTab === 'all' && !isAuthenticated ? (
           <View className="py-4">
             <AuthPromptCard
@@ -297,17 +355,15 @@ export default function FriendsScreen() {
         ) : isLoading && !isRefreshing ? (
           <FriendsSkeleton tab={activeTab} count={6} />
         ) : activeTab === 'all' ? (
-          /* 1. Friends List (Flat) */
+          /* 1. Friends List */
           <View className="w-full">
             {friends.length === 0 ? (
-              <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center my-4">
-                <AppIcon android="group" size={24} color="#65676b" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
-                  {locale === 'bn'
-                    ? 'আপনার ফ্রেন্ড তালিকায় এখনো কেউ যুক্ত নেই। নতুন ফ্রেন্ড খুঁজতে "নতুন খুঁজুন" ট্যাবে যান।'
-                    : 'No friends in your list yet. Check the "Discover" tab to add friends.'}
-                </Text>
-              </View>
+              renderEmptyState(
+                'group',
+                locale === 'bn'
+                  ? 'আপনার ফ্রেন্ড তালিকায় এখনো কেউ যুক্ত নেই। নতুন ফ্রেন্ড খুঁজতে "নতুন খুঁজুন" ট্যাবে যান।'
+                  : 'No friends in your list yet. Check the "Discover" tab to add friends.'
+              )
             ) : (
               friends.map((item, index) => {
                 const u = item.user;
@@ -316,42 +372,35 @@ export default function FriendsScreen() {
                 return (
                   <View
                     key={item.id || u.id}
-                    className={`py-3 flex-row items-center justify-between ${
-                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
-                    }`}>
-                    <Pressable
-                      onPress={() => router.push(`/${u.username}` as any)}
-                      className="flex-row items-center gap-3 flex-1 pr-2 active:opacity-80">
-                      <UserAvatar
-                        avatarUrl={(u as any).avatar || (u as any).avatarUrl}
-                        name={u.name}
-                        size="md"
-                      />
-                      <View className="flex-1 min-w-0">
-                        <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
-                          {u.name}
-                        </Text>
-                        <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] truncate">
-                          @{u.username} {u.location ? `• ${u.location}` : ''}
-                        </Text>
-                      </View>
-                    </Pressable>
+                    style={
+                      !isLast
+                        ? {
+                            borderBottomWidth: 1,
+                            borderBottomColor: isDark ? '#242526' : '#e6e9ef',
+                          }
+                        : undefined
+                    }
+                    className="py-3.5 flex-row items-center justify-between">
+                    {renderUserInfo(u as any, true)}
 
-                    <View className="flex-row items-center gap-1.5">
+                    <View className="flex-row items-center gap-2">
                       <Pressable
                         onPress={() => handleMessage(u)}
-                        className="p-2 rounded-xl bg-primary-50 dark:bg-primary-950/60 active:opacity-80">
-                        <AppIcon android="chat_bubble" size={16} color="#0866FF" />
+                        className="p-2.5 rounded-xl bg-primary-50 dark:bg-primary-950/60 active:opacity-80">
+                        <AppIcon android="chat_bubble" size={18} color="#0866FF" />
                       </Pressable>
 
                       <Pressable
                         onPress={() => handleUnfriend(item.friendId || u.id)}
                         disabled={isWorking}
-                        className="px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40">
+                        style={{
+                          borderColor: isDark ? 'rgba(244, 63, 94, 0.35)' : '#fecdd3',
+                        }}
+                        className="px-3 py-2 rounded-xl border bg-rose-50 dark:bg-rose-950/40 active:opacity-80">
                         {isWorking ? (
                           <ActivityIndicator size="small" color="#e11d48" />
                         ) : (
-                          <Text className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                          <Text className="text-[14px] font-bold text-rose-600 dark:text-rose-400">
                             {locale === 'bn' ? 'আনফ্রেন্ড' : 'Unfriend'}
                           </Text>
                         )}
@@ -363,17 +412,15 @@ export default function FriendsScreen() {
             )}
           </View>
         ) : activeTab === 'requests' ? (
-          /* 2. Friend Requests List (Flat) */
+          /* 2. Friend Requests List */
           <View className="w-full">
             {requests.length === 0 ? (
-              <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center my-4">
-                <AppIcon android="inbox" size={24} color="#65676b" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium">
-                  {locale === 'bn'
-                    ? 'কোনো নতুন ফ্রেন্ড রিকোয়েস্ট নেই।'
-                    : 'No pending friend requests.'}
-                </Text>
-              </View>
+              renderEmptyState(
+                'inbox',
+                locale === 'bn'
+                  ? 'কোনো নতুন ফ্রেন্ড রিকোয়েস্ট নেই।'
+                  : 'No pending friend requests.'
+              )
             ) : (
               requests.map((item, index) => {
                 const u = item.sender || {
@@ -386,34 +433,26 @@ export default function FriendsScreen() {
                 return (
                   <View
                     key={item.id}
-                    className={`py-3 flex-row items-center justify-between ${
-                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
-                    }`}>
-                    <View className="flex-row items-center gap-3 flex-1 pr-2">
-                      <UserAvatar
-                        avatarUrl={(u as any).avatar || (u as any).avatarUrl}
-                        name={u.name}
-                        size="md"
-                      />
-                      <View className="flex-1 min-w-0">
-                        <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
-                          {u.name}
-                        </Text>
-                        <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] truncate">
-                          @{u.username}
-                        </Text>
-                      </View>
-                    </View>
+                    style={
+                      !isLast
+                        ? {
+                            borderBottomWidth: 1,
+                            borderBottomColor: isDark ? '#242526' : '#e6e9ef',
+                          }
+                        : undefined
+                    }
+                    className="py-3.5 flex-row items-center justify-between">
+                    {renderUserInfo(u as any, false)}
 
-                    <View className="flex-row items-center gap-1.5">
+                    <View className="flex-row items-center gap-2">
                       <Pressable
                         onPress={() => handleAcceptRequest(item)}
                         disabled={isWorking}
-                        className="px-3.5 py-1.5 rounded-xl bg-primary-500 active:bg-primary-600">
+                        className="px-3.5 py-2 rounded-xl bg-primary-500 active:bg-primary-600">
                         {isWorking ? (
                           <ActivityIndicator size="small" color="#ffffff" />
                         ) : (
-                          <Text className="text-xs font-bold text-white">
+                          <Text className="text-[14px] font-bold text-white">
                             {locale === 'bn' ? 'গ্রহণ করুন' : 'Confirm'}
                           </Text>
                         )}
@@ -422,8 +461,11 @@ export default function FriendsScreen() {
                       <Pressable
                         onPress={() => handleRejectRequest(item)}
                         disabled={isWorking}
-                        className="px-3 py-1.5 rounded-xl bg-[#e6e9ef] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4a4b4d]">
-                        <Text className="text-xs font-bold text-[#65676b] dark:text-[#b0b3b8]">
+                        style={{
+                          borderColor: isDark ? '#4a4b4d' : '#ced0d4',
+                        }}
+                        className="px-3 py-2 rounded-xl border bg-[#e6e9ef] dark:bg-[#3a3b3c] active:opacity-80">
+                        <Text className="text-[14px] font-bold text-[#65676b] dark:text-[#b0b3b8]">
                           {locale === 'bn' ? 'মুছুন' : 'Delete'}
                         </Text>
                       </Pressable>
@@ -434,17 +476,15 @@ export default function FriendsScreen() {
             )}
           </View>
         ) : (
-          /* 3. Discover Users (Flat) */
+          /* 3. Discover Users */
           <View className="w-full">
             {suggestions.length === 0 ? (
-              <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center my-4">
-                <AppIcon android="person_search" size={24} color="#65676b" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
-                  {locale === 'bn'
-                    ? 'কোনো ইউজার পাওয়া যায়নি। অন্য নাম লিখে অনুসন্ধান করুন।'
-                    : 'No users found matching your search.'}
-                </Text>
-              </View>
+              renderEmptyState(
+                'person_search',
+                locale === 'bn'
+                  ? 'কোনো ইউজার পাওয়া যায়নি। অন্য নাম লিখে অনুসন্ধান করুন।'
+                  : 'No users found matching your search.'
+              )
             ) : (
               suggestions.map((u, index) => {
                 const isSent = Boolean(sentRequestIds[u.id]);
@@ -453,47 +493,44 @@ export default function FriendsScreen() {
                 return (
                   <View
                     key={u.id}
-                    className={`py-3 flex-row items-center justify-between ${
-                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
-                    }`}>
-                    <Pressable
-                      onPress={() => router.push(`/${u.username}` as any)}
-                      className="flex-row items-center gap-3 flex-1 pr-2 active:opacity-80">
-                      <UserAvatar
-                        avatarUrl={(u as any).avatar || (u as any).avatarUrl}
-                        name={u.name}
-                        size="md"
-                      />
-                      <View className="flex-1 min-w-0">
-                        <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
-                          {u.name}
-                        </Text>
-                        <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] truncate">
-                          @{u.username} {u.location ? `• ${u.location}` : ''}
-                        </Text>
-                      </View>
-                    </Pressable>
+                    style={
+                      !isLast
+                        ? {
+                            borderBottomWidth: 1,
+                            borderBottomColor: isDark ? '#242526' : '#e6e9ef',
+                          }
+                        : undefined
+                    }
+                    className="py-3.5 flex-row items-center justify-between">
+                    {renderUserInfo(u as any, true)}
 
                     <Pressable
                       onPress={() => (!isSent ? handleSendFriendRequest(u) : null)}
                       disabled={isSent || isWorking}
-                      className={`px-3.5 py-1.5 rounded-xl border ${
+                      style={{
+                        borderColor: isSent
+                          ? isDark
+                            ? '#3e4042'
+                            : '#ced0d4'
+                          : '#4f46e5',
+                      }}
+                      className={`px-3.5 py-2 rounded-xl border ${
                         isSent
-                          ? 'border-[#ced0d4] dark:border-[#3e4042] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
-                          : 'border-indigo-600 bg-indigo-600 active:bg-indigo-700'
+                          ? 'bg-[#e6e9ef] dark:bg-[#3a3b3c]'
+                          : 'bg-indigo-600 active:bg-indigo-700'
                       }`}>
                       {isWorking ? (
                         <ActivityIndicator size="small" color="#ffffff" />
                       ) : (
                         <Text
-                          className={`text-xs font-bold ${
+                          className={`text-[14px] font-bold ${
                             isSent
                               ? 'text-[#65676b] dark:text-[#b0b3b8]'
                               : 'text-white'
                           }`}>
                           {isSent
                             ? locale === 'bn'
-                              ? 'রিকোয়েস্ট পাঠানো হয়েছে'
+                              ? 'পাঠানো হয়েছে'
                               : 'Requested'
                             : locale === 'bn'
                               ? 'ফ্রেন্ড রিকোয়েস্ট'
@@ -509,5 +546,6 @@ export default function FriendsScreen() {
         )}
       </View>
     </ScrollView>
+    </View>
   );
 }

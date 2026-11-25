@@ -235,7 +235,7 @@ export function ConversationSidebar({
           }
         }}
         className="flex-1 no-scrollbar scrollbar-none"
-        contentContainerStyle={{ paddingTop: 6, paddingBottom: 16, flexGrow: 1 }}
+        contentContainerStyle={{ paddingTop: 6, paddingBottom: 0, flexGrow: 1 }}
         contentContainerClassName={isInitialLoading ? 'pb-0' : 'pb-0 md:pb-2'}
         refreshControl={
           <RefreshControl

@@ -33,9 +33,8 @@ export function ZakatOverviewChips({
     <View
       style={{
         backgroundColor: isDark ? '#242526' : '#ffffff',
-        borderColor: isDark ? '#393a3b' : '#e4e6eb',
       }}
-      className="p-4 rounded-2xl border mb-3.5">
+      className="w-full px-3.5 py-3.5">
       {/* Top Action Row */}
       <View className="flex-row items-center justify-between gap-2 mb-3.5 flex-wrap">
         <View className="flex-row items-center gap-2 flex-wrap">

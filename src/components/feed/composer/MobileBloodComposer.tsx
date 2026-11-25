@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, Pressable } from 'react-native';
 import { AppIcon } from '@/components/ui/Icon';
 import { DateTimePicker } from '@/components/ui/DateTimePicker';
 import { LocationSelector, LocationValue } from '@/components/ui/LocationSelector';
+import { matchUserLocationToGeo } from '@/constants/bangladeshGeo';
 
 export const BLOOD_GROUPS = [
   { label: 'A+', value: 'A_POSITIVE' },
@@ -30,6 +31,181 @@ export function mapToBloodGroupValue(bg?: string | null): string {
   if (convertedMatch) return convertedMatch.value;
 
   return '';
+}
+
+function getDefaultNeededDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(12, 0, 0, 0);
+  return d.toISOString();
+}
+
+/** Shared blood request composer form state, auto-fill, reset & validation hook. */
+export function useBloodComposerForm(user: any) {
+  const [forMyself, setForMyself] = useState(false);
+  const [patientName, setPatientName] = useState('');
+  const [bloodGroup, setBloodGroup] = useState('');
+  const [units, setUnits] = useState('1');
+  const [hospitalName, setHospitalName] = useState('');
+  const [locationValue, setLocationValue] = useState<LocationValue>(() =>
+    matchUserLocationToGeo(user)
+  );
+  const [contactNumber, setContactNumber] = useState('');
+  const [alternateContact, setAlternateContact] = useState('');
+  const [neededDate, setNeededDate] = useState(getDefaultNeededDate);
+  const [problem, setProblem] = useState('');
+  const [bloodNote, setBloodNote] = useState('');
+
+  // Sync location initially when user loads without overwriting user edits
+  useEffect(() => {
+    if (user) {
+      const userGeo = matchUserLocationToGeo(user);
+      if (userGeo.location) {
+        setLocationValue((prev) => (!prev.location ? userGeo : prev));
+      }
+    }
+  }, [user]);
+
+  // Auto-fill patient details from user profile when "For Myself" is checked
+  useEffect(() => {
+    if (forMyself && user) {
+      if (user.name) setPatientName(user.name);
+      if (user.bloodGroup) {
+        const bgVal = mapToBloodGroupValue(user.bloodGroup);
+        if (bgVal) setBloodGroup(bgVal);
+      }
+      const userGeo = matchUserLocationToGeo(user);
+      if (userGeo.location) setLocationValue(userGeo);
+    }
+  }, [forMyself, user]);
+
+  const effectivePatientName = (
+    forMyself ? user?.name || patientName : patientName
+  ).trim();
+
+  const isValid = Boolean(
+    bloodGroup &&
+      effectivePatientName &&
+      hospitalName.trim() &&
+      (locationValue.location?.trim() || locationValue.districtId) &&
+      contactNumber.trim()
+  );
+
+  const getMissingFieldMessage = useCallback(
+    (locale: string): string | null => {
+      if (!bloodGroup) {
+        return locale === 'bn'
+          ? 'অনুগ্রহ করে রক্তের গ্রুপ নির্বাচন করুন।'
+          : 'Please select a blood group.';
+      }
+      if (!effectivePatientName) {
+        return locale === 'bn'
+          ? 'অনুগ্রহ করে রোগীর নাম লিখুন।'
+          : 'Please enter the patient name.';
+      }
+      if (!hospitalName.trim()) {
+        return locale === 'bn'
+          ? 'অনুগ্রহ করে হাসপাতালের নাম লিখুন।'
+          : 'Please enter the hospital name.';
+      }
+      if (!locationValue.location?.trim() && !locationValue.districtId) {
+        return locale === 'bn'
+          ? 'অনুগ্রহ করে বিভাগ ও জেলা নির্বাচন করুন।'
+          : 'Please select Division and District.';
+      }
+      if (!contactNumber.trim()) {
+        return locale === 'bn'
+          ? 'অনুগ্রহ করে যোগাযোগের মোবাইল নম্বর দিন।'
+          : 'Please enter a contact phone number.';
+      }
+      return null;
+    },
+    [bloodGroup, effectivePatientName, hospitalName, locationValue, contactNumber]
+  );
+
+  const reset = useCallback(() => {
+    setForMyself(false);
+    setPatientName('');
+    setBloodGroup('');
+    setUnits('1');
+    setHospitalName('');
+    setLocationValue(matchUserLocationToGeo(user));
+    setContactNumber('');
+    setAlternateContact('');
+    setNeededDate(getDefaultNeededDate());
+    setProblem('');
+    setBloodNote('');
+  }, [user]);
+
+  const hydrate = useCallback((br: any) => {
+    if (!br) return;
+    setForMyself(Boolean(br.forMyself));
+    setPatientName(br.patientName || '');
+    if (br.bloodGroup) {
+      setBloodGroup(mapToBloodGroupValue(br.bloodGroup));
+    }
+    setUnits(String(br.units || 1));
+    setHospitalName(br.hospitalName || '');
+    setLocationValue({
+      country: br.country || 'Bangladesh',
+      countryCode: br.countryCode || 'BD',
+      state: br.state || '',
+      city: br.city || '',
+      location: br.location || '',
+    });
+    setContactNumber(br.contactNumber || '');
+    setAlternateContact(br.alternateContact || '');
+    if (br.neededDate) {
+      setNeededDate(new Date(br.neededDate).toISOString());
+    }
+    setProblem(br.problem || '');
+    setBloodNote(br.note || '');
+  }, []);
+
+  const composerProps = {
+    bloodGroup,
+    onChangeBloodGroup: setBloodGroup,
+    forMyself,
+    onToggleForMyself: () => setForMyself((prev) => !prev),
+    patientName,
+    onChangePatientName: setPatientName,
+    units,
+    onChangeUnits: setUnits,
+    hospitalName,
+    onChangeHospitalName: setHospitalName,
+    locationValue,
+    onChangeLocationValue: setLocationValue,
+    contactNumber,
+    onChangeContactNumber: setContactNumber,
+    alternateContact,
+    onChangeAlternateContact: setAlternateContact,
+    neededDate,
+    onChangeNeededDate: setNeededDate,
+    problem,
+    onChangeProblem: setProblem,
+    bloodNote,
+    onChangeBloodNote: setBloodNote,
+  };
+
+  return {
+    forMyself,
+    patientName,
+    effectivePatientName,
+    bloodGroup,
+    units,
+    hospitalName,
+    locationValue,
+    contactNumber,
+    alternateContact,
+    neededDate,
+    problem,
+    bloodNote,
+    isValid,
+    getMissingFieldMessage,
+    reset,
+    hydrate,
+    composerProps,
+  };
 }
 
 export interface MobileBloodComposerProps {

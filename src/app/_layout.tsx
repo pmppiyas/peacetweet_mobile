@@ -29,6 +29,7 @@ import { AuthProvider } from '@/providers/AuthProvider';
 import { FeedProvider } from '@/providers/FeedProvider';
 import { Navbar } from '@/components/navigation/Navbar';
 import { MobileNav } from '@/components/navigation/MobileNav';
+import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
 import { MenuDrawer } from '@/components/navigation/MenuDrawer';
 import { MobileComposerModal } from '@/components/feed/MobileComposerModal';
 import { GlobalPhotoViewerModal } from '@/components/feed/GlobalPhotoViewerModal';
@@ -48,6 +49,8 @@ const COLLAPSIBLE_NAV_ROUTES = new Set([
   '/notifications',
   '/zakat',
   '/purpose',
+  '/terms',
+  '/privacy',
   '/feedback',
   '/messages',
 ]);
@@ -572,7 +575,13 @@ function AppShell() {
           }}>
           <MainContentSlot
             topOffset={isFullBleedRoute ? 0 : showTopNav ? 60 : 0}
-            bottomOffset={isFullBleedRoute ? 0 : showBottomNav ? 56 : 0}
+            bottomOffset={
+              isFullBleedRoute || normalizedPath === '/settings'
+                ? 0
+                : showBottomNav
+                  ? BOTTOM_NAV_CLEARANCE
+                  : 0
+            }
           />
         </View>
 

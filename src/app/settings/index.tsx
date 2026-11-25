@@ -22,6 +22,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { authApi } from '@/features/auth/api/auth.api';
+import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
 
 export default function SettingsScreen() {
   const { locale, setLocale, theme, toggleTheme } = useUi();
@@ -294,24 +295,77 @@ export default function SettingsScreen() {
     );
   };
 
+  const cardSurfaceStyle = {
+    backgroundColor: isDark ? '#242526' : '#ffffff',
+  };
+  const rowDividerStyle = {
+    borderBottomColor: isDark ? '#333436' : '#f0f2f5',
+  };
+
+  const passwordFields = [
+    ...(hasPassword
+      ? [
+          {
+            key: 'current',
+            label: locale === 'bn' ? 'বর্তমান পাসওয়ার্ড' : 'Current Password',
+            value: currentPassword,
+            onChange: setCurrentPassword,
+            visible: showCurrentPass,
+            onToggleVisible: () => setShowCurrentPass((v) => !v),
+            placeholder:
+              locale === 'bn'
+                ? 'বর্তমান পাসওয়ার্ড লিখুন'
+                : 'Enter current password',
+          },
+        ]
+      : []),
+    {
+      key: 'new',
+      label: locale === 'bn' ? 'নতুন পাসওয়ার্ড' : 'New Password',
+      value: newPassword,
+      onChange: setNewPassword,
+      visible: showNewPass,
+      onToggleVisible: () => setShowNewPass((v) => !v),
+      placeholder:
+        locale === 'bn' ? 'কমপক্ষে ৬টি অক্ষর' : 'At least 6 characters',
+    },
+    {
+      key: 'confirm',
+      label:
+        locale === 'bn'
+          ? 'নতুন পাসওয়ার্ড নিশ্চিত করুন'
+          : 'Confirm New Password',
+      value: confirmPassword,
+      onChange: setConfirmPassword,
+      visible: showConfirmPass,
+      onToggleVisible: () => setShowConfirmPass((v) => !v),
+      placeholder:
+        locale === 'bn'
+          ? 'নতুন পাসওয়ার্ড পুনরায় লিখুন'
+          : 'Re-enter new password',
+    },
+  ];
+
   return (
+    <View className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
     <ScrollView
       className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]"
+      showsVerticalScrollIndicator={false}
       contentContainerStyle={{
-        paddingHorizontal: 16,
-        paddingTop: 14,
-        paddingBottom: 40,
+        paddingTop: 8,
+        paddingBottom: BOTTOM_NAV_CLEARANCE,
       }}
     >
       <View
-        style={{ gap: 18 }}
-        className="w-full max-w-[600px] mx-auto"
+        style={{ gap: 12 }}
+        className="w-full max-w-[768px] mx-auto"
       >
         {/* Account Profile Card */}
         {isAuthenticated && user ? (
           <Pressable
             onPress={() => router.push('/profile')}
-            className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs flex-row items-center justify-between active:bg-[#f8f9fa] dark:active:bg-[#2d2e30]"
+            style={cardSurfaceStyle}
+            className="w-full px-3.5 py-4 flex-row items-center justify-between active:opacity-85"
           >
             <View className="flex-row items-center gap-3.5 flex-1 pr-2">
               <UserAvatar
@@ -322,47 +376,47 @@ export default function SettingsScreen() {
               <View className="flex-1 min-w-0">
                 <Text
                   numberOfLines={1}
-                  className="text-[16px] font-bold text-[#050505] dark:text-[#e4e6eb] leading-tight"
+                  className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb] leading-tight"
                 >
                   {user.name}
                 </Text>
                 <Text
                   numberOfLines={1}
-                  className="text-[13px] text-[#65676b] dark:text-[#b0b3b8] mt-1"
+                  className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5"
                 >
                   @{user.username || 'user'} • {user.email}
-                </Text>
-                <Text className="text-[12px] font-semibold text-[#0866FF] dark:text-[#4599FF] mt-1">
-                  {locale === 'bn' ? 'প্রোফাইল দেখুন' : 'View Profile'}
                 </Text>
               </View>
             </View>
 
-            <View className="h-8 w-8 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
+            <View className="h-9 w-9 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center">
               <AppIcon
                 android="chevron_right"
-                size={18}
-                color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
+                size={20}
+                color={isDark ? '#b0b3b8' : '#65676b'}
               />
             </View>
           </Pressable>
         ) : (
-          <View className="w-full rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-4 shadow-xs flex-row items-center justify-between">
+          <View
+            style={cardSurfaceStyle}
+            className="w-full px-3.5 py-4 flex-row items-center justify-between"
+          >
             <View className="flex-1 pr-3">
-              <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+              <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'লগইন করা নেই' : 'Not signed in'}
               </Text>
-              <Text className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] mt-1">
+              <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-1">
                 {locale === 'bn'
-                  ? 'সব ফিচার ও সেটিংস ব্যবহার করতে লগইন করুন।'
+                  ? 'সব সেটিংস ব্যবহার করতে লগইন করুন।'
                   : 'Sign in to access your account settings.'}
               </Text>
             </View>
             <Pressable
               onPress={() => router.push('/login')}
-              className="px-4 py-2 rounded-xl bg-[#0866FF] active:scale-95"
+              className="px-4 py-2.5 rounded-xl bg-[#0866FF] active:opacity-85"
             >
-              <Text className="text-[13px] font-bold text-white">
+              <Text className="text-[14.5px] font-bold text-white">
                 {locale === 'bn' ? 'লগইন' : 'Sign In'}
               </Text>
             </Pressable>
@@ -372,46 +426,32 @@ export default function SettingsScreen() {
         {/* Security & Login Section */}
         {isAuthenticated && user && (
           <View style={{ gap: 6 }}>
-            <Text className="text-[12px] font-bold text-[#65676b] dark:text-[#8a8d91] uppercase tracking-wider px-1">
-              {locale === 'bn' ? 'নিরাপত্তা ও অ্যাকাউন্ট' : 'Security & Login'}
+            <Text className="text-[14px] font-bold text-[#65676b] dark:text-[#b0b3b8] px-3.5">
+              {locale === 'bn' ? 'নিরাপত্তা ও অ্যাকাউন্ট' : 'Security & Account'}
             </Text>
 
-            <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] shadow-xs overflow-hidden">
+            <View style={cardSurfaceStyle} className="w-full overflow-hidden">
               <Pressable
                 onPress={openPasswordModal}
-                className="flex-row items-center justify-between px-4 py-3.5 active:bg-[#f8f9fa] dark:active:bg-[#2d2e30]"
+                className="flex-row items-center justify-between px-3.5 py-3.5 active:opacity-85"
               >
-                <View className="flex-row items-center gap-3.5 flex-1 pr-3">
+                <View className="flex-row items-center gap-3 flex-1 pr-3">
                   <View className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 items-center justify-center shrink-0">
                     <AppIcon android="lock" size={20} color="#0866FF" />
                   </View>
-                  <View className="flex-1 min-w-0">
-                    <Text className="text-[15px] font-semibold text-[#050505] dark:text-[#e4e6eb] leading-tight">
-                      {hasPassword
-                        ? locale === 'bn'
-                          ? 'পাসওয়ার্ড পরিবর্তন করুন'
-                          : 'Change Password'
-                        : locale === 'bn'
-                          ? 'পাসওয়ার্ড সেট করুন'
-                          : 'Set Password'}
-                    </Text>
-                    <Text
-                      numberOfLines={1}
-                      className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] mt-1"
-                    >
-                      {hasPassword
-                        ? locale === 'bn'
-                          ? 'সুরক্ষার জন্য পাসওয়ার্ড পরিবর্তন'
-                          : 'Update account password'
-                        : locale === 'bn'
-                          ? 'সরাসরি লগইনের জন্য পাসওয়ার্ড যোগ করুন'
-                          : 'Add password for direct sign in'}
-                    </Text>
-                  </View>
+                  <Text className="text-base font-semibold text-[#050505] dark:text-[#e4e6eb] flex-1">
+                    {hasPassword
+                      ? locale === 'bn'
+                        ? 'পাসওয়ার্ড পরিবর্তন করুন'
+                        : 'Change Password'
+                      : locale === 'bn'
+                        ? 'পাসওয়ার্ড সেট করুন'
+                        : 'Set Password'}
+                  </Text>
                 </View>
 
-                <View className="px-3 py-1.5 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] flex-row items-center gap-1">
-                  <Text className="text-[12px] font-semibold text-[#0866FF] dark:text-[#4599FF]">
+                <View className="flex-row items-center gap-1">
+                  <Text className="text-[14px] font-semibold text-[#0866FF] dark:text-[#4599FF]">
                     {hasPassword
                       ? locale === 'bn'
                         ? 'পরিবর্তন'
@@ -422,8 +462,8 @@ export default function SettingsScreen() {
                   </Text>
                   <AppIcon
                     android="chevron_right"
-                    size={14}
-                    color={theme === 'dark' ? '#4599FF' : '#0866FF'}
+                    size={18}
+                    color={isDark ? '#4599FF' : '#0866FF'}
                   />
                 </View>
               </Pressable>
@@ -433,14 +473,17 @@ export default function SettingsScreen() {
 
         {/* Display & Language Settings */}
         <View style={{ gap: 6 }}>
-          <Text className="text-[12px] font-bold text-[#65676b] dark:text-[#8a8d91] uppercase tracking-wider px-1">
+          <Text className="text-[14px] font-bold text-[#65676b] dark:text-[#b0b3b8] px-3.5">
             {locale === 'bn' ? 'পছন্দসমূহ' : 'Preferences'}
           </Text>
 
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] shadow-xs overflow-hidden">
+          <View style={cardSurfaceStyle} className="w-full overflow-hidden">
             {/* Theme switch */}
-            <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#f0f2f5] dark:border-[#2f3031]">
-              <View className="flex-row items-center gap-3.5 flex-1 pr-3">
+            <View
+              style={rowDividerStyle}
+              className="flex-row items-center justify-between px-3.5 py-3.5 border-b"
+            >
+              <View className="flex-row items-center gap-3 flex-1 pr-3">
                 <View className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 items-center justify-center shrink-0">
                   <AppIcon
                     android={theme === 'dark' ? 'dark_mode' : 'light_mode'}
@@ -448,20 +491,9 @@ export default function SettingsScreen() {
                     color={theme === 'dark' ? '#38bdf8' : '#f59e0b'}
                   />
                 </View>
-                <View className="flex-1 min-w-0">
-                  <Text className="text-[15px] font-semibold text-[#050505] dark:text-[#e4e6eb] leading-tight">
-                    {locale === 'bn' ? 'ডার্ক মোড' : 'Dark Mode'}
-                  </Text>
-                  <Text className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] mt-1">
-                    {theme === 'dark'
-                      ? locale === 'bn'
-                        ? 'ডার্ক থিম চালু আছে'
-                        : 'Dark theme enabled'
-                      : locale === 'bn'
-                        ? 'লাইট থিম চালু আছে'
-                        : 'Light theme enabled'}
-                  </Text>
-                </View>
+                <Text className="text-base font-semibold text-[#050505] dark:text-[#e4e6eb] flex-1">
+                  {locale === 'bn' ? 'ডার্ক মোড' : 'Dark Mode'}
+                </Text>
               </View>
               <Switch
                 value={theme === 'dark'}
@@ -472,30 +504,30 @@ export default function SettingsScreen() {
             </View>
 
             {/* Language selector */}
-            <View className="flex-row items-center justify-between px-4 py-3.5">
-              <View className="flex-row items-center gap-3.5 flex-1 pr-3">
+            <View className="flex-row items-center justify-between px-3.5 py-3.5">
+              <View className="flex-row items-center gap-3 flex-1 pr-3">
                 <View className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 items-center justify-center shrink-0">
                   <AppIcon android="language" size={20} color="#2563eb" />
                 </View>
-                <View className="flex-1 min-w-0">
-                  <Text className="text-[15px] font-semibold text-[#050505] dark:text-[#e4e6eb] leading-tight">
-                    {locale === 'bn' ? 'অ্যাপের ভাষা' : 'App Language'}
-                  </Text>
-                  <Text className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] mt-1">
-                    {locale === 'bn' ? 'বাংলা নির্বাচিত' : 'English selected'}
-                  </Text>
-                </View>
+                <Text className="text-base font-semibold text-[#050505] dark:text-[#e4e6eb] flex-1">
+                  {locale === 'bn' ? 'অ্যাপের ভাষা' : 'App Language'}
+                </Text>
               </View>
 
-              <View className="flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] p-1 border border-[#e4e6eb] dark:border-[#4a4b4d]">
+              <View
+                style={{
+                  borderColor: isDark ? '#4a4b4d' : '#e4e6eb',
+                }}
+                className="flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] p-1 border"
+              >
                 <Pressable
                   onPress={() => setLocale('bn')}
-                  className={`px-3 py-1.5 rounded-lg active:scale-95 ${
+                  className={`px-3.5 py-1.5 rounded-lg active:opacity-80 ${
                     locale === 'bn' ? 'bg-[#0866FF]' : ''
                   }`}
                 >
                   <Text
-                    className={`text-[12px] font-bold ${
+                    className={`text-[14px] font-bold ${
                       locale === 'bn'
                         ? 'text-white'
                         : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -506,12 +538,12 @@ export default function SettingsScreen() {
                 </Pressable>
                 <Pressable
                   onPress={() => setLocale('en')}
-                  className={`px-3 py-1.5 rounded-lg active:scale-95 ${
+                  className={`px-3.5 py-1.5 rounded-lg active:opacity-80 ${
                     locale === 'en' ? 'bg-[#0866FF]' : ''
                   }`}
                 >
                   <Text
-                    className={`text-[12px] font-bold ${
+                    className={`text-[14px] font-bold ${
                       locale === 'en'
                         ? 'text-white'
                         : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -527,23 +559,26 @@ export default function SettingsScreen() {
 
         {/* Notifications Settings */}
         <View style={{ gap: 6 }}>
-          <Text className="text-[12px] font-bold text-[#65676b] dark:text-[#8a8d91] uppercase tracking-wider px-1">
+          <Text className="text-[14px] font-bold text-[#65676b] dark:text-[#b0b3b8] px-3.5">
             {locale === 'bn' ? 'নোটিফিকেশন' : 'Notifications'}
           </Text>
 
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] shadow-xs overflow-hidden">
-            <View className="flex-row items-center justify-between px-4 py-3.5 border-b border-[#f0f2f5] dark:border-[#2f3031]">
-              <View className="flex-row items-center gap-3.5 flex-1 pr-3">
+          <View style={cardSurfaceStyle} className="w-full overflow-hidden">
+            <View
+              style={rowDividerStyle}
+              className="flex-row items-center justify-between px-3.5 py-3.5 border-b"
+            >
+              <View className="flex-row items-center gap-3 flex-1 pr-3">
                 <View className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 items-center justify-center shrink-0">
                   <AppIcon android="notifications" size={20} color="#9333ea" />
                 </View>
                 <View className="flex-1 min-w-0">
-                  <Text className="text-[15px] font-semibold text-[#050505] dark:text-[#e4e6eb] leading-tight">
+                  <Text className="text-base font-semibold text-[#050505] dark:text-[#e4e6eb] leading-tight">
                     {locale === 'bn' ? 'পুশ নোটিফিকেশন' : 'Push Notifications'}
                   </Text>
-                  <Text className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] mt-1">
+                  <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                     {locale === 'bn'
-                      ? 'নতুন মেসেজ এবং প্রয়োজনীয় আপডেট পান'
+                      ? 'মেসেজ ও জরুরি আপডেট পান'
                       : 'Receive message alerts and updates'}
                   </Text>
                 </View>
@@ -556,20 +591,20 @@ export default function SettingsScreen() {
               />
             </View>
 
-            <View className="flex-row items-center justify-between px-4 py-3.5">
-              <View className="flex-row items-center gap-3.5 flex-1 pr-3">
+            <View className="flex-row items-center justify-between px-3.5 py-3.5">
+              <View className="flex-row items-center gap-3 flex-1 pr-3">
                 <View className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 items-center justify-center shrink-0">
                   <AppIcon android="water_drop" size={20} color="#e11d48" />
                 </View>
                 <View className="flex-1 min-w-0">
-                  <Text className="text-[15px] font-semibold text-[#050505] dark:text-[#e4e6eb] leading-tight">
+                  <Text className="text-base font-semibold text-[#050505] dark:text-[#e4e6eb] leading-tight">
                     {locale === 'bn'
                       ? 'জরুরি রক্তদানের অ্যালার্ট'
                       : 'Urgent Blood Alerts'}
                   </Text>
-                  <Text className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] mt-1">
+                  <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                     {locale === 'bn'
-                      ? 'আপনার এলাকার জরুরি রক্তের অনুরোধ জানুন'
+                      ? 'আপনার এলাকার রক্তের অনুরোধ জানুন'
                       : 'Alerts for urgent blood requests'}
                   </Text>
                 </View>
@@ -588,10 +623,11 @@ export default function SettingsScreen() {
         {isAuthenticated && (
           <Pressable
             onPress={handleLogoutPress}
-            className="w-full rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-white dark:bg-[#242526] p-4 flex-row items-center justify-center gap-2.5 active:bg-rose-50 dark:active:bg-rose-950/40 shadow-xs"
+            style={cardSurfaceStyle}
+            className="w-full px-3.5 py-4 flex-row items-center justify-center gap-2.5 active:opacity-85"
           >
-            <AppIcon android="logout" size={19} color="#e11d48" />
-            <Text className="text-[15px] font-bold text-rose-600 dark:text-rose-400">
+            <AppIcon android="logout" size={20} color="#e11d48" />
+            <Text className="text-base font-bold text-rose-600 dark:text-rose-400">
               {locale === 'bn' ? 'লগআউট করুন' : 'Log Out'}
             </Text>
           </Pressable>
@@ -696,26 +732,15 @@ export default function SettingsScreen() {
                       <View className="h-9 w-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 items-center justify-center">
                         <AppIcon android="lock" size={18} color="#0866FF" />
                       </View>
-                      <View>
-                        <Text className="text-[16px] font-bold text-[#050505] dark:text-[#e4e6eb]">
-                          {hasPassword
-                            ? locale === 'bn'
-                              ? 'পাসওয়ার্ড পরিবর্তন করুন'
-                              : 'Change Password'
-                            : locale === 'bn'
-                              ? 'পাসওয়ার্ড সেট করুন'
-                              : 'Set Password'}
-                        </Text>
-                        <Text className="text-[12px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-                          {hasPassword
-                            ? locale === 'bn'
-                              ? 'অ্যাকাউন্টের সুরক্ষার জন্য পাসওয়ার্ড লিখুন'
-                              : 'Enter passwords to update your account'
-                            : locale === 'bn'
-                              ? 'সরাসরি লগইনের জন্য পাসওয়ার্ড তৈরি করুন'
-                              : 'Set a password for direct sign in'}
-                        </Text>
-                      </View>
+                      <Text className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+                        {hasPassword
+                          ? locale === 'bn'
+                            ? 'পাসওয়ার্ড পরিবর্তন করুন'
+                            : 'Change Password'
+                          : locale === 'bn'
+                            ? 'পাসওয়ার্ড সেট করুন'
+                            : 'Set Password'}
+                      </Text>
                     </View>
 
                     <Pressable
@@ -735,128 +760,67 @@ export default function SettingsScreen() {
                 </View>
 
                 {/* 2. Form Body (Pullable downward) */}
-                <View {...bodyPanResponder.panHandlers} className="p-5">
+                <View {...bodyPanResponder.panHandlers} className="px-4 py-5">
 
             <View style={{ gap: 14 }}>
-              {/* Current Password Field */}
-              {hasPassword && (
-                <View style={{ gap: 5 }}>
-                  <Text className="text-[13px] font-semibold text-[#050505] dark:text-[#e4e6eb]">
-                    {locale === 'bn' ? 'বর্তমান পাসওয়ার্ড' : 'Current Password'}
+              {passwordFields.map((field) => (
+                <View key={field.key} style={{ gap: 6 }}>
+                  <Text className="text-[14.5px] font-semibold text-[#050505] dark:text-[#e4e6eb]">
+                    {field.label}
                   </Text>
-                  <View className="flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4e5052] px-3.5 h-12">
+                  <View
+                    style={{
+                      backgroundColor: isDark ? '#3a3b3c' : '#f0f2f5',
+                      borderColor: isDark ? '#4e5052' : '#d8dadf',
+                    }}
+                    className="flex-row items-center rounded-2xl border px-3.5 h-12"
+                  >
                     <TextInput
-                      value={currentPassword}
-                      onChangeText={setCurrentPassword}
-                      secureTextEntry={!showCurrentPass}
-                      placeholder={
-                        locale === 'bn'
-                          ? 'বর্তমান পাসওয়ার্ড লিখুন'
-                          : 'Enter current password'
-                      }
-                      placeholderTextColor={
-                        theme === 'dark' ? '#8a8d91' : '#8c9099'
-                      }
-                      className="flex-1 text-[14px] text-[#050505] dark:text-[#e4e6eb] h-full"
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      secureTextEntry={!field.visible}
+                      placeholder={field.placeholder}
+                      placeholderTextColor={isDark ? '#8a8d91' : '#8c9099'}
+                      className="flex-1 text-base text-[#050505] dark:text-[#e4e6eb] h-full"
                       autoCapitalize="none"
                     />
                     <Pressable
                       hitSlop={10}
-                      onPress={() => setShowCurrentPass(!showCurrentPass)}
+                      onPress={field.onToggleVisible}
                       className="pl-2"
                     >
                       <AppIcon
-                        android={
-                          showCurrentPass ? 'visibility_off' : 'visibility'
-                        }
-                        size={18}
-                        color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
+                        android={field.visible ? 'visibility_off' : 'visibility'}
+                        size={19}
+                        color={isDark ? '#b0b3b8' : '#65676b'}
                       />
                     </Pressable>
                   </View>
                 </View>
-              )}
-
-              {/* New Password Field */}
-              <View style={{ gap: 5 }}>
-                <Text className="text-[13px] font-semibold text-[#050505] dark:text-[#e4e6eb]">
-                  {locale === 'bn' ? 'নতুন পাসওয়ার্ড' : 'New Password'}
-                </Text>
-                <View className="flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4e5052] px-3.5 h-12">
-                  <TextInput
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    secureTextEntry={!showNewPass}
-                    placeholder={
-                      locale === 'bn'
-                        ? 'কমপক্ষে ৬টি অক্ষর'
-                        : 'At least 6 characters'
-                    }
-                    placeholderTextColor={
-                      theme === 'dark' ? '#8a8d91' : '#8c9099'
-                    }
-                    className="flex-1 text-[14px] text-[#050505] dark:text-[#e4e6eb] h-full"
-                    autoCapitalize="none"
-                  />
-                  <Pressable
-                    hitSlop={10}
-                    onPress={() => setShowNewPass(!showNewPass)}
-                    className="pl-2"
-                  >
-                    <AppIcon
-                      android={showNewPass ? 'visibility_off' : 'visibility'}
-                      size={18}
-                      color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
-                    />
-                  </Pressable>
-                </View>
-              </View>
-
-              {/* Confirm New Password Field */}
-              <View style={{ gap: 5 }}>
-                <Text className="text-[13px] font-semibold text-[#050505] dark:text-[#e4e6eb]">
-                  {locale === 'bn'
-                    ? 'নতুন পাসওয়ার্ড নিশ্চিত করুন'
-                    : 'Confirm New Password'}
-                </Text>
-                <View className="flex-row items-center rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#ced0d4] dark:border-[#4e5052] px-3.5 h-12">
-                  <TextInput
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    secureTextEntry={!showConfirmPass}
-                    placeholder={
-                      locale === 'bn'
-                        ? 'নতুন পাসওয়ার্ড পুনরায় লিখুন'
-                        : 'Re-enter new password'
-                    }
-                    placeholderTextColor={
-                      theme === 'dark' ? '#8a8d91' : '#8c9099'
-                    }
-                    className="flex-1 text-[14px] text-[#050505] dark:text-[#e4e6eb] h-full"
-                    autoCapitalize="none"
-                  />
-                  <Pressable
-                    hitSlop={10}
-                    onPress={() => setShowConfirmPass(!showConfirmPass)}
-                    className="pl-2"
-                  >
-                    <AppIcon
-                      android={showConfirmPass ? 'visibility_off' : 'visibility'}
-                      size={18}
-                      color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
-                    />
-                  </Pressable>
-                </View>
-              </View>
+              ))}
 
               {/* Status Message */}
               {passwordStatus && (
                 <View
-                  className={`p-3 rounded-xl flex-row items-center gap-2.5 ${
-                    passwordStatus.type === 'success'
-                      ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800'
-                  }`}
+                  style={{
+                    backgroundColor:
+                      passwordStatus.type === 'success'
+                        ? isDark
+                          ? 'rgba(5, 150, 105, 0.16)'
+                          : '#ecfdf5'
+                        : isDark
+                          ? 'rgba(225, 29, 72, 0.16)'
+                          : '#fff1f2',
+                    borderColor:
+                      passwordStatus.type === 'success'
+                        ? isDark
+                          ? 'rgba(16, 185, 129, 0.35)'
+                          : '#a7f3d0'
+                        : isDark
+                          ? 'rgba(244, 63, 94, 0.35)'
+                          : '#fecdd3',
+                  }}
+                  className="p-3.5 rounded-xl border flex-row items-center gap-2.5"
                 >
                   <AppIcon
                     android={
@@ -870,7 +834,7 @@ export default function SettingsScreen() {
                     }
                   />
                   <Text
-                    className={`text-[12.5px] font-medium flex-1 ${
+                    className={`text-[14.5px] font-medium flex-1 ${
                       passwordStatus.type === 'success'
                         ? 'text-emerald-700 dark:text-emerald-300'
                         : 'text-rose-700 dark:text-rose-300'
@@ -886,9 +850,9 @@ export default function SettingsScreen() {
                 <Pressable
                   disabled={isPasswordLoading}
                   onPress={closeWithSlideDown}
-                  className="flex-1 h-12 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:bg-[#e4e6eb] dark:active:bg-[#4a4b4d]"
+                  className="flex-1 h-12 rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:opacity-80"
                 >
-                  <Text className="text-[14px] font-semibold text-[#050505] dark:text-[#e4e6eb]">
+                  <Text className="text-[15px] font-semibold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'বাতিল' : 'Cancel'}
                   </Text>
                 </Pressable>
@@ -896,7 +860,7 @@ export default function SettingsScreen() {
                 <Pressable
                   disabled={isPasswordLoading}
                   onPress={handlePasswordChange}
-                  className={`flex-1 h-12 rounded-xl items-center justify-center flex-row gap-2 active:scale-98 shadow-xs ${
+                  className={`flex-1 h-12 rounded-xl items-center justify-center flex-row gap-2 active:opacity-85 ${
                     isPasswordLoading ? 'bg-primary-400' : 'bg-[#0866FF]'
                   }`}
                 >
@@ -904,8 +868,8 @@ export default function SettingsScreen() {
                     <ActivityIndicator size="small" color="#ffffff" />
                   ) : (
                     <>
-                      <AppIcon android="lock" size={16} color="#ffffff" />
-                      <Text className="text-[14px] font-bold text-white">
+                      <AppIcon android="lock" size={17} color="#ffffff" />
+                      <Text className="text-[15px] font-bold text-white">
                         {hasPassword
                           ? locale === 'bn'
                             ? 'সংরক্ষণ করুন'
@@ -926,5 +890,6 @@ export default function SettingsScreen() {
   </View>
 </Modal>
     </ScrollView>
+    </View>
   );
 }

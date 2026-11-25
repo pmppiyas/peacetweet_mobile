@@ -458,7 +458,7 @@ export default function EditProfileScreen() {
   return (
     <View className="flex-1 bg-[#f0f2f5] dark:bg-[#18191a]">
       {/* Top Facebook-Style Header Bar */}
-      <View className="w-full bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-4 py-2.5 flex-row items-center justify-between z-30 shadow-xs">
+      <View className="w-full bg-white dark:bg-[#242526] border-b border-[#e4e6eb] dark:border-[#393a3b] px-3.5 py-2.5 flex-row items-center justify-between z-30">
         <View className="flex-row items-center gap-3">
           <Pressable
             onPress={() => {
@@ -468,7 +468,7 @@ export default function EditProfileScreen() {
                 router.replace('/profile');
               }
             }}
-            className="h-9 w-9 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:scale-95">
+            className="h-9 w-9 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] items-center justify-center active:opacity-80">
             <AppIcon
               android="arrow_back"
               size={20}
@@ -476,10 +476,10 @@ export default function EditProfileScreen() {
             />
           </Pressable>
           <View>
-            <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] leading-5">
+            <Text className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb] leading-5">
               {locale === 'bn' ? 'প্রোফাইল সম্পাদনা' : 'Edit Profile'}
             </Text>
-            <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+            <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8]">
               @{user?.username || 'profile'}
             </Text>
           </View>
@@ -488,14 +488,14 @@ export default function EditProfileScreen() {
         <Pressable
           onPress={handleSave}
           disabled={isSaving || isUploadingAvatar || isUploadingCover}
-          className="flex-row items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-600 shadow-sm active:scale-95 disabled:opacity-70"
+          className="flex-row items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary-600 active:opacity-85 disabled:opacity-70"
         >
           {isSaving ? (
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
             <>
-              <AppIcon android="check" size={16} color="#ffffff" />
-              <Text className="text-xs font-bold text-white">
+              <AppIcon android="check" size={17} color="#ffffff" />
+              <Text className="text-[14px] font-bold text-white">
                 {locale === 'bn' ? 'সংরক্ষণ' : 'Save'}
               </Text>
             </>
@@ -506,28 +506,37 @@ export default function EditProfileScreen() {
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
-          paddingHorizontal: 10,
-          paddingTop: 10,
+          paddingTop: 8,
           paddingBottom: 20,
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="w-full max-w-[640px] mx-auto gap-3">
+        <View className="w-full max-w-[640px] mx-auto gap-2">
           {/* Feedback Messages */}
           {Boolean(errorMessage) ? (
-            <View className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 flex-row items-center gap-2.5">
+            <View
+              style={{
+                borderColor: theme === 'dark' ? 'rgba(244, 63, 94, 0.35)' : '#fecdd3',
+              }}
+              className="mx-3.5 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border flex-row items-center gap-2.5"
+            >
               <AppIcon android="error" size={18} color="#e11d48" />
-              <Text className="text-xs font-semibold text-rose-600 dark:text-rose-400 flex-1">
+              <Text className="text-[14.5px] font-semibold text-rose-600 dark:text-rose-400 flex-1">
                 {errorMessage}
               </Text>
             </View>
           ) : null}
 
           {Boolean(successMessage) ? (
-            <View className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 flex-row items-center gap-2.5">
+            <View
+              style={{
+                borderColor: theme === 'dark' ? 'rgba(16, 185, 129, 0.35)' : '#a7f3d0',
+              }}
+              className="mx-3.5 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border flex-row items-center gap-2.5"
+            >
               <AppIcon android="check_circle" size={18} color="#10b981" />
-              <Text className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex-1">
+              <Text className="text-[14.5px] font-semibold text-emerald-600 dark:text-emerald-400 flex-1">
                 {successMessage}
               </Text>
             </View>
@@ -536,17 +545,17 @@ export default function EditProfileScreen() {
           {/* ======================================================== */}
           {/* 1. Facebook-Style Profile Picture Section                */}
           {/* ======================================================== */}
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs">
+          <View className="w-full bg-white dark:bg-[#242526] px-3.5 py-4">
             <View className="flex-row items-center justify-between pb-3 border-b border-[#f0f2f5] dark:border-[#393a3b]">
-              <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+              <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'প্রোফাইল ছবি' : 'Profile picture'}
               </Text>
               <Pressable
                 onPress={() => handlePickPhoto('avatar')}
                 disabled={isUploadingAvatar}
-                className="rounded-full bg-primary-50 dark:bg-primary-950/40 px-3 py-1 active:opacity-70"
+                className="rounded-full bg-primary-50 dark:bg-primary-950/40 px-3.5 py-1.5 active:opacity-70"
               >
-                <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                <Text className="text-[14px] font-bold text-primary-600 dark:text-primary-400">
                   {isUploadingAvatar
                     ? locale === 'bn'
                       ? 'আপলোড হচ্ছে...'
@@ -558,11 +567,11 @@ export default function EditProfileScreen() {
               </Pressable>
             </View>
 
-            <View className="items-center py-4">
+            <View className="items-center pt-4 pb-1">
               <Pressable
                 onPress={() => handlePickPhoto('avatar')}
                 disabled={isUploadingAvatar}
-                className="relative active:scale-95"
+                className="relative active:opacity-85"
               >
                 <View className="h-28 w-28 rounded-full border-4 border-white dark:border-[#3a3b3c] bg-primary-600 shadow-md items-center justify-center overflow-hidden">
                   {Boolean(avatarUrl) ? (
@@ -589,28 +598,23 @@ export default function EditProfileScreen() {
                   <AppIcon android="photo_camera" size={17} color="#ffffff" />
                 </View>
               </Pressable>
-              <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2.5 font-medium">
-                {locale === 'bn'
-                  ? 'গ্যালারি বা ক্যামেরা থেকে ছবি বেছে নিন'
-                  : 'Tap to pick photo from gallery or device'}
-              </Text>
             </View>
           </View>
 
           {/* ======================================================== */}
           {/* 2. Facebook-Style Cover Photo Section                    */}
           {/* ======================================================== */}
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs">
+          <View className="w-full bg-white dark:bg-[#242526] px-3.5 py-4">
             <View className="flex-row items-center justify-between pb-3 border-b border-[#f0f2f5] dark:border-[#393a3b]">
-              <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+              <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'কভার ছবি' : 'Cover photo'}
               </Text>
               <Pressable
                 onPress={() => handlePickPhoto('cover')}
                 disabled={isUploadingCover}
-                className="rounded-full bg-primary-50 dark:bg-primary-950/40 px-3 py-1 active:opacity-70"
+                className="rounded-full bg-primary-50 dark:bg-primary-950/40 px-3.5 py-1.5 active:opacity-70"
               >
-                <Text className="text-xs font-bold text-primary-600 dark:text-primary-400">
+                <Text className="text-[14px] font-bold text-primary-600 dark:text-primary-400">
                   {isUploadingCover
                     ? locale === 'bn'
                       ? 'আপলোড হচ্ছে...'
@@ -626,7 +630,10 @@ export default function EditProfileScreen() {
               <Pressable
                 onPress={() => handlePickPhoto('cover')}
                 disabled={isUploadingCover}
-                className="relative w-full h-40 sm:h-48 rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c] overflow-hidden border border-[#e4e6eb] dark:border-[#4a4b4d] active:opacity-90"
+                style={{
+                  borderColor: theme === 'dark' ? '#4a4b4d' : '#e4e6eb',
+                }}
+                className="relative w-full h-40 sm:h-48 rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c] overflow-hidden border active:opacity-90"
               >
                 {Boolean(coverUrl) ? (
                   <Image
@@ -639,7 +646,7 @@ export default function EditProfileScreen() {
                     <View className="h-12 w-12 rounded-full bg-white/20 items-center justify-center mb-1.5">
                       <AppIcon android="add_a_photo" size={24} color="#ffffff" />
                     </View>
-                    <Text className="text-white text-xs font-bold opacity-95">
+                    <Text className="text-white text-[14.5px] font-bold opacity-95">
                       {locale === 'bn'
                         ? 'কভার ছবি যুক্ত করুন'
                         : 'Add Cover Photo'}
@@ -650,7 +657,7 @@ export default function EditProfileScreen() {
                 {isUploadingCover ? (
                   <View className="absolute inset-0 bg-black/50 items-center justify-center">
                     <ActivityIndicator size="large" color="#ffffff" />
-                    <Text className="text-white text-xs font-bold mt-2">
+                    <Text className="text-white text-[14px] font-bold mt-2">
                       {locale === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...'}
                     </Text>
                   </View>
@@ -669,12 +676,12 @@ export default function EditProfileScreen() {
           {/* ======================================================== */}
           {/* 3. Facebook-Style Bio Section                            */}
           {/* ======================================================== */}
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs">
-            <View className="flex-row items-center justify-between pb-2 border-b border-[#f0f2f5] dark:border-[#393a3b]">
-              <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+          <View className="w-full bg-white dark:bg-[#242526] px-3.5 py-4">
+            <View className="flex-row items-center justify-between pb-2.5 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+              <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'বায়ো / পরিচিতি' : 'Bio'}
               </Text>
-              <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+              <Text className="text-[13.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                 {bio.length}/250
               </Text>
             </View>
@@ -687,12 +694,12 @@ export default function EditProfileScreen() {
                 numberOfLines={3}
                 placeholder={
                   locale === 'bn'
-                    ? 'নিজের সম্পর্কে কিছু লিখুন... (যেমন: শান্তিময় জীবন প্রত্যাশী)'
+                    ? 'নিজের সম্পর্কে কিছু লিখুন...'
                     : 'Describe who you are...'
                 }
                 placeholderTextColor="#8a8d91"
                 textAlignVertical="top"
-                className="w-full min-h-[90px] rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 p-3.5 text-sm text-[#050505] dark:text-[#e4e6eb]"
+                className="w-full min-h-[96px] rounded-2xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 p-3.5 text-base text-[#050505] dark:text-[#e4e6eb]"
               />
             </View>
           </View>
@@ -700,14 +707,14 @@ export default function EditProfileScreen() {
           {/* ======================================================== */}
           {/* 4. Basic Information (Name & Username)                   */}
           {/* ======================================================== */}
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs gap-3.5">
-            <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb] pb-3 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+          <View className="w-full bg-white dark:bg-[#242526] px-3.5 py-4 gap-3.5">
+            <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] pb-2.5 border-b border-[#f0f2f5] dark:border-[#393a3b]">
               {locale === 'bn' ? 'মৌলিক তথ্য' : 'Basic info'}
             </Text>
 
             {/* Name */}
             <View className="gap-1.5">
-              <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]">
+              <Text className="text-[14.5px] font-semibold text-[#1c1e21] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'পুরো নাম *' : 'Full Name *'}
               </Text>
               <TextInput
@@ -717,13 +724,13 @@ export default function EditProfileScreen() {
                   locale === 'bn' ? 'আপনার নাম লিখুন' : 'Enter your name'
                 }
                 placeholderTextColor="#8a8d91"
-                className="w-full h-12 rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 px-3.5 text-sm text-[#050505] dark:text-[#e4e6eb] font-medium"
+                className="w-full h-12 rounded-2xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 px-3.5 text-base text-[#050505] dark:text-[#e4e6eb] font-medium"
               />
             </View>
 
             {/* Username */}
             <View className="gap-1.5">
-              <Text className="text-xs font-semibold text-[#050505] dark:text-[#e4e6eb]">
+              <Text className="text-[14.5px] font-semibold text-[#1c1e21] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'ইউজারনেম' : 'Username'}
               </Text>
               <TextInput
@@ -732,19 +739,19 @@ export default function EditProfileScreen() {
                 autoCapitalize="none"
                 placeholder="username"
                 placeholderTextColor="#8a8d91"
-                className="w-full h-12 rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 px-3.5 text-sm text-[#050505] dark:text-[#e4e6eb] font-medium"
+                className="w-full h-12 rounded-2xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 px-3.5 text-base text-[#050505] dark:text-[#e4e6eb] font-medium"
               />
             </View>
 
             {/* Email (Readonly) */}
             <View className="gap-1.5">
-              <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+              <Text className="text-[14.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                 {locale === 'bn' ? 'ইমেইল (অপরিবর্তনীয়)' : 'Email (Read only)'}
               </Text>
               <TextInput
                 value={user?.email || ''}
                 editable={false}
-                className="w-full h-12 rounded-xl border border-transparent bg-[#e4e6eb]/50 dark:bg-[#3a3b3c]/30 px-3.5 text-sm text-[#65676b] dark:text-[#b0b3b8]"
+                className="w-full h-12 rounded-2xl border border-transparent bg-[#e4e6eb]/50 dark:bg-[#3a3b3c]/30 px-3.5 text-base text-[#65676b] dark:text-[#b0b3b8]"
               />
             </View>
           </View>
@@ -752,36 +759,22 @@ export default function EditProfileScreen() {
           {/* ======================================================== */}
           {/* 5. Customize Details (Location & Blood Donation)         */}
           {/* ======================================================== */}
-          <View className="rounded-2xl bg-white dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] p-3.5 shadow-xs gap-4">
-            <View className="pb-3 border-b border-[#f0f2f5] dark:border-[#393a3b]">
-              <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+          <View className="w-full bg-white dark:bg-[#242526] px-3.5 py-4 gap-4">
+            <View className="pb-2.5 border-b border-[#f0f2f5] dark:border-[#393a3b]">
+              <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
                 {locale === 'bn' ? 'বিস্তারিত তথ্য' : 'Details'}
-              </Text>
-              <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-                {locale === 'bn'
-                  ? 'বর্তমান অবস্থান এবং রক্তদানের তথ্য'
-                  : 'Location and blood donation preferences'}
               </Text>
             </View>
 
             {/* Location Selector */}
             <View className="gap-1.5">
               <View className="flex-row items-center gap-1.5">
-                <AppIcon android="location_on" size={17} color="#e11d48" />
-                <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
-                  {locale === 'bn'
-                    ? 'বর্তমান অবস্থান (রক্তদানের মতো ফিল্টার)'
-                    : 'Location (District & Division)'}
+                <AppIcon android="location_on" size={18} color="#e11d48" />
+                <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+                  {locale === 'bn' ? 'বর্তমান অবস্থান' : 'Current Location'}
                 </Text>
               </View>
 
-              <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn'
-                  ? 'আপনার বিভাগ, জেলা এবং উপজেলা নির্বাচন করুন যাতে রক্তের প্রয়োজনে আপনাকে সহজে খুঁজে পাওয়া যায়।'
-                  : 'Select your Division, District and Upazila like in Blood Donation.'}
-              </Text>
-
-              {/* The Reusable Cascading LocationSelector */}
               <View className="mt-1">
                 <LocationSelector
                   value={locationValue}
@@ -795,8 +788,8 @@ export default function EditProfileScreen() {
             {/* Blood Donation Section */}
             <View className="gap-3">
               <View className="flex-row items-center gap-1.5">
-                <AppIcon android="water_drop" size={17} color="#e11d48" />
-                <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb]">
+                <AppIcon android="water_drop" size={18} color="#e11d48" />
+                <Text className="text-[15px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                   {locale === 'bn'
                     ? 'রক্তের গ্রুপ ও রক্তদান'
                     : 'Blood Group & Donor Status'}
@@ -811,15 +804,15 @@ export default function EditProfileScreen() {
                     <Pressable
                       key={bg.value}
                       onPress={() => setBloodGroup(bg.value)}
-                      className={`h-11 rounded-xl border flex-row items-center justify-center active:scale-95 ${
+                      className={`h-11 rounded-xl border flex-row items-center justify-center active:opacity-80 ${
                         isSelected
-                          ? 'bg-rose-600 border-rose-600 shadow-xs'
+                          ? 'bg-rose-600 border-rose-600'
                           : 'bg-[#f0f2f5] dark:bg-[#3a3b3c] border-transparent'
                       }`}
                       style={{ minWidth: '29%', flexGrow: 1, maxWidth: '32%' }}
                     >
                       <Text
-                        className={`text-sm font-bold ${
+                        className={`text-[15px] font-bold ${
                           isSelected
                             ? 'text-white'
                             : 'text-[#050505] dark:text-[#e4e6eb]'
@@ -835,12 +828,12 @@ export default function EditProfileScreen() {
               {/* Donor Switch */}
               <View className="flex-row items-center justify-between pt-2">
                 <View className="flex-1 pr-3">
-                  <Text className="text-sm font-semibold text-[#050505] dark:text-[#e4e6eb]">
+                  <Text className="text-base font-semibold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn'
                       ? 'রক্তদাতা হিসেবে প্রস্তুত'
                       : 'Available as Blood Donor'}
                   </Text>
-                  <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
+                  <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                     {locale === 'bn'
                       ? 'জরুরি রক্তের প্রয়োজনে অন্যরা আপনাকে খুঁজে পাবে'
                       : 'Show up in donors search for your location'}
@@ -858,15 +851,10 @@ export default function EditProfileScreen() {
               {isDonor ? (
                 <View className="flex-row items-center justify-between pt-3 border-t border-[#f0f2f5] dark:border-[#393a3b]">
                   <View>
-                    <Text className="text-sm font-semibold text-[#050505] dark:text-[#e4e6eb]">
+                    <Text className="text-[15px] font-semibold text-[#050505] dark:text-[#e4e6eb]">
                       {locale === 'bn'
                         ? 'মোট রক্তদানের সংখ্যা'
                         : 'Donations Count'}
-                    </Text>
-                    <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
-                      {locale === 'bn'
-                        ? 'কতবার রক্ত দিয়েছেন'
-                        : 'Number of times you donated'}
                     </Text>
                   </View>
                   <TextInput
@@ -875,7 +863,7 @@ export default function EditProfileScreen() {
                     keyboardType="numeric"
                     placeholder="0"
                     placeholderTextColor="#8a8d91"
-                    className="w-20 h-11 text-center rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c] text-sm font-bold text-[#050505] dark:text-[#e4e6eb]"
+                    className="w-20 h-11 text-center rounded-xl border border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c] text-base font-bold text-[#050505] dark:text-[#e4e6eb]"
                   />
                 </View>
               ) : null}
@@ -883,22 +871,24 @@ export default function EditProfileScreen() {
           </View>
 
           {/* Bottom Save Button */}
-          <Pressable
-            onPress={handleSave}
-            disabled={isSaving || isUploadingAvatar || isUploadingCover}
-            className="w-full h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-primary-600 shadow-md active:scale-98 disabled:opacity-70 mt-1 mb-2"
-          >
-            {isSaving ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <>
-                <AppIcon android="check" size={18} color="#ffffff" />
-                <Text className="text-sm font-bold text-white">
-                  {locale === 'bn' ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}
-                </Text>
-              </>
-            )}
-          </Pressable>
+          <View className="w-full px-3.5 pt-2">
+            <Pressable
+              onPress={handleSave}
+              disabled={isSaving || isUploadingAvatar || isUploadingCover}
+              className="w-full h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-primary-600 active:opacity-85 disabled:opacity-70"
+            >
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <>
+                  <AppIcon android="check" size={19} color="#ffffff" />
+                  <Text className="text-[15px] font-bold text-white">
+                    {locale === 'bn' ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
     </View>

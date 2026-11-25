@@ -44,6 +44,8 @@ export function BloodActivityTab({
   const { isAuthenticated } = useAuth();
   const [activitySubTab, setActivitySubTab] = useState<'my_requests' | 'my_accepted'>('my_requests');
 
+  const isDark = theme === 'dark';
+
   if (!isAuthenticated) {
     return (
       <View className="w-full pt-2">
@@ -72,19 +74,19 @@ export function BloodActivityTab({
           <Pressable
             onPress={() => setActivitySubTab('my_requests')}
             style={{ flex: 1, minWidth: 0 }}
-            className={`py-2 items-center justify-center flex-row gap-1.5 rounded-lg ${
+            className={`py-2.5 items-center justify-center flex-row gap-1.5 rounded-lg ${
               activitySubTab === 'my_requests'
                 ? 'bg-white dark:bg-[#3a3b3c]'
                 : 'active:bg-white/50'
             }`}>
             <AppIcon
               android="water_drop"
-              size={14}
+              size={15}
               color={activitySubTab === 'my_requests' ? '#e11d48' : '#8a8d91'}
             />
             <Text
               numberOfLines={1}
-              className={`text-xs font-bold ${
+              className={`text-[14px] font-bold ${
                 activitySubTab === 'my_requests'
                   ? 'text-[#050505] dark:text-[#e4e6eb]'
                   : 'text-[#8a8d91] dark:text-[#b0b3b8]'
@@ -98,19 +100,19 @@ export function BloodActivityTab({
           <Pressable
             onPress={() => setActivitySubTab('my_accepted')}
             style={{ flex: 1, minWidth: 0 }}
-            className={`py-2 items-center justify-center flex-row gap-1.5 rounded-lg ${
+            className={`py-2.5 items-center justify-center flex-row gap-1.5 rounded-lg ${
               activitySubTab === 'my_accepted'
                 ? 'bg-white dark:bg-[#3a3b3c]'
                 : 'active:bg-white/50'
             }`}>
             <AppIcon
               android="favorite"
-              size={14}
+              size={15}
               color={activitySubTab === 'my_accepted' ? '#e11d48' : '#8a8d91'}
             />
             <Text
               numberOfLines={1}
-              className={`text-xs font-bold ${
+              className={`text-[14px] font-bold ${
                 activitySubTab === 'my_accepted'
                   ? 'text-[#050505] dark:text-[#e4e6eb]'
                   : 'text-[#8a8d91] dark:text-[#b0b3b8]'
@@ -128,18 +130,20 @@ export function BloodActivityTab({
             {isLoading && !isRefreshing && myRequests.length === 0 ? (
               <BloodSkeleton count={3} />
             ) : myRequests.length === 0 ? (
-              <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center my-4">
+              <View
+                style={{ borderColor: isDark ? '#393a3b' : '#e4e6eb' }}
+                className="rounded-2xl border border-dashed p-8 items-center justify-center my-4">
                 <AppIcon android="inbox" size={26} color="#e11d48" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+                <Text className="text-[15px] leading-[22px] text-[#65676b] dark:text-[#b0b3b8] mt-2.5 font-medium text-center">
                   {locale === 'bn'
                     ? 'আপনি এখনও কোনো রক্তের আবেদন পোস্ট করেননি।'
                     : 'You have not posted any blood requests yet.'}
                 </Text>
                 <Pressable
                   onPress={onSwitchToCreate}
-                  className="mt-3.5 px-4 py-2 rounded-xl bg-rose-600 active:bg-rose-700 flex-row items-center gap-1.5 shadow-xs">
-                  <AppIcon android="add" size={14} color="#ffffff" />
-                  <Text className="text-xs font-bold text-white">
+                  className="mt-3.5 px-4 py-2.5 rounded-xl bg-rose-600 active:bg-rose-700 flex-row items-center gap-1.5">
+                  <AppIcon android="add" size={16} color="#ffffff" />
+                  <Text className="text-[14px] font-bold text-white">
                     {locale === 'bn' ? 'নতুন আবেদন করুন' : 'Create New Request'}
                   </Text>
                 </Pressable>
@@ -153,14 +157,24 @@ export function BloodActivityTab({
                 return (
                   <View
                     key={req.id}
-                    className={`py-3.5 ${
-                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
-                    }`}>
+                    style={
+                      !isLast
+                        ? {
+                            borderBottomWidth: 1,
+                            borderBottomColor: isDark ? '#242526' : '#e6e9ef',
+                          }
+                        : undefined
+                    }
+                    className="py-3.5">
                     <View className="flex-row items-start justify-between gap-2">
                       {/* Left: Blood Group Badge & Patient Info */}
                       <View className="flex-row items-start gap-3 flex-1 min-w-0">
-                        <View className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 items-center justify-center shrink-0 shadow-xs">
-                          <Text className="text-rose-600 dark:text-rose-400 font-extrabold text-sm">
+                        <View
+                          style={{
+                            borderColor: isDark ? 'rgba(225, 29, 72, 0.35)' : '#fecdd3',
+                          }}
+                          className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border items-center justify-center shrink-0">
+                          <Text className="text-rose-600 dark:text-rose-400 font-extrabold text-[15px]">
                             {formattedGroup}
                           </Text>
                         </View>
@@ -168,20 +182,22 @@ export function BloodActivityTab({
                         <View className="flex-1 min-w-0">
                           {/* Title & Status Row */}
                           <View className="flex-row items-center gap-2 flex-wrap">
-                            <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
+                            <Text
+                              numberOfLines={1}
+                              className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
                               {req.patientName}
                             </Text>
                             {req.patientAge ? (
-                              <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                              <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8]">
                                 ({req.patientAge} {locale === 'bn' ? 'বছর' : 'yrs'})
                               </Text>
                             ) : null}
                             <View
-                              className={`flex-row items-center gap-1 px-2 py-0.5 rounded-full border ${statusBadge.bg} ${statusBadge.border}`}>
+                              className={`flex-row items-center gap-1 px-2.5 py-0.5 rounded-full border ${statusBadge.bg} ${statusBadge.border}`}>
                               {statusBadge.isPosting && (
                                 <ActivityIndicator size="small" color="#e11d48" style={{ transform: [{ scale: 0.65 }] }} />
                               )}
-                              <Text className={`text-[10px] font-bold ${statusBadge.text}`}>
+                              <Text className={`text-[12.5px] font-bold ${statusBadge.text}`}>
                                 {statusBadge.label}
                               </Text>
                             </View>
@@ -190,20 +206,20 @@ export function BloodActivityTab({
                           {/* Hospital & Location */}
                           <Text
                             numberOfLines={1}
-                            className="text-xs text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
+                            className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                             {req.hospitalName} • {req.location}
                           </Text>
 
                           {/* Units & Needed Date/Time */}
                           <View className="flex-row items-center gap-2 mt-1 flex-wrap">
-                            <Text className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                            <Text className="text-[13.5px] font-semibold text-rose-600 dark:text-rose-400">
                               {req.unitsFulfilled}/{req.units}{' '}
                               {locale === 'bn' ? 'ব্যাগ রক্ত' : 'units'}
                             </Text>
                             {req.neededDate && (
                               <View className="flex-row items-center gap-1">
-                                <AppIcon android="schedule" size={11} color="#e11d48" />
-                                <Text className="text-[11px] font-medium text-rose-600 dark:text-rose-400">
+                                <AppIcon android="schedule" size={13} color="#e11d48" />
+                                <Text className="text-[13.5px] font-medium text-rose-600 dark:text-rose-400">
                                   {new Date(req.neededDate).toLocaleString(
                                     locale === 'bn' ? 'bn-BD' : 'en-US',
                                     {
@@ -230,17 +246,25 @@ export function BloodActivityTab({
                       if (activeDonations.length === 0) return null;
 
                       return (
-                        <View className="mt-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80">
-                          <View className="flex-row items-center justify-between mb-2 pb-1.5 border-b border-emerald-200/60 dark:border-emerald-800/60">
+                        <View
+                          style={{
+                            borderColor: isDark ? 'rgba(16, 185, 129, 0.35)' : '#a7f3d0',
+                          }}
+                          className="mt-3 p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border">
+                          <View
+                            style={{
+                              borderBottomColor: isDark ? 'rgba(16, 185, 129, 0.25)' : '#d1fae5',
+                            }}
+                            className="flex-row items-center justify-between mb-2 pb-1.5 border-b">
                             <View className="flex-row items-center gap-1.5">
-                              <AppIcon android="check_circle" size={14} color="#059669" />
-                              <Text className="text-xs font-bold text-emerald-900 dark:text-emerald-300">
+                              <AppIcon android="check_circle" size={15} color="#059669" />
+                              <Text className="text-[13.5px] font-bold text-emerald-900 dark:text-emerald-300">
                                 {locale === 'bn' ? 'রক্তদানে সম্মত রক্তদাতা:' : 'Pledged Donors:'}
                               </Text>
                             </View>
-                            <View className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60">
-                              <Text className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
-                                {activeDonations.length} {locale === 'bn' ? 'জন রক্তদাতা' : 'Donor(s)'}
+                            <View className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60">
+                              <Text className="text-[12.5px] font-bold text-emerald-800 dark:text-emerald-300">
+                                {activeDonations.length} {locale === 'bn' ? 'জন' : 'Donor(s)'}
                               </Text>
                             </View>
                           </View>
@@ -254,7 +278,10 @@ export function BloodActivityTab({
                               return (
                                 <View
                                   key={d.id}
-                                  className="flex-row items-center justify-between bg-white dark:bg-[#242526] p-2.5 rounded-xl border border-emerald-100 dark:border-[#393a3b] shadow-xs">
+                                  style={{
+                                    borderColor: isDark ? '#393a3b' : '#d1fae5',
+                                  }}
+                                  className="flex-row items-center justify-between bg-white dark:bg-[#242526] p-2.5 rounded-xl border">
                                   <View className="flex-row items-center gap-2.5 flex-1 min-w-0 pr-2">
                                     <UserAvatar
                                       name={donorName}
@@ -265,18 +292,22 @@ export function BloodActivityTab({
                                       <View className="flex-row items-center gap-1.5 flex-wrap">
                                         <Text
                                           numberOfLines={1}
-                                          className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
+                                          className="text-[14.5px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                                           {donorName}
                                         </Text>
                                         {donorGroup && (
-                                          <View className="px-1.5 py-0.2 rounded bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60">
-                                            <Text className="text-[10px] font-extrabold text-rose-600 dark:text-rose-400">
+                                          <View
+                                            style={{
+                                              borderColor: isDark ? 'rgba(225, 29, 72, 0.35)' : '#fecdd3',
+                                            }}
+                                            className="px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-950/60 border">
+                                            <Text className="text-[12px] font-extrabold text-rose-600 dark:text-rose-400">
                                               {donorGroup}
                                             </Text>
                                           </View>
                                         )}
                                       </View>
-                                      <Text className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
+                                      <Text className="text-[13px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
                                         {isCompleted
                                           ? (locale === 'bn' ? '✓ রক্তদান সম্পন্ন' : '✓ Donation Completed')
                                           : (locale === 'bn' ? '✓ রক্ত দিতে সম্মত হয়েছেন' : '✓ Agreed to donate')}
@@ -287,13 +318,13 @@ export function BloodActivityTab({
                                   {d.donor && (
                                     <Pressable
                                       onPress={() => onDonorMessage(d.donor as any)}
-                                      className="px-3 py-1.5 rounded-lg bg-rose-600 active:bg-rose-700 flex-row items-center gap-1 shadow-xs">
+                                      className="px-3 py-2 rounded-lg bg-rose-600 active:bg-rose-700 flex-row items-center gap-1">
                                       <AppIcon
                                         android="chat_bubble"
-                                        size={12}
+                                        size={14}
                                         color="#ffffff"
                                       />
-                                      <Text className="text-xs font-bold text-white">
+                                      <Text className="text-[13.5px] font-bold text-white">
                                         {locale === 'bn' ? 'মেসেজ' : 'Chat'}
                                       </Text>
                                     </Pressable>
@@ -308,17 +339,21 @@ export function BloodActivityTab({
 
                     {/* Actions: Mark Completed or Cancel */}
                     {req.status !== 'COMPLETED' && req.status !== 'CANCELLED' && req.status !== 'POSTING' && (
-                      <View className="flex-row items-center gap-2 mt-2.5 pt-2 border-t border-[#e6e9ef] dark:border-[#242526]">
+                      <View
+                        style={{
+                          borderTopColor: isDark ? '#242526' : '#e6e9ef',
+                        }}
+                        className="flex-row items-center gap-2 mt-2.5 pt-2.5 border-t">
                         <Pressable
                           onPress={() => onCompleteMyRequest(req)}
                           disabled={actionLoadingId === req.id}
-                          className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-600 active:bg-emerald-700 flex-row items-center justify-center gap-1.5 shadow-xs">
+                          className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 active:bg-emerald-700 flex-row items-center justify-center gap-1.5">
                           {actionLoadingId === req.id ? (
                             <ActivityIndicator size="small" color="#ffffff" />
                           ) : (
-                            <AppIcon android="check" size={13} color="#ffffff" />
+                            <AppIcon android="check" size={15} color="#ffffff" />
                           )}
-                          <Text className="text-xs font-bold text-white">
+                          <Text className="text-[14px] font-bold text-white">
                             {locale === 'bn' ? 'রক্ত পেয়েছি (Complete)' : 'Mark as Completed'}
                           </Text>
                         </Pressable>
@@ -326,13 +361,13 @@ export function BloodActivityTab({
                         <Pressable
                           onPress={() => onCancelMyRequest(req)}
                           disabled={actionLoadingId === req.id}
-                          className="py-1.5 px-3 rounded-lg bg-gray-100 dark:bg-[#3a3b3c] active:opacity-70 flex-row items-center justify-center gap-1">
+                          className="py-2 px-3.5 rounded-xl bg-gray-100 dark:bg-[#3a3b3c] active:opacity-70 flex-row items-center justify-center gap-1">
                           <AppIcon
                             android="close"
-                            size={13}
-                            color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
+                            size={15}
+                            color={isDark ? '#b0b3b8' : '#65676b'}
                           />
-                          <Text className="text-xs font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                          <Text className="text-[14px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                             {locale === 'bn' ? 'বাতিল' : 'Cancel'}
                           </Text>
                         </Pressable>
@@ -348,16 +383,17 @@ export function BloodActivityTab({
               <View className="pt-3 pb-2 items-center justify-center">
                 <Pressable
                   onPress={onScrollToTop}
-                  className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e6e9ef] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
+                  style={{ borderColor: isDark ? '#393a3b' : '#e4e6eb' }}
+                  className="flex-row items-center gap-2 px-4 py-2 rounded-full bg-[#e6e9ef] dark:bg-[#242526] border active:opacity-80">
                   <View className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                  <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[13.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn'
                       ? 'আর কোনো আবেদন নেই'
                       : 'No more requests'}
                   </Text>
                   {onScrollToTop && (
                     <View className="ml-1 pl-1.5 border-l border-[#d0d2d6] dark:border-[#3a3b3c]">
-                      <AppIcon android="keyboard_arrow_up" size={13} color="#e11d48" weight="bold" />
+                      <AppIcon android="keyboard_arrow_up" size={15} color="#e11d48" weight="bold" />
                     </View>
                   )}
                 </Pressable>
@@ -372,18 +408,20 @@ export function BloodActivityTab({
             {isLoading && !isRefreshing && myAccepted.length === 0 ? (
               <BloodSkeleton count={3} />
             ) : myAccepted.length === 0 ? (
-              <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center my-4">
+              <View
+                style={{ borderColor: isDark ? '#393a3b' : '#e4e6eb' }}
+                className="rounded-2xl border border-dashed p-8 items-center justify-center my-4">
                 <AppIcon android="favorite" size={26} color="#e11d48" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+                <Text className="text-[15px] leading-[22px] text-[#65676b] dark:text-[#b0b3b8] mt-2.5 font-medium text-center">
                   {locale === 'bn'
                     ? 'আপনি এখনও কোনো রক্তদানের আবেদন গ্রহণ করেননি।'
                     : 'You have not pledged to donate for any requests yet.'}
                 </Text>
                 <Pressable
                   onPress={onSwitchToRequests}
-                  className="mt-3.5 px-4 py-2 rounded-xl bg-rose-600 active:bg-rose-700 flex-row items-center gap-1.5 shadow-xs">
-                  <AppIcon android="search" size={14} color="#ffffff" />
-                  <Text className="text-xs font-bold text-white">
+                  className="mt-3.5 px-4 py-2.5 rounded-xl bg-rose-600 active:bg-rose-700 flex-row items-center gap-1.5">
+                  <AppIcon android="search" size={16} color="#ffffff" />
+                  <Text className="text-[14px] font-bold text-white">
                     {locale === 'bn' ? 'রক্তের আবেদন খুঁজুন' : 'Explore Blood Requests'}
                   </Text>
                 </Pressable>
@@ -396,23 +434,35 @@ export function BloodActivityTab({
                 return (
                   <View
                     key={req.id}
-                    className={`py-3.5 ${
-                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
-                    }`}>
+                    style={
+                      !isLast
+                        ? {
+                            borderBottomWidth: 1,
+                            borderBottomColor: isDark ? '#242526' : '#e6e9ef',
+                          }
+                        : undefined
+                    }
+                    className="py-3.5">
                     <View className="flex-row items-start gap-3">
-                      <View className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 items-center justify-center shrink-0 shadow-xs">
-                        <Text className="text-rose-600 dark:text-rose-400 font-extrabold text-sm">
+                      <View
+                        style={{
+                          borderColor: isDark ? 'rgba(225, 29, 72, 0.35)' : '#fecdd3',
+                        }}
+                        className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border items-center justify-center shrink-0">
+                        <Text className="text-rose-600 dark:text-rose-400 font-extrabold text-[15px]">
                           {formattedGroup}
                         </Text>
                       </View>
 
                       <View className="flex-1 min-w-0">
                         <View className="flex-row items-center gap-1.5 flex-wrap">
-                          <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
+                          <Text
+                            numberOfLines={1}
+                            className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
                             {req.patientName}
                           </Text>
                           {req.patientAge ? (
-                            <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8]">
+                            <Text className="text-[14px] text-[#65676b] dark:text-[#b0b3b8]">
                               ({req.patientAge} {locale === 'bn' ? 'বছর' : 'yrs'})
                             </Text>
                           ) : null}
@@ -420,14 +470,14 @@ export function BloodActivityTab({
 
                         <Text
                           numberOfLines={1}
-                          className="text-xs text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
+                          className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                           🏥 {req.hospitalName} • {req.location}
                         </Text>
 
                         {/* Needed Date & Time */}
                         <View className="flex-row items-center gap-1.5 mt-1">
-                          <AppIcon android="schedule" size={12} color="#e11d48" />
-                          <Text className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                          <AppIcon android="schedule" size={14} color="#e11d48" />
+                          <Text className="text-[13.5px] font-bold text-rose-600 dark:text-rose-400">
                             {locale === 'bn' ? 'প্রয়োজন: ' : 'Needed: '}
                             {new Date(req.neededDate).toLocaleString(
                               locale === 'bn' ? 'bn-BD' : 'en-US',
@@ -446,9 +496,9 @@ export function BloodActivityTab({
                         <View className="flex-row items-center gap-2 mt-3 flex-wrap">
                           <Pressable
                             onPress={() => onCall(req.contactNumber)}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-600 active:bg-emerald-700 flex-row items-center gap-1 shadow-xs">
-                            <AppIcon android="call" size={13} color="#ffffff" />
-                            <Text className="text-xs font-bold text-white">
+                            className="px-3.5 py-2 rounded-xl bg-emerald-600 active:bg-emerald-700 flex-row items-center gap-1.5">
+                            <AppIcon android="call" size={15} color="#ffffff" />
+                            <Text className="text-[14px] font-bold text-white">
                               {locale === 'bn' ? 'কল দিন' : 'Call'}
                             </Text>
                           </Pressable>
@@ -460,9 +510,9 @@ export function BloodActivityTab({
                                   (req.requester as any) || { id: req.requesterId, username: req.patientName }
                                 )
                               }
-                              className="px-3 py-1.5 rounded-lg bg-rose-600 active:bg-rose-700 flex-row items-center gap-1 shadow-xs">
-                              <AppIcon android="chat_bubble" size={13} color="#ffffff" />
-                              <Text className="text-xs font-bold text-white">
+                              className="px-3.5 py-2 rounded-xl bg-rose-600 active:bg-rose-700 flex-row items-center gap-1.5">
+                              <AppIcon android="chat_bubble" size={15} color="#ffffff" />
+                              <Text className="text-[14px] font-bold text-white">
                                 {locale === 'bn' ? 'মেসেজ' : 'Chat'}
                               </Text>
                             </Pressable>
@@ -471,13 +521,13 @@ export function BloodActivityTab({
                           <Pressable
                             onPress={() => onCancelAcceptedDonation(req)}
                             disabled={actionLoadingId === req.id}
-                            className="px-2.5 py-1.5 rounded-lg bg-gray-100 dark:bg-[#3a3b3c] active:opacity-70 flex-row items-center gap-1">
+                            className="px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#3a3b3c] active:opacity-70 flex-row items-center gap-1">
                             {actionLoadingId === req.id ? (
                               <ActivityIndicator size="small" color="#e11d48" />
                             ) : (
-                              <AppIcon android="close" size={12} color="#e11d48" />
+                              <AppIcon android="close" size={14} color="#e11d48" />
                             )}
-                            <Text className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                            <Text className="text-[14px] font-semibold text-rose-600 dark:text-rose-400">
                               {locale === 'bn' ? 'অপারগ / বাতিল' : 'Cancel'}
                             </Text>
                           </Pressable>
@@ -494,16 +544,17 @@ export function BloodActivityTab({
               <View className="pt-3 pb-2 items-center justify-center">
                 <Pressable
                   onPress={onScrollToTop}
-                  className="flex-row items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e6e9ef] dark:bg-[#242526] border border-[#e4e6eb] dark:border-[#393a3b] active:bg-[#e4e6eb] dark:active:bg-[#3a3b3c]">
+                  style={{ borderColor: isDark ? '#393a3b' : '#e4e6eb' }}
+                  className="flex-row items-center gap-2 px-4 py-2 rounded-full bg-[#e6e9ef] dark:bg-[#242526] border active:opacity-80">
                   <View className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                  <Text className="text-[11px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[13.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
                     {locale === 'bn'
                       ? 'আর কোনো গৃহীত রক্তদান নেই'
                       : 'No more accepted pledges'}
                   </Text>
                   {onScrollToTop && (
                     <View className="ml-1 pl-1.5 border-l border-[#d0d2d6] dark:border-[#3a3b3c]">
-                      <AppIcon android="keyboard_arrow_up" size={13} color="#e11d48" weight="bold" />
+                      <AppIcon android="keyboard_arrow_up" size={15} color="#e11d48" weight="bold" />
                     </View>
                   )}
                 </Pressable>

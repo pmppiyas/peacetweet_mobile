@@ -31,6 +31,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { AuthPromptCard } from '@/components/ui/AuthPromptCard';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
 
 interface SavedContentCardProps {
   item: SavedFeedItem;
@@ -512,7 +513,7 @@ export default function SavedScreen() {
         scrollEventThrottle={16}
         contentContainerStyle={{
           paddingTop: 60 + routineBarHeight,
-          paddingBottom: 76,
+          paddingBottom: BOTTOM_NAV_CLEARANCE,
         }}
         refreshControl={
           <RefreshControl

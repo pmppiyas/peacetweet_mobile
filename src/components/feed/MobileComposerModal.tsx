@@ -17,8 +17,6 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
 import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { LocationValue } from '@/components/ui/LocationSelector';
-import { matchUserLocationToGeo } from '@/constants/bangladeshGeo';
 import * as ImagePicker from 'expo-image-picker';
 import {
   uploadsApi,
@@ -39,7 +37,7 @@ import {
   ComposerBottomBar,
   ComposerFeelingsModal,
   ComposerBackgroundSheetModal,
-  mapToBloodGroupValue,
+  useBloodComposerForm,
 } from './composer';
 
 export function MobileComposerModal() {
@@ -333,54 +331,8 @@ export function MobileComposerModal() {
   const [duaMeaning, setDuaMeaning] = useState('');
   const [duaFadilah, setDuaFadilah] = useState('');
 
-  // Blood request fields
-  const [forMyself, setForMyself] = useState(false);
-  const [patientName, setPatientName] = useState('');
-  const [bloodGroup, setBloodGroup] = useState('');
-  const [units, setUnits] = useState('1');
-  const [hospitalName, setHospitalName] = useState('');
-  const [locationValue, setLocationValue] = useState<LocationValue>(() =>
-    matchUserLocationToGeo(user)
-  );
-  const [contactNumber, setContactNumber] = useState('');
-  const [alternateContact, setAlternateContact] = useState('');
-  const [neededDate, setNeededDate] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(12, 0, 0, 0);
-    return d.toISOString();
-  });
-  const [problem, setProblem] = useState('');
-  const [bloodNote, setBloodNote] = useState('');
-
-  // Sync location initially from user profile if user has a set location
-  useEffect(() => {
-    if (user) {
-      const userGeo = matchUserLocationToGeo(user);
-      if (userGeo.location) {
-        setLocationValue((prev) => (!prev.location ? userGeo : prev));
-      }
-    }
-  }, [user]);
-
-  // Auto fill name, blood group & location if forMyself is checked
-  useEffect(() => {
-    if (forMyself && user) {
-      if (user.name) {
-        setPatientName(user.name);
-      }
-      if (user.bloodGroup) {
-        const bgVal = mapToBloodGroupValue(user.bloodGroup);
-        if (bgVal) {
-          setBloodGroup(bgVal);
-        }
-      }
-      const userGeo = matchUserLocationToGeo(user);
-      if (userGeo.location) {
-        setLocationValue(userGeo);
-      }
-    }
-  }, [forMyself, user]);
+  // Shared blood request composer state
+  const bloodForm = useBloodComposerForm(user);
 
   const selectedFeeling = getFeelingById(feeling);
 
@@ -401,30 +353,7 @@ export function MobileComposerModal() {
 
         if (isBlood) {
           setPostType('BLOOD_REQUEST');
-          const br = composerEditingPost.bloodRequest;
-          if (br) {
-            setForMyself(Boolean(br.forMyself));
-            setPatientName(br.patientName || '');
-            if (br.bloodGroup) {
-              setBloodGroup(mapToBloodGroupValue(br.bloodGroup));
-            }
-            setUnits(String(br.units || 1));
-            setHospitalName(br.hospitalName || '');
-            setLocationValue({
-              country: (br as any).country || 'Bangladesh',
-              countryCode: (br as any).countryCode || 'BD',
-              state: (br as any).state || '',
-              city: (br as any).city || '',
-              location: br.location || '',
-            });
-            setContactNumber(br.contactNumber || '');
-            setAlternateContact(br.alternateContact || '');
-            if (br.neededDate) {
-              setNeededDate(new Date(br.neededDate).toISOString());
-            }
-            setProblem(br.problem || '');
-            setBloodNote((br as any).note || '');
-          }
+          bloodForm.hydrate(composerEditingPost.bloodRequest);
           setContent(composerEditingPost.content || '');
         } else if (isDua) {
           setPostType('DUA');
@@ -483,13 +412,7 @@ export function MobileComposerModal() {
       ? content.trim().length > 0 || mediaUrls.length > 0
       : postType === 'DUA'
         ? duaMeaning.trim().length > 0
-        : Boolean(
-            (forMyself ? user?.name || patientName.trim() : patientName.trim()) &&
-              bloodGroup &&
-              hospitalName.trim() &&
-              (locationValue.location?.trim() || locationValue.districtId) &&
-              contactNumber.trim()
-          );
+        : bloodForm.isValid;
 
   const resetForm = () => {
     setContent('');
@@ -506,20 +429,7 @@ export function MobileComposerModal() {
     setDuaTransliteration('');
     setDuaMeaning('');
     setDuaFadilah('');
-    setForMyself(false);
-    setPatientName('');
-    setBloodGroup('');
-    setUnits('1');
-    setHospitalName('');
-    setLocationValue(matchUserLocationToGeo(user));
-    setContactNumber('');
-    setAlternateContact('');
-    const resetD = new Date();
-    resetD.setDate(resetD.getDate() + 1);
-    resetD.setHours(12, 0, 0, 0);
-    setNeededDate(resetD.toISOString());
-    setProblem('');
-    setBloodNote('');
+    bloodForm.reset();
     setErrorMessage(null);
     setPostType('TEXT');
     setComposerEditingPost(null);
@@ -691,17 +601,17 @@ export function MobileComposerModal() {
     const pDuaTransliteration = duaTransliteration.trim();
     const pDuaFadilah = duaFadilah.trim();
     const pDuaArabicText = duaArabicText.trim();
-    const pForMyself = forMyself;
-    const pPatientName = (pForMyself ? user?.name || patientName : patientName).trim();
-    const pBloodGroup = bloodGroup;
-    const pUnits = units;
-    const pHospitalName = hospitalName.trim();
-    const pLocationValue = { ...locationValue };
-    const pContactNumber = contactNumber.trim();
-    const pAlternateContact = alternateContact.trim();
-    const pNeededDate = neededDate;
-    const pProblem = problem.trim();
-    const pBloodNote = bloodNote.trim();
+    const pForMyself = bloodForm.forMyself;
+    const pPatientName = bloodForm.effectivePatientName;
+    const pBloodGroup = bloodForm.bloodGroup;
+    const pUnits = bloodForm.units;
+    const pHospitalName = bloodForm.hospitalName.trim();
+    const pLocationValue = { ...bloodForm.locationValue };
+    const pContactNumber = bloodForm.contactNumber.trim();
+    const pAlternateContact = bloodForm.alternateContact.trim();
+    const pNeededDate = bloodForm.neededDate;
+    const pProblem = bloodForm.problem.trim();
+    const pBloodNote = bloodForm.bloodNote.trim();
 
     // 1. Immediately close composer modal just like frontend
     setIsSubmitting(true);
@@ -1065,28 +975,7 @@ export function MobileComposerModal() {
           {/* ────────────── MODE 3: BLOOD REQUEST ────────────── */}
           {postType === 'BLOOD_REQUEST' && (
             <MobileBloodComposer
-              bloodGroup={bloodGroup}
-              onChangeBloodGroup={setBloodGroup}
-              forMyself={forMyself}
-              onToggleForMyself={() => setForMyself((prev) => !prev)}
-              patientName={patientName}
-              onChangePatientName={setPatientName}
-              units={units}
-              onChangeUnits={setUnits}
-              hospitalName={hospitalName}
-              onChangeHospitalName={setHospitalName}
-              locationValue={locationValue}
-              onChangeLocationValue={setLocationValue}
-              contactNumber={contactNumber}
-              onChangeContactNumber={setContactNumber}
-              alternateContact={alternateContact}
-              onChangeAlternateContact={setAlternateContact}
-              neededDate={neededDate}
-              onChangeNeededDate={setNeededDate}
-              problem={problem}
-              onChangeProblem={setProblem}
-              bloodNote={bloodNote}
-              onChangeBloodNote={setBloodNote}
+              {...bloodForm.composerProps}
               user={user}
               theme={theme}
               locale={locale}

@@ -34,12 +34,11 @@ export function ZakatAccordionCard({
     <View
       style={{
         backgroundColor: isDark ? '#242526' : '#ffffff',
-        borderColor: isDark ? '#393a3b' : '#e4e6eb',
       }}
-      className="rounded-2xl border mb-3.5 overflow-hidden">
+      className="w-full overflow-hidden">
       <Pressable
         onPress={onToggle}
-        className="px-4 py-3.5 flex-row items-center justify-between active:opacity-80">
+        className="px-3.5 py-3.5 flex-row items-center justify-between active:opacity-80">
         <View className="flex-row items-center gap-2.5 flex-1 pr-2">
           <View className={`w-9 h-9 rounded-xl ${iconBgClass} items-center justify-center`}>
             <AppIcon android={icon} size={19} color={iconColor} />
@@ -79,7 +78,7 @@ export function ZakatAccordionCard({
       {isOpen && (
         <View
           style={{ borderTopColor: isDark ? '#333436' : '#f0f2f5' }}
-          className="px-4 pb-4 pt-3.5 border-t">
+          className="px-3.5 pb-4 pt-3.5 border-t">
           {children}
         </View>
       )}

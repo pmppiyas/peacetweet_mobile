@@ -27,13 +27,12 @@ export function ZakatFinalSummaryCard({
     <View
       style={{
         backgroundColor: isDark ? '#242526' : '#ffffff',
-        borderColor: isDark ? '#393a3b' : '#e4e6eb',
       }}
-      className="rounded-2xl border mb-0 overflow-hidden">
+      className="w-full overflow-hidden">
       {/* Header */}
       <View
         style={{ borderBottomColor: isDark ? '#333436' : '#f0f2f5' }}
-        className="px-4 py-3.5 flex-row items-center justify-between border-b">
+        className="px-3.5 py-3.5 flex-row items-center justify-between border-b">
         <View className="flex-row items-center gap-2.5 flex-1 pr-2">
           <View className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950 items-center justify-center">
             <AppIcon android="calculate" size={19} color="#059669" />
@@ -63,7 +62,7 @@ export function ZakatFinalSummaryCard({
         </View>
       </View>
 
-      <View className="p-4">
+      <View className="px-3.5 py-4">
         {/* Breakdown Rows */}
         <View className="gap-2 mb-3.5">
           <View className="flex-row justify-between items-center py-0.5">

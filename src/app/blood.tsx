@@ -806,26 +806,10 @@ export default function BloodScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-[#18191a] relative">
-      <ScrollView
-        ref={scrollViewRef}
-        className="flex-1 bg-white dark:bg-[#18191a]"
-        stickyHeaderIndices={[0]}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        contentContainerStyle={{ paddingBottom: 0 }}
-        refreshControl={
-          activeTab !== 'create' ? (
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-              tintColor={theme === 'dark' ? '#ffffff' : '#e11d48'}
-            />
-          ) : undefined
-        }>
-      {/* Index 0: Sticky Top Bar */}
+      {/* Fixed Top Bar (Placed outside ScrollView so it never jitters on scroll) */}
       <View
         style={{ width: '100%' }}
-        className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e4e6eb] dark:border-[#242526] px-3 pt-2 pb-2.5">
+        className="w-full bg-white dark:bg-[#18191a] z-20 px-3.5 pt-2 pb-2.5">
         <View
           style={{ width: '100%', maxWidth: 768, marginLeft: 'auto', marginRight: 'auto' }}
           className="w-full max-w-[768px] mx-auto">
@@ -861,7 +845,7 @@ export default function BloodScreen() {
                   {t.icon ? (
                     <AppIcon
                       android={t.icon as any}
-                      size={13}
+                      size={15}
                       color={
                         isSelected
                           ? '#ffffff'
@@ -873,7 +857,7 @@ export default function BloodScreen() {
                   ) : null}
                   <Text
                     numberOfLines={1}
-                    className={`text-xs font-bold ${
+                    className={`text-[13.5px] font-bold ${
                       isSelected ? 'text-white' : 'text-[#65676b] dark:text-[#b0b3b8]'
                     }`}>
                     {tabLabel}
@@ -897,13 +881,20 @@ export default function BloodScreen() {
                     <Pressable
                       key={grp}
                       onPress={() => setSelectedGroup(grp)}
-                      className={`px-3 py-1 rounded-full border ${
+                      style={{
+                        borderColor: isSelected
+                          ? '#e11d48'
+                          : theme === 'dark'
+                            ? '#3a3b3c'
+                            : '#ced0d4',
+                      }}
+                      className={`px-3.5 py-1.5 rounded-full border ${
                         isSelected
-                          ? 'bg-rose-600 border-rose-600'
-                          : 'bg-[#e6e9ef] dark:bg-[#242526] border-[#ced0d4] dark:border-[#3a3b3c]'
+                          ? 'bg-rose-600'
+                          : 'bg-[#e6e9ef] dark:bg-[#242526]'
                       }`}>
                       <Text
-                        className={`text-xs font-semibold ${
+                        className={`text-[13.5px] font-semibold ${
                           isSelected
                             ? 'text-white'
                             : 'text-[#050505] dark:text-[#e4e6eb]'
@@ -919,10 +910,26 @@ export default function BloodScreen() {
         </View>
       </View>
 
+      <ScrollView
+        ref={scrollViewRef}
+        className="flex-1 bg-white dark:bg-[#18191a]"
+        keyboardShouldPersistTaps="handled"
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{ paddingBottom: 0 }}
+        refreshControl={
+          activeTab !== 'create' ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme === 'dark' ? '#ffffff' : '#e11d48'}
+            />
+          ) : undefined
+        }>
       {/* Main Tab Views */}
       <View
         style={{ width: '100%', maxWidth: 768, marginLeft: 'auto', marginRight: 'auto' }}
-        className="w-full max-w-[768px] mx-auto px-3">
+        className="w-full max-w-[768px] mx-auto px-3.5">
         {/* TAB 1: Blood Requests List */}
         {activeTab === 'requests' && (
           <BloodRequestsTab
@@ -1031,10 +1038,10 @@ export default function BloodScreen() {
           />
         </View>
         <View className="flex-1 min-w-0 pr-1">
-          <Text className="text-xs font-bold text-[#050505] dark:text-[#e4e6eb]">
+          <Text className="text-[14.5px] font-bold text-[#050505] dark:text-[#e4e6eb]">
             {toastNotification.title}
           </Text>
-          <Text numberOfLines={2} className="text-[11px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5 leading-4">
+          <Text numberOfLines={2} className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5 leading-5">
             {toastNotification.subtitle}
           </Text>
         </View>

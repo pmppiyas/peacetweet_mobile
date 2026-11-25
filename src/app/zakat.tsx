@@ -18,6 +18,7 @@ import { ZakatAccordionBusiness } from '@/features/zakat/components/ZakatAccordi
 import { ZakatAccordionDebts } from '@/features/zakat/components/ZakatAccordionDebts';
 import { ZakatFinalSummaryCard } from '@/features/zakat/components/ZakatFinalSummaryCard';
 import { ZakatTipModal } from '@/features/zakat/components/ZakatTipModal';
+import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
 
 const ZAKAT_STORAGE_KEY = 'peacetweet_zakat_saved_state';
 
@@ -133,13 +134,12 @@ export default function ZakatScreen() {
         scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
-          paddingHorizontal: 14,
-          paddingTop: 72,
-          paddingBottom: 62,
+          paddingTop: 60,
+          paddingBottom: BOTTOM_NAV_CLEARANCE,
         }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="w-full max-w-[768px] mx-auto">
+        <View className="w-full max-w-[768px] mx-auto" style={{ gap: 8 }}>
           {/* Quick Overview Chips with Reset, Save, Collapse & Language Toggle */}
           <ZakatOverviewChips
             results={results}

@@ -108,6 +108,14 @@ const MENU_ITEMS: MenuItem[] = [
     icon: 'feedback',
     iconBg: 'bg-teal-600',
   },
+  {
+    id: 'menu-terms',
+    labelBn: 'শর্তাবলী ও নীতিমালা',
+    labelEn: 'Terms & Privacy',
+    href: '/terms',
+    icon: 'description',
+    iconBg: 'bg-slate-600',
+  },
 ];
 
 export function MenuDrawer() {
@@ -494,12 +502,38 @@ export function MenuDrawer() {
               </View>
 
               {/* Footer Links */}
-              <View className="pt-2 px-2 flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1">
+              <View className="pt-2 px-2 flex-row flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
+                <Pressable
+                  onPress={() => closeAndNavigate('/purpose')}
+                  hitSlop={6}
+                  className="active:opacity-60"
+                >
+                  <Text className="text-[12px] font-medium text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'উদ্দেশ্য' : 'Purpose'}
+                  </Text>
+                </Pressable>
+                <Text className="text-[12px] text-[#65676b] dark:text-[#b0b3b8]">•</Text>
+                <Pressable
+                  onPress={() => closeAndNavigate('/terms')}
+                  hitSlop={6}
+                  className="active:opacity-60"
+                >
+                  <Text className="text-[12px] font-medium text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'ব্যবহারের শর্তাবলী' : 'Terms'}
+                  </Text>
+                </Pressable>
+                <Text className="text-[12px] text-[#65676b] dark:text-[#b0b3b8]">•</Text>
+                <Pressable
+                  onPress={() => closeAndNavigate('/privacy')}
+                  hitSlop={6}
+                  className="active:opacity-60"
+                >
+                  <Text className="text-[12px] font-medium text-[#65676b] dark:text-[#b0b3b8]">
+                    {locale === 'bn' ? 'গোপনীয়তা নীতি' : 'Privacy'}
+                  </Text>
+                </Pressable>
                 <Text className="text-[12px] text-[#65676b] dark:text-[#b0b3b8]">
-                  {locale === 'bn' ? 'উদ্দেশ্য' : 'Purpose'} •{' '}
-                  {locale === 'bn' ? 'ব্যবহারের শর্তাবলী' : 'Terms'} •{' '}
-                  {locale === 'bn' ? 'গোপনীয়তা নীতি' : 'Privacy'} • PeaceTweet ©
-                  2026
+                  • PeaceTweet © 2026
                 </Text>
               </View>
             </View>

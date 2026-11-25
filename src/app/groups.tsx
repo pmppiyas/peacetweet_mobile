@@ -177,20 +177,12 @@ export default function GroupsScreen() {
 
   const displayedGroups = activeTab === 'all' ? allGroups : myGroups;
 
+  const isDark = theme === 'dark';
+
   return (
-    <ScrollView
-      className="flex-1 bg-white dark:bg-[#18191a]"
-      stickyHeaderIndices={[0]}
-      contentContainerStyle={{ paddingBottom: 24 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          tintColor={theme === 'dark' ? '#ffffff' : '#059669'}
-        />
-      }>
-      {/* Index 0: Sticky Tab Switcher (No Header) */}
-      <View className="w-full bg-white dark:bg-[#18191a] z-20 border-b border-[#e4e6eb] dark:border-[#242526] px-3 py-2">
+    <View className="flex-1 bg-white dark:bg-[#18191a]">
+      {/* Fixed Top Tab Switcher (Outside ScrollView so it never jitters on scroll) */}
+      <View className="w-full bg-white dark:bg-[#18191a] z-20 px-3.5 py-2.5">
         <View className="w-full max-w-[768px] mx-auto flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#242526] p-1">
           {[
             { key: 'my', bn: 'আমার গ্রুপসমূহ', en: 'My Groups' },
@@ -207,7 +199,7 @@ export default function GroupsScreen() {
                     : 'active:bg-white/60 dark:active:bg-[#3a3b3c]'
                 }`}>
                 <Text
-                  className={`text-xs font-bold ${
+                  className={`text-[14px] font-bold ${
                     isSelected ? 'text-white' : 'text-[#65676b] dark:text-[#b0b3b8]'
                   }`}>
                   {locale === 'bn' ? t.bn : t.en}
@@ -218,8 +210,18 @@ export default function GroupsScreen() {
         </View>
       </View>
 
-      {/* Index 1: Content Section (Flat) */}
-      <View className="w-full max-w-[768px] mx-auto px-3">
+      <ScrollView
+        className="flex-1 bg-white dark:bg-[#18191a]"
+        contentContainerStyle={{ paddingBottom: 0 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={isDark ? '#ffffff' : '#059669'}
+          />
+        }>
+        {/* Content Section */}
+        <View className="w-full max-w-[768px] mx-auto px-3.5">
         {activeTab === 'my' && !isAuthenticated ? (
           <View className="py-4">
             <AuthPromptCard
@@ -237,9 +239,11 @@ export default function GroupsScreen() {
         ) : (
           <View className="w-full">
             {displayedGroups.length === 0 ? (
-              <View className="rounded-2xl border border-dashed border-[#e4e6eb] dark:border-[#393a3b] p-8 items-center justify-center my-4">
-                <AppIcon android="groups" size={24} color="#65676b" />
-                <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] mt-2 font-medium text-center">
+              <View
+                style={{ borderColor: isDark ? '#393a3b' : '#e4e6eb' }}
+                className="rounded-2xl border border-dashed p-8 items-center justify-center my-4">
+                <AppIcon android="groups" size={26} color={isDark ? '#b0b3b8' : '#65676b'} />
+                <Text className="text-[15px] leading-[22px] text-[#65676b] dark:text-[#b0b3b8] mt-2.5 font-medium text-center">
                   {activeTab === 'my'
                     ? locale === 'bn'
                       ? 'আপনি এখনো কোনো গ্রুপে যুক্ত হননি।'
@@ -264,19 +268,29 @@ export default function GroupsScreen() {
                 return (
                   <View
                     key={group.id}
-                    className={`py-3 flex-row items-center justify-between ${
-                      !isLast ? 'border-b border-[#e6e9ef] dark:border-[#242526]' : ''
-                    }`}>
+                    style={
+                      !isLast
+                        ? {
+                            borderBottomWidth: 1,
+                            borderBottomColor: isDark ? '#242526' : '#e6e9ef',
+                          }
+                        : undefined
+                    }
+                    className="py-3.5 flex-row items-center justify-between">
                     {/* Left Icon & Text Info */}
                     <View className="flex-row items-center gap-3 flex-1 pr-2">
                       <View className="h-11 w-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 items-center justify-center shrink-0">
                         <AppIcon android="groups" size={22} color="#059669" />
                       </View>
                       <View className="flex-1 min-w-0">
-                        <Text className="text-sm font-bold text-[#050505] dark:text-[#e4e6eb] truncate">
+                        <Text
+                          numberOfLines={1}
+                          className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
                           {group.name}
                         </Text>
-                        <Text className="text-xs text-[#65676b] dark:text-[#b0b3b8] truncate mt-0.5">
+                        <Text
+                          numberOfLines={1}
+                          className="text-[14px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5">
                           {group.memberCount} {locale === 'bn' ? 'জন সদস্য' : 'members'} •{' '}
                           {group.visibility === 'PUBLIC'
                             ? locale === 'bn'
@@ -293,12 +307,21 @@ export default function GroupsScreen() {
                     <Pressable
                       onPress={() => handleToggleJoin(group)}
                       disabled={isWorking}
-                      className={`px-3.5 py-1.5 rounded-xl border ${
-                        isMember
-                          ? 'border-[#ced0d4] dark:border-[#3e4042] bg-[#e6e9ef] dark:bg-[#3a3b3c]'
+                      style={{
+                        borderColor: isMember
+                          ? isDark
+                            ? '#3e4042'
+                            : '#ced0d4'
                           : isPending
-                            ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/40'
-                            : 'border-emerald-600 bg-emerald-600 active:bg-emerald-700'
+                            ? '#f59e0b'
+                            : '#059669',
+                      }}
+                      className={`px-3.5 py-2 rounded-xl border ${
+                        isMember
+                          ? 'bg-[#e6e9ef] dark:bg-[#3a3b3c]'
+                          : isPending
+                            ? 'bg-amber-50 dark:bg-amber-950/40'
+                            : 'bg-emerald-600 active:bg-emerald-700'
                       }`}>
                       {isWorking ? (
                         <ActivityIndicator
@@ -307,7 +330,7 @@ export default function GroupsScreen() {
                         />
                       ) : (
                         <Text
-                          className={`text-xs font-bold ${
+                          className={`text-[14px] font-bold ${
                             isMember
                               ? 'text-[#65676b] dark:text-[#b0b3b8]'
                               : isPending
@@ -320,7 +343,7 @@ export default function GroupsScreen() {
                               : 'Joined'
                             : isPending
                               ? locale === 'bn'
-                                ? 'অনুরোধ পাঠানো হয়েছে'
+                                ? 'পাঠানো হয়েছে'
                                 : 'Requested'
                               : locale === 'bn'
                                 ? 'যুক্ত হোন'
@@ -336,5 +359,6 @@ export default function GroupsScreen() {
         )}
       </View>
     </ScrollView>
+    </View>
   );
 }

@@ -14,6 +14,7 @@ import {
 import { ConversationSidebar } from '@/features/chat/components/ConversationSidebar';
 import { ChatView } from '@/features/chat/components/ChatView';
 import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
+import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
 
 export default function MessagesScreen() {
   const {
@@ -341,7 +342,9 @@ export default function MessagesScreen() {
   if (!isAuthLoading && !isAuthenticated) {
     return (
       <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
-        <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b] pt-[60px] pb-[56px]">
+        <View
+          style={{ paddingTop: 60, paddingBottom: BOTTOM_NAV_CLEARANCE }}
+          className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b]">
           <AuthPromptScreen
             icon="chat_bubble"
             iconBgColor="bg-blue-50 dark:bg-blue-950/60"
@@ -361,8 +364,12 @@ export default function MessagesScreen() {
       <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b]">
         {/* 1. Chats / Conversations List */}
         <View
-          style={{ display: !isChatActive ? 'flex' : 'none' }}
-          className="flex-1 w-full h-full pt-[60px] pb-[56px]">
+          style={{
+            display: !isChatActive ? 'flex' : 'none',
+            paddingTop: 60,
+            paddingBottom: BOTTOM_NAV_CLEARANCE,
+          }}
+          className="flex-1 w-full h-full">
           <ConversationSidebar
             conversations={conversations}
             isLoading={isLoading}

@@ -20,6 +20,7 @@ import { NotificationSkeleton } from '@/features/notifications/components/Notifi
 import { NotificationItemRow } from '@/features/notifications/components/NotificationItemRow';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { AuthPromptScreen } from '@/components/ui/AuthPromptCard';
+import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
 
 export default function NotificationsScreen() {
   const { width } = useWindowDimensions();
@@ -252,7 +253,9 @@ export default function NotificationsScreen() {
   if (!isAuthLoading && !isAuthenticated) {
     return (
       <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
-        <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b] pt-[60px] pb-[56px]">
+        <View
+          style={{ paddingTop: 60, paddingBottom: BOTTOM_NAV_CLEARANCE }}
+          className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b]">
           <AuthPromptScreen
             icon="notifications"
             iconBgColor="bg-amber-50 dark:bg-amber-950/60"
@@ -269,7 +272,9 @@ export default function NotificationsScreen() {
 
   return (
     <View className="flex-1 overflow-hidden bg-white dark:bg-[#18191a]">
-      <View className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b] pt-[60px] pb-[56px]">
+      <View
+        style={{ paddingTop: 60, paddingBottom: BOTTOM_NAV_CLEARANCE }}
+        className="flex-1 w-full max-w-[720px] mx-auto sm:border-x sm:border-[#e4e6eb] sm:dark:border-[#393a3b]">
         <ScrollView
           ref={scrollViewRef}
           showsVerticalScrollIndicator={false}
@@ -295,7 +300,7 @@ export default function NotificationsScreen() {
           className="flex-1 no-scrollbar scrollbar-none"
           contentContainerStyle={{
             paddingTop: 6,
-            paddingBottom: 16,
+            paddingBottom: 0,
             flexGrow: 1,
           }}
           refreshControl={
