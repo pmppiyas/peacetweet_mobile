@@ -26,6 +26,8 @@ export interface User {
   emailVerifiedAt?: string | null;
   role: UserRole;
   userStatus?: UserStatus;
+  activeAvatarFrame?: string | null;
+  activeProfileTheme?: string | null;
   badge?: string;
   badges?: UserBadge[];
   bio?: string | null;

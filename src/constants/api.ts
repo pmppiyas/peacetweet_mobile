@@ -118,6 +118,8 @@ export const API_ENDPOINTS = {
     ME: '/points/me',
     HISTORY: '/points/history',
     CHECK_IN: '/points/check-in',
+    REDEEM: '/points/redeem',
+    REDEEM_EQUIP: '/points/redeem/equip',
     LEADERBOARD: '/points/leaderboard',
   },
 } as const;

@@ -7,7 +7,10 @@ import React, {
   useRef,
 } from 'react';
 import { Animated, Appearance, Easing, Platform } from 'react-native';
-import { colorScheme as nativewindColorScheme, useColorScheme } from 'nativewind';
+import {
+  colorScheme as nativewindColorScheme,
+  useColorScheme,
+} from 'nativewind';
 import * as SystemUI from 'expo-system-ui';
 import { appStorage } from '@/lib/storage/secureStorage';
 import { FeedItem } from '@/features/feed/types/feed.types';
@@ -159,12 +162,16 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
   const [isComposerModalOpen, setComposerModalOpenState] = useState(false);
-  const [composerInitialMode, setComposerInitialMode] = useState<ComposerMode>('TEXT');
-  const [composerInitialAction, setComposerInitialAction] = useState<ComposerAction>(null);
-  const [composerEditingPost, setComposerEditingPost] = useState<FeedItem | null>(null);
+  const [composerInitialMode, setComposerInitialMode] =
+    useState<ComposerMode>('TEXT');
+  const [composerInitialAction, setComposerInitialAction] =
+    useState<ComposerAction>(null);
+  const [composerEditingPost, setComposerEditingPost] =
+    useState<FeedItem | null>(null);
 
   const [isUploadingPost, setIsUploadingPostState] = useState(false);
-  const [postUploadType, setPostUploadType] = useState<PostUploadType>('STANDARD');
+  const [postUploadType, setPostUploadType] =
+    useState<PostUploadType>('STANDARD');
   const [isPostUploadSuccess, setIsPostUploadSuccess] = useState(false);
   const [toast, setToast] = useState<ToastItem | null>(null);
 
@@ -182,7 +189,10 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
     setToast(null);
   }, []);
 
-  const setIsUploadingPost = (val: boolean, type: PostUploadType = 'STANDARD') => {
+  const setIsUploadingPost = (
+    val: boolean,
+    type: PostUploadType = 'STANDARD'
+  ) => {
     setIsUploadingPostState(val);
     if (val) {
       setPostUploadType(type);
@@ -214,7 +224,8 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
     setComposerModalOpenState(open);
   };
 
-  const [activePhotoViewer, setActivePhotoViewer] = useState<PhotoViewerState | null>(null);
+  const [activePhotoViewer, setActivePhotoViewer] =
+    useState<PhotoViewerState | null>(null);
 
   const openPhotoViewer = (post: FeedItem, initialImageUrl?: string) => {
     setActivePhotoViewer({ post, initialImageUrl });
@@ -428,7 +439,6 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
       topNavTranslateY.stopAnimation();
       bottomNavTranslateY.stopAnimation();
 
-  
       // Move top & bottom bars directly with scroll delta `dy` on the exact same frame (zero timer lag)
       let nextTop = Math.max(-60, Math.min(0, topNavValueRef.current - dy));
       let nextBottom = Math.max(
@@ -539,7 +549,8 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         resetNavVisibility,
         topNavTranslateY,
         bottomNavTranslateY,
-      }}>
+      }}
+    >
       {children}
       <GlobalToast
         toast={toast}

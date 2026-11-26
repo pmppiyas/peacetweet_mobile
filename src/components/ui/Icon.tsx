@@ -536,11 +536,14 @@ export function AppIcon({
       case 'auto_awesome':
         return (
           <>
-            <Path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-            <Path d="M5 3v4" />
-            <Path d="M19 17v4" />
-            <Path d="M3 5h4" />
-            <Path d="M17 19h4" />
+            <Path
+              d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
+              fill={effectiveFill}
+            />
+            <Path d="M5 3v4" fill="none" />
+            <Path d="M19 17v4" fill="none" />
+            <Path d="M3 5h4" fill="none" />
+            <Path d="M17 19h4" fill="none" />
           </>
         );
 
@@ -713,8 +716,11 @@ export function AppIcon({
       case 'verified_user':
         return (
           <>
-            <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-            <Path d="m9 12 2 2 4-4" />
+            <Path
+              d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"
+              fill={effectiveFill}
+            />
+            <Path d="m9 12 2 2 4-4" fill="none" />
           </>
         );
 

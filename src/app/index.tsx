@@ -84,6 +84,7 @@ export default function HomeScreen() {
                   <UserAvatar
                     avatarUrl={user?.avatarUrl || (user as any)?.avatar}
                     name={user?.name || 'User'}
+                    frameCode={(user as any)?.activeAvatarFrame}
                     size="md"
                   />
                 </Pressable>
@@ -92,7 +93,7 @@ export default function HomeScreen() {
                   onPress={() => openComposer({ mode: 'TEXT' })}
                   className="h-10 flex-1 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] px-4 justify-center active:opacity-80"
                 >
-                  <Text className="text-[14px] font-normal text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[14px] font-bold text-[#4b4f56] dark:text-[#d0d2d6]">
                     {composerPrompt}
                   </Text>
                 </Pressable>
@@ -113,7 +114,7 @@ export default function HomeScreen() {
                     size={20}
                     color="#45bd62"
                   />
-                  <Text className="text-[12.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[12.5px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'ছবি / মিডিয়া' : 'Photo/video'}
                   </Text>
                 </Pressable>
@@ -129,7 +130,7 @@ export default function HomeScreen() {
                     size={20}
                     color="#0866FF"
                   />
-                  <Text className="text-[12.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[12.5px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'পবিত্র দোয়া' : 'Dua'}
                   </Text>
                 </Pressable>
@@ -145,7 +146,7 @@ export default function HomeScreen() {
                     size={20}
                     color="#e11d48"
                   />
-                  <Text className="text-[12.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                  <Text className="text-[12.5px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                     {locale === 'bn' ? 'রক্তদান' : 'Blood'}
                   </Text>
                 </Pressable>

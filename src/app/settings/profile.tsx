@@ -92,7 +92,6 @@ export default function EditProfileScreen() {
   // Submit States
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Sync initial user data
   useEffect(() => {
@@ -329,15 +328,17 @@ export default function EditProfileScreen() {
             );
           }
 
-          setSuccessMessage(
-            locale === 'bn'
-              ? type === 'avatar'
-                ? 'প্রোফাইল ছবি সফলভাবে আপডেট ও সেভ হয়েছে!'
-                : 'কভার ছবি সফলভাবে আপডেট ও সেভ হয়েছে!'
-              : type === 'avatar'
-                ? 'Profile picture saved successfully!'
-                : 'Cover photo saved successfully!'
-          );
+          showToast({
+            type: 'success',
+            message:
+              locale === 'bn'
+                ? type === 'avatar'
+                  ? 'প্রোফাইল ছবি সফলভাবে আপডেট ও সেভ হয়েছে!'
+                  : 'কভার ছবি সফলভাবে আপডেট ও সেভ হয়েছে!'
+                : type === 'avatar'
+                  ? 'Profile picture saved successfully!'
+                  : 'Cover photo saved successfully!',
+          });
         } else {
           throw new Error('No image URL returned from upload server');
         }
@@ -377,7 +378,6 @@ export default function EditProfileScreen() {
     }
 
     setErrorMessage(null);
-    setSuccessMessage(null);
     setIsSendingOtp(true);
     try {
       const res = await profileApi.requestEmailVerification(cleanEmail);
@@ -430,7 +430,6 @@ export default function EditProfileScreen() {
     }
 
     setErrorMessage(null);
-    setSuccessMessage(null);
     setIsConfirmingOtp(true);
     try {
       const res = await profileApi.confirmEmailVerification(
@@ -463,7 +462,6 @@ export default function EditProfileScreen() {
           : 'Gmail verified successfully') +
         ptsNote +
         badgeNote;
-      setSuccessMessage(msg);
       showToast({ type: 'success', message: msg });
     } catch (err: any) {
       const msg =
@@ -480,7 +478,6 @@ export default function EditProfileScreen() {
 
   const handleVerifyEmailWithGoogle = async () => {
     setErrorMessage(null);
-    setSuccessMessage(null);
     setIsVerifyingGoogle(true);
     try {
       const tokens = await promptGoogleTokens();
@@ -513,7 +510,6 @@ export default function EditProfileScreen() {
           : 'Gmail verified with Google') +
         ptsNote +
         badgeNote;
-      setSuccessMessage(msg);
       showToast({ type: 'success', message: msg });
     } catch (err: any) {
       const msg =
@@ -532,7 +528,6 @@ export default function EditProfileScreen() {
   const handleSave = async () => {
     if (isSaving || isUploadingAvatar || isUploadingCover) return;
     setErrorMessage(null);
-    setSuccessMessage(null);
 
     const trimmedName = name.trim();
     if (!trimmedName) {
@@ -641,18 +636,20 @@ export default function EditProfileScreen() {
       }
 
       if (Object.keys(payload).length === 0) {
-        setSuccessMessage(
-          locale === 'bn'
-            ? 'কোনো পরিবর্তন করা হয়নি।'
-            : 'No changes to save.'
-        );
+        showToast({
+          type: 'info',
+          message:
+            locale === 'bn'
+              ? 'কোনো পরিবর্তন করা হয়নি।'
+              : 'No changes to save.',
+        });
         setTimeout(() => {
           if (router.canGoBack()) {
             router.back();
           } else {
             router.replace('/profile');
           }
-        }, 400);
+        }, 300);
         return;
       }
 
@@ -671,11 +668,13 @@ export default function EditProfileScreen() {
         refreshFeed().catch(() => {});
       }
 
-      setSuccessMessage(
-        locale === 'bn'
-          ? 'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!'
-          : 'Profile updated successfully!'
-      );
+      showToast({
+        type: 'success',
+        message:
+          locale === 'bn'
+            ? 'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!'
+            : 'Profile updated successfully!',
+      });
 
       setTimeout(() => {
         if (router.canGoBack()) {
@@ -683,7 +682,7 @@ export default function EditProfileScreen() {
         } else {
           router.replace('/profile');
         }
-      }, 600);
+      }, 350);
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
@@ -766,20 +765,6 @@ export default function EditProfileScreen() {
               <AppIcon android="error" size={18} color="#e11d48" />
               <Text className="text-[14.5px] font-semibold text-rose-600 dark:text-rose-400 flex-1">
                 {errorMessage}
-              </Text>
-            </View>
-          ) : null}
-
-          {Boolean(successMessage) ? (
-            <View
-              style={{
-                borderColor: theme === 'dark' ? 'rgba(16, 185, 129, 0.35)' : '#a7f3d0',
-              }}
-              className="mx-3.5 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border flex-row items-center gap-2.5"
-            >
-              <AppIcon android="check_circle" size={18} color="#10b981" />
-              <Text className="text-[14.5px] font-semibold text-emerald-600 dark:text-emerald-400 flex-1">
-                {successMessage}
               </Text>
             </View>
           ) : null}
@@ -1005,8 +990,8 @@ export default function EditProfileScreen() {
                     <AppIcon android="auto_awesome" size={12} color="#d97706" />
                     <Text className="text-[11.5px] font-bold text-amber-700 dark:text-amber-300">
                       {locale === 'bn'
-                        ? '+৫০ পয়েন্ট • গ্রীন ব্যাজে বাধ্যতামূলক'
-                        : '+50 pts • Mandatory for Green Badge'}
+                        ? '+৩০ পয়েন্ট • গ্রীন ব্যাজে বাধ্যতামূলক'
+                        : '+30 pts • Mandatory for Green Badge'}
                     </Text>
                   </View>
                 )}
@@ -1040,8 +1025,8 @@ export default function EditProfileScreen() {
                 <View className="gap-2.5 rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f8fafc] dark:bg-[#1e1f21] p-3">
                   <Text className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] leading-4">
                     {locale === 'bn'
-                      ? 'প্রোফাইলে গ্রীন ভেরিফাইড আইকন পেতে ও +৫০ পয়েন্ট অর্জন করতে আপনার জিমেইল ভেরিফাই করা বাধ্যতামূলক।'
-                      : 'Verifying your Gmail/email is mandatory to unlock the green verified icon and awards +50 points.'}
+                      ? 'প্রোফাইলে গ্রীন ভেরিফাইড আইকন পেতে ও +৩০ পয়েন্ট অর্জন করতে আপনার জিমেইল ভেরিফাই করা বাধ্যতামূলক।'
+                      : 'Verifying your Gmail/email is mandatory to unlock the green verified icon and awards +30 points.'}
                   </Text>
 
                   <View className="flex-row flex-wrap gap-2">

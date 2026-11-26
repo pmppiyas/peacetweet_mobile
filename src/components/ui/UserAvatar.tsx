@@ -10,6 +10,7 @@ export interface UserAvatarProps {
   size?: AvatarSize;
   isOnline?: boolean;
   showOnlineBadge?: boolean;
+  frameCode?: string | null;
   className?: string;
 }
 
@@ -50,6 +51,7 @@ export function UserAvatar({
   size = 'md',
   isOnline = false,
   showOnlineBadge = false,
+  frameCode,
   className = '',
 }: UserAvatarProps) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -62,9 +64,22 @@ export function UserAvatar({
   }, [resolvedAvatarUrl]);
 
   const showImage = Boolean(resolvedAvatarUrl && !imageFailed);
+  const hasEmeraldFrame = frameCode === 'EMERALD_AVATAR_FRAME';
 
   return (
-    <View className={`relative shrink-0 select-none ${sizeConfig.container} ${className}`} pointerEvents="none">
+    <View
+      style={
+        hasEmeraldFrame
+          ? {
+              borderWidth: 2,
+              borderColor: '#10b981',
+              borderRadius: 999,
+              padding: 1.5,
+            }
+          : undefined
+      }
+      className={`relative shrink-0 select-none ${sizeConfig.container} ${className}`}
+      pointerEvents="none">
       {showImage ? (
         <Image
           source={{ uri: resolvedAvatarUrl }}

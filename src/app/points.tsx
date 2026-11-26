@@ -42,6 +42,8 @@ const resolveTaskIcon = (code: string): AndroidSymbol => {
       return 'edit';
     case 'SET_LOCATION':
       return 'location_on';
+    case 'SET_BLOOD_GROUP':
+      return 'water_drop';
     case 'VERIFY_EMAIL':
       return 'mail';
     case 'COMPLETE_PROFILE_100':
@@ -79,16 +81,11 @@ const resolveTaskIcon = (code: string): AndroidSymbol => {
 
 const getCategoryColor = (category: PointTaskCategory): string => {
   switch (category) {
-    case 'PROFILE':
-      return '#0866FF';
     case 'DAILY':
-      return '#d97706';
+    case 'PROFILE':
     case 'REFERRAL':
-      return '#8b5cf6';
     case 'SOCIAL':
-      return '#0d9488';
     case 'COMMUNITY':
-      return '#e11d48';
     default:
       return '#0866FF';
   }
@@ -269,17 +266,48 @@ export default function PointsScreen() {
     router.push(task.actionRoute as any);
   };
 
-  const filterChips: { key: TaskFilter; bn: string; en: string }[] = [
-    { key: 'INCOMPLETE', bn: 'বাকি টাস্ক', en: 'Uncompleted' },
+  const allTasks = dashboard?.tasks || [];
+  const categoryChips: { key: PointTaskCategory; bn: string; en: string }[] = [
     { key: 'PROFILE', bn: 'প্রোফাইল', en: 'Profile' },
     { key: 'DAILY', bn: 'দৈনিক', en: 'Daily' },
     { key: 'REFERRAL', bn: 'ইনভাইট', en: 'Invite' },
     { key: 'SOCIAL', bn: 'পোস্ট/সোশ্যাল', en: 'Social' },
     { key: 'COMMUNITY', bn: 'বন্ধু ও গ্রুপ', en: 'Community' },
-    { key: 'COMPLETED', bn: 'সম্পন্ন', en: 'Completed' },
   ];
 
-  const filteredTasks = (dashboard?.tasks || [])
+  const activeCategoryChips: { key: TaskFilter; bn: string; en: string }[] = [];
+  const completedCategoryEntries: {
+    chip: { key: TaskFilter; bn: string; en: string };
+    completedAt: number;
+  }[] = [];
+
+  for (const c of categoryChips) {
+    const catTasks = allTasks.filter((t) => t.category === c.key);
+    const isCatComplete =
+      catTasks.length > 0 && catTasks.every((t) => t.isCompleted);
+    if (isCatComplete) {
+      const maxTs = catTasks.reduce((max, t) => {
+        const ts = t.lastCompletedAt
+          ? new Date(t.lastCompletedAt).getTime()
+          : 0;
+        return ts > max ? ts : max;
+      }, 0);
+      completedCategoryEntries.push({ chip: c, completedAt: maxTs });
+    } else {
+      activeCategoryChips.push(c);
+    }
+  }
+
+  completedCategoryEntries.sort((a, b) => a.completedAt - b.completedAt);
+
+  const filterChips: { key: TaskFilter; bn: string; en: string }[] = [
+    { key: 'INCOMPLETE', bn: 'বাকি অর্জন', en: 'Next Milestones' },
+    ...activeCategoryChips,
+    { key: 'COMPLETED', bn: 'অর্জিত', en: 'Achieved' },
+    ...completedCategoryEntries.map((entry) => entry.chip),
+  ];
+
+  const filteredTasks = allTasks
     .filter((t) => {
       if (taskFilter === 'INCOMPLETE') return !t.isCompleted;
       if (taskFilter === 'COMPLETED') return t.isCompleted;
@@ -302,8 +330,8 @@ export default function PointsScreen() {
             icon="auto_awesome"
             iconBgColor="bg-amber-50 dark:bg-amber-950/60"
             iconColor="#d97706"
-            titleBn="পয়েন্ট ও টাস্ক দেখতে লগইন করুন"
-            titleEn="Sign in to earn Points & Rewards"
+            titleBn="আপনার অর্জন ও সম্মাননা দেখতে লগইন করুন"
+            titleEn="Sign in to view Achievements"
             descriptionBn="প্রোফাইল সম্পূর্ণ করে, পোস্ট করে, বন্ধু বানিয়ে ও ইনভাইট করে পয়েন্ট অর্জন করতে লগইন করুন।"
             descriptionEn="Log in to complete tasks, invite friends, track your level, and earn community points."
           />
@@ -320,6 +348,7 @@ export default function PointsScreen() {
       contentContainerStyle={{
         paddingTop: 60,
         paddingBottom: BOTTOM_NAV_CLEARANCE,
+        flexGrow: 1,
       }}
       refreshControl={
         <RefreshControl
@@ -330,9 +359,9 @@ export default function PointsScreen() {
         />
       }
     >
-      <View className="w-full max-w-[768px] mx-auto" style={{ gap: 8 }}>
+      <View className="w-full max-w-[768px] mx-auto flex-1" style={{ gap: 8 }}>
         {isLoading && !dashboard ? (
-          <View style={cardSurfaceStyle} className="w-full px-3.5 py-5" >
+          <View style={cardSurfaceStyle} className="w-full px-3.5 py-5">
             <View style={{ gap: 12 }}>
               <Skeleton className="h-8 w-44 rounded-xl" />
               <Skeleton className="h-16 w-full rounded-2xl" />
@@ -358,7 +387,9 @@ export default function PointsScreen() {
                   </View>
                   <View className="flex-1 min-w-0">
                     <Text className="text-[13px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                      {locale === 'bn' ? 'আপনার মোট পয়েন্ট' : 'Your Total Points'}
+                      {locale === 'bn'
+                        ? 'আপনার অর্জিত পয়েন্ট'
+                        : 'Your Achievement Score'}
                     </Text>
                     <View className="flex-row items-baseline gap-2">
                       <Text className="text-[26px] font-black text-[#050505] dark:text-white">
@@ -371,55 +402,28 @@ export default function PointsScreen() {
                   </View>
                 </View>
 
-                {/* Daily Check-In CTA */}
+                {/* Redeem Rewards CTA */}
                 <Pressable
-                  onPress={handleCheckIn}
-                  disabled={isCheckingIn || Boolean(dashboard?.checkedInToday)}
+                  onPress={() => router.push('/redeem' as any)}
                   style={{
-                    backgroundColor: dashboard?.checkedInToday
-                      ? isDark
-                        ? '#2e2f30'
-                        : '#f0f2f5'
-                      : '#0866FF',
-                    borderColor: dashboard?.checkedInToday
-                      ? isDark
-                        ? '#3e4042'
-                        : '#e4e6eb'
-                      : '#0866FF',
+                    backgroundColor: isDark
+                      ? 'rgba(22, 163, 74, 0.14)'
+                      : '#f0fdf4',
+                    borderColor: isDark
+                      ? 'rgba(34, 197, 94, 0.35)'
+                      : '#bbf7d0',
                   }}
-                  className="px-3.5 py-2.5 rounded-xl border flex-row items-center gap-1.5 active:opacity-85"
+                  className="px-3.5 py-2 rounded-xl border flex-row items-center gap-1.5 active:opacity-85"
                 >
-                  {isCheckingIn ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <AppIcon
-                      android={
-                        dashboard?.checkedInToday
-                          ? 'check_circle'
-                          : 'calendar_today'
-                      }
-                      size={16}
-                      color={
-                        dashboard?.checkedInToday
-                          ? '#059669'
-                          : '#ffffff'
-                      }
-                    />
-                  )}
-                  <Text
-                    className={`text-[13.5px] font-bold ${
-                      dashboard?.checkedInToday
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-white'
-                    }`}
-                  >
-                    {dashboard?.checkedInToday
-                      ? locale === 'bn'
-                        ? 'চেকড ইন'
-                        : 'Checked In'
-                      : locale === 'bn'
-                        ? 'চেক-ইন +5'
-                        : 'Check-In +5'}
+                  <AppIcon
+                    android="verified_user"
+                    size={16}
+                    weight="semibold"
+                    fill="none"
+                    color={isDark ? '#4ade80' : '#16a34a'}
+                  />
+                  <Text className="text-[13.5px] font-bold text-green-700 dark:text-green-400">
+                    {locale === 'bn' ? 'রিডিম' : 'Redeem'}
                   </Text>
                 </Pressable>
               </View>
@@ -431,14 +435,13 @@ export default function PointsScreen() {
                     <View className="flex-row items-center gap-2">
                       <View
                         style={{
-                          backgroundColor: `${dashboard.level.current.color}18`,
+                          backgroundColor: isDark
+                            ? 'rgba(8, 102, 255, 0.16)'
+                            : '#eff6ff',
                         }}
                         className="px-2.5 py-1 rounded-full"
                       >
-                        <Text
-                          style={{ color: dashboard.level.current.color }}
-                          className="text-[12.5px] font-bold"
-                        >
+                        <Text className="text-[12.5px] font-bold text-[#0866FF] dark:text-[#60a5fa]">
                           Lv.{dashboard.level.current.level} •{' '}
                           {locale === 'bn'
                             ? dashboard.level.current.nameBn
@@ -447,13 +450,11 @@ export default function PointsScreen() {
                       </View>
                       <View
                         style={{
-                          backgroundColor: isDark
-                            ? 'rgba(249, 115, 22, 0.16)'
-                            : '#fff7ed',
+                          backgroundColor: isDark ? '#3a3b3c' : '#f0f2f5',
                         }}
                         className="px-2.5 py-1 rounded-full"
                       >
-                        <Text className="text-[12.5px] font-bold text-orange-600 dark:text-orange-400">
+                        <Text className="text-[12.5px] font-bold text-[#050505] dark:text-[#e4e6eb]">
                           🔥 {dashboard.currentStreak}{' '}
                           {locale === 'bn' ? 'দিন' : 'day streak'}
                         </Text>
@@ -472,7 +473,7 @@ export default function PointsScreen() {
                     <View
                       style={{
                         width: `${dashboard.level.progressPercent}%`,
-                        backgroundColor: dashboard.level.current.color,
+                        backgroundColor: '#0866FF',
                       }}
                       className="h-full rounded-full"
                     />
@@ -480,13 +481,13 @@ export default function PointsScreen() {
                 </View>
               ) : null}
 
-              {/* Sub-navigation Tabs: Tasks | History | Top Rank */}
+              {/* Sub-navigation Tabs: Achievements | History | Top Rank */}
               <View className="mt-4 w-full flex-row rounded-xl bg-[#f0f2f5] dark:bg-[#3a3b3c] p-1">
                 {(
                   [
-                    { key: 'tasks', bn: 'টাস্কসমূহ', en: 'Tasks' },
-                    { key: 'history', bn: 'হিস্ট্রি', en: 'History' },
-                    { key: 'leaderboard', bn: 'র‍্যাংকিং', en: 'Top Users' },
+                    { key: 'tasks', bn: 'অর্জনসমূহ', en: 'Achieve' },
+                    { key: 'history', bn: 'ইতিহাস', en: 'History' },
+                    { key: 'leaderboard', bn: 'র‍্যাংকিং', en: 'Top Rank' },
                   ] as const
                 ).map((t) => {
                   const isSel = activeTab === t.key;
@@ -494,12 +495,15 @@ export default function PointsScreen() {
                     <Pressable
                       key={t.key}
                       onPress={() => setActiveTab(t.key)}
-                      className={`flex-1 py-2 items-center rounded-lg ${
+                      className={`flex-1 py-2 px-1.5 items-center justify-center rounded-lg ${
                         isSel ? 'bg-[#0866FF]' : ''
                       }`}
                     >
                       <Text
-                        className={`text-[13.5px] font-bold ${
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.82}
+                        className={`text-[13px] font-bold text-center ${
                           isSel
                             ? 'text-white'
                             : 'text-[#65676b] dark:text-[#b0b3b8]'
@@ -516,8 +520,9 @@ export default function PointsScreen() {
             {/* TAB 1: TASKS */}
             {activeTab === 'tasks' && (
               <>
-                {/* 2. Profile Completion Card */}
-                {dashboard?.profileCompletion ? (
+                {/* 2. Profile Completion Card (hidden once 100%) */}
+                {dashboard?.profileCompletion &&
+                dashboard.profileCompletion.percentage < 100 ? (
                   <View style={cardSurfaceStyle} className="w-full px-3.5 py-4">
                     <View className="flex-row items-center justify-between mb-2">
                       <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
@@ -573,9 +578,7 @@ export default function PointsScreen() {
                           className="px-3 py-1.5 rounded-full border flex-row items-center gap-1.5"
                         >
                           <AppIcon
-                            android={
-                              s.done ? 'check_circle' : 'add_box'
-                            }
+                            android={s.done ? 'check_circle' : 'add_box'}
                             size={14}
                             color={
                               s.done
@@ -606,18 +609,18 @@ export default function PointsScreen() {
                     <View
                       style={{
                         backgroundColor: isDark
-                          ? 'rgba(139, 92, 246, 0.16)'
-                          : '#f5f3ff',
+                          ? 'rgba(8, 102, 255, 0.16)'
+                          : '#eff6ff',
                       }}
                       className="h-11 w-11 rounded-2xl items-center justify-center shrink-0"
                     >
-                      <AppIcon android="person_add" size={22} color="#8b5cf6" />
+                      <AppIcon android="person_add" size={22} color="#0866FF" />
                     </View>
                     <View className="flex-1 min-w-0">
                       <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb]">
                         {locale === 'bn'
-                          ? 'বন্ধুকে ইনভাইট করে পয়েন্ট পান'
-                          : 'Invite Friends & Earn Points'}
+                          ? 'বন্ধুদের সাথে ভালো কিছু শেয়ার করুন\nও এগিয়ে যান'
+                          : 'Share Something Good with Friends\n& Score Up!'}
                       </Text>
                       <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8]">
                         {locale === 'bn'
@@ -636,7 +639,9 @@ export default function PointsScreen() {
                   >
                     <View className="flex-1">
                       <Text className="text-[11.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                        {locale === 'bn' ? 'আপনার ইনভাইট ইউজারনেম' : 'Your Invite Username'}
+                        {locale === 'bn'
+                          ? 'আপনার ইনভাইট ইউজারনেম'
+                          : 'Your Invite Username'}
                       </Text>
                       <Text className="text-[16px] font-black text-[#050505] dark:text-white">
                         {referralCode ? `@${referralCode}` : '---'}
@@ -670,7 +675,7 @@ export default function PointsScreen() {
 
                   <Pressable
                     onPress={handleShareInvite}
-                    style={{ backgroundColor: '#7c3aed' }}
+                    style={{ backgroundColor: '#0866FF' }}
                     className="w-full py-3 rounded-xl flex-row items-center justify-center gap-2 active:opacity-85"
                   >
                     <AppIcon android="share" size={18} color="#ffffff" />
@@ -727,7 +732,10 @@ export default function PointsScreen() {
                 {/* 5. Task Cards */}
                 <View style={{ gap: 8 }}>
                   {filteredTasks.length === 0 ? (
-                    <View style={cardSurfaceStyle} className="w-full px-3.5 py-6 items-center">
+                    <View
+                      style={cardSurfaceStyle}
+                      className="w-full px-3.5 py-6 items-center"
+                    >
                       <Text className="text-[15px] text-[#65676b] dark:text-[#b0b3b8] text-center">
                         {taskFilter === 'COMPLETED'
                           ? locale === 'bn'
@@ -850,7 +858,10 @@ export default function PointsScreen() {
 
             {/* TAB 2: HISTORY */}
             {activeTab === 'history' && (
-              <View style={cardSurfaceStyle} className="w-full px-3.5 py-4">
+              <View
+                style={cardSurfaceStyle}
+                className="w-full flex-1 px-3.5 pt-4 pb-2"
+              >
                 <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] mb-3">
                   {locale === 'bn'
                     ? 'সাম্প্রতিক পয়েন্ট হিস্ট্রি'
@@ -860,54 +871,88 @@ export default function PointsScreen() {
                 {!dashboard?.recentTransactions?.length ? (
                   <Text className="text-[15px] text-[#65676b] dark:text-[#b0b3b8] py-6 text-center">
                     {locale === 'bn'
-                      ? 'এখনো কোনো পয়েন্ট লেনদেন হয়নি। টাস্ক সম্পন্ন করে পয়েন্ট অর্জন শুরু করুন!'
-                      : 'No points earned yet. Complete tasks above to start earning!'}
+                      ? 'এখনো কোনো পয়েন্ট লেনদেন হয়নি। অর্জন সম্পন্ন করে পয়েন্ট সংগ্রহ শুরু করুন!'
+                      : 'No points earned yet. Complete achievements above to start earning!'}
                   </Text>
                 ) : (
                   <View style={{ gap: 10 }}>
-                    {dashboard.recentTransactions.map((tx) => (
-                      <View
-                        key={tx.id}
-                        style={{
-                          borderBottomWidth: 1,
-                          borderBottomColor: isDark ? '#333436' : '#f0f2f5',
-                        }}
-                        className="pb-2.5 flex-row items-center justify-between gap-3"
-                      >
-                        <View className="flex-row items-center gap-3 flex-1 min-w-0">
-                          <View
-                            style={{
-                              backgroundColor: isDark
-                                ? 'rgba(5, 150, 105, 0.16)'
-                                : '#ecfdf5',
-                            }}
-                            className="h-9 w-9 rounded-xl items-center justify-center shrink-0"
-                          >
-                            <AppIcon
-                              android={resolveTaskIcon(tx.taskCode)}
-                              size={18}
-                              color="#059669"
-                            />
-                          </View>
-                          <View className="flex-1 min-w-0">
-                            <Text
-                              numberOfLines={1}
-                              className="text-[14.5px] font-semibold text-[#050505] dark:text-[#e4e6eb]"
+                    {dashboard.recentTransactions.map((tx, idx, arr) => {
+                      const isLast = idx === arr.length - 1;
+                      return (
+                        <View
+                          key={tx.id}
+                          style={
+                            isLast
+                              ? undefined
+                              : {
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: isDark
+                                    ? '#333436'
+                                    : '#f0f2f5',
+                                }
+                          }
+                          className={`${isLast ? 'pb-1' : 'pb-2.5'} flex-row items-center justify-between gap-3`}
+                        >
+                          <View className="flex-row items-center gap-3 flex-1 min-w-0">
+                            <View
+                              style={{
+                                backgroundColor:
+                                  tx.pointsDelta < 0
+                                    ? isDark
+                                      ? 'rgba(225, 29, 72, 0.16)'
+                                      : '#fff1f2'
+                                    : isDark
+                                      ? 'rgba(5, 150, 105, 0.16)'
+                                      : '#ecfdf5',
+                              }}
+                              className="h-9 w-9 rounded-xl items-center justify-center shrink-0"
                             >
-                              {locale === 'bn'
-                                ? tx.titleBn || tx.taskCode
-                                : tx.titleEn || tx.taskCode}
-                            </Text>
-                            <Text className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8]">
-                              {new Date(tx.createdAt).toLocaleDateString()}
-                            </Text>
+                              <AppIcon
+                                android={
+                                  tx.rewardCode
+                                    ? 'verified_user'
+                                    : resolveTaskIcon(tx.taskCode || '')
+                                }
+                                size={18}
+                                color={
+                                  tx.pointsDelta < 0 ? '#e11d48' : '#059669'
+                                }
+                              />
+                            </View>
+                            <View className="flex-1 min-w-0">
+                              <Text
+                                numberOfLines={1}
+                                className="text-[14.5px] font-semibold text-[#050505] dark:text-[#e4e6eb]"
+                              >
+                                {locale === 'bn'
+                                  ? tx.titleBn ||
+                                    tx.rewardCode ||
+                                    tx.taskCode ||
+                                    ''
+                                  : tx.titleEn ||
+                                    tx.rewardCode ||
+                                    tx.taskCode ||
+                                    ''}
+                              </Text>
+                              <Text className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8]">
+                                {new Date(tx.createdAt).toLocaleDateString()}
+                              </Text>
+                            </View>
                           </View>
+                          <Text
+                            className={`text-[15px] font-bold ${
+                              tx.pointsDelta < 0
+                                ? 'text-rose-600 dark:text-rose-400'
+                                : 'text-emerald-600 dark:text-emerald-400'
+                            }`}
+                          >
+                            {tx.pointsDelta >= 0
+                              ? `+${tx.pointsDelta}`
+                              : tx.pointsDelta}
+                          </Text>
                         </View>
-                        <Text className="text-[15px] font-bold text-emerald-600 dark:text-emerald-400">
-                          +{tx.pointsDelta}
-                        </Text>
-                      </View>
-                    ))}
+                      );
+                    })}
                   </View>
                 )}
               </View>
@@ -915,7 +960,10 @@ export default function PointsScreen() {
 
             {/* TAB 3: LEADERBOARD */}
             {activeTab === 'leaderboard' && (
-              <View style={cardSurfaceStyle} className="w-full px-3.5 py-4">
+              <View
+                style={cardSurfaceStyle}
+                className="w-full flex-1 px-3.5 pt-4 pb-2"
+              >
                 <Text className="text-base font-bold text-[#050505] dark:text-[#e4e6eb] mb-3">
                   {locale === 'bn'
                     ? 'শীর্ষ অবদানকারী সদস্যগণ'
@@ -930,66 +978,77 @@ export default function PointsScreen() {
                   </Text>
                 ) : (
                   <View style={{ gap: 10 }}>
-                    {leaderboard.map((entry) => (
-                      <Pressable
-                        key={entry.id}
-                        onPress={() => router.push(`/${entry.username}` as any)}
-                        style={{
-                          borderBottomWidth: 1,
-                          borderBottomColor: isDark ? '#333436' : '#f0f2f5',
-                        }}
-                        className="pb-2.5 flex-row items-center justify-between gap-3 active:opacity-80"
-                      >
-                        <View className="flex-row items-center gap-3 flex-1 min-w-0">
-                          <View
-                            style={{
-                              backgroundColor:
-                                entry.rank <= 3
-                                  ? '#fffbeb'
-                                  : isDark
-                                    ? '#3a3b3c'
+                    {leaderboard.map((entry, idx, arr) => {
+                      const isLast = idx === arr.length - 1;
+                      return (
+                        <Pressable
+                          key={entry.id}
+                          onPress={() =>
+                            router.push(`/${entry.username}` as any)
+                          }
+                          style={
+                            isLast
+                              ? undefined
+                              : {
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: isDark
+                                    ? '#333436'
                                     : '#f0f2f5',
-                            }}
-                            className="h-8 w-8 rounded-full items-center justify-center shrink-0"
-                          >
-                            <Text
-                              className={`text-[13px] font-black ${
-                                entry.rank <= 3
-                                  ? 'text-amber-600'
-                                  : 'text-[#65676b] dark:text-[#b0b3b8]'
-                              }`}
+                                }
+                          }
+                          className={`${isLast ? 'pb-1' : 'pb-2.5'} flex-row items-center justify-between gap-3 active:opacity-80`}
+                        >
+                          <View className="flex-row items-center gap-3 flex-1 min-w-0">
+                            <View
+                              style={{
+                                backgroundColor:
+                                  entry.rank <= 3
+                                    ? '#fffbeb'
+                                    : isDark
+                                      ? '#3a3b3c'
+                                      : '#f0f2f5',
+                              }}
+                              className="h-8 w-8 rounded-full items-center justify-center shrink-0"
                             >
-                              #{entry.rank}
-                            </Text>
+                              <Text
+                                className={`text-[13px] font-black ${
+                                  entry.rank <= 3
+                                    ? 'text-amber-600'
+                                    : 'text-[#65676b] dark:text-[#b0b3b8]'
+                                }`}
+                              >
+                                #{entry.rank}
+                              </Text>
+                            </View>
+                            <UserAvatar
+                              avatarUrl={entry.avatarUrl}
+                              name={entry.name}
+                              size="sm"
+                            />
+                            <View className="flex-1 min-w-0">
+                              <Text
+                                numberOfLines={1}
+                                className="text-[14.5px] font-bold text-[#050505] dark:text-[#e4e6eb]"
+                              >
+                                {entry.name}
+                              </Text>
+                              <Text
+                                numberOfLines={1}
+                                className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8]"
+                              >
+                                @{entry.username} •{' '}
+                                {locale === 'bn'
+                                  ? entry.level.nameBn
+                                  : entry.level.nameEn}
+                              </Text>
+                            </View>
                           </View>
-                          <UserAvatar
-                            avatarUrl={entry.avatarUrl}
-                            name={entry.name}
-                            size="sm"
-                          />
-                          <View className="flex-1 min-w-0">
-                            <Text
-                              numberOfLines={1}
-                              className="text-[14.5px] font-bold text-[#050505] dark:text-[#e4e6eb]"
-                            >
-                              {entry.name}
-                            </Text>
-                            <Text
-                              numberOfLines={1}
-                              className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8]"
-                            >
-                              @{entry.username} •{' '}
-                              {locale === 'bn'
-                                ? entry.level.nameBn
-                                : entry.level.nameEn}
-                            </Text>
-                          </View>
-                        </View>
-                        <Text className="text-[15px] font-bold text-[#0866FF] dark:text-[#60a5fa]">
-                          {entry.lifetimePoints} pts
-                        </Text>
-                      </Pressable>
-                    ))}
+                          <Text className="text-[15px] font-bold text-[#0866FF] dark:text-[#60a5fa]">
+                            {entry.lifetimePoints} pts
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
                   </View>
                 )}
               </View>

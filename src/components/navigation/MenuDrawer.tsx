@@ -77,14 +77,6 @@ const MENU_ITEMS: MenuItem[] = [
     iconBg: 'bg-emerald-600',
   },
   {
-    id: 'menu-points',
-    labelBn: 'পয়েন্ট ও টাস্ক',
-    labelEn: 'Points & Tasks',
-    href: '/points',
-    icon: 'auto_awesome',
-    iconBg: 'bg-amber-500',
-  },
-  {
     id: 'menu-bookmarks',
     labelBn: 'সংরক্ষিত আইটেম',
     labelEn: 'Saved',
@@ -285,7 +277,7 @@ export function MenuDrawer() {
           <ScrollView className="flex-1 p-4" contentContainerClassName="pb-5">
             {/* User Account / Auth Section matching peacetweet_frontend MenuDrawer.tsx */}
             {isAuthenticated && user ? (
-              <View className="mb-3.5">
+              <View className="mb-3.5 gap-2">
                 <Pressable
                   onPress={() => closeAndNavigate('/profile')}
                   className="flex-row items-center gap-3.5 p-3.5 rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c]"
@@ -318,51 +310,113 @@ export function MenuDrawer() {
                     color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
                   />
                 </Pressable>
+
+                {/* Points & Tasks right below user card (subtle menu row) */}
+                <Pressable
+                  onPress={() => closeAndNavigate('/points')}
+                  className={`flex-row items-center justify-between rounded-xl px-3 py-2 ${
+                    pathname.startsWith('/points')
+                      ? 'bg-[#dee2e8] dark:bg-[#3a3b3c]'
+                      : 'active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]/60'
+                  }`}
+                >
+                  <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
+                    <View className="h-8 w-8 rounded-full bg-amber-500 items-center justify-center">
+                      <AppIcon android="auto_awesome" size={16} color="#ffffff" />
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text
+                        numberOfLines={1}
+                        className="text-[14.5px] font-semibold text-[#050505] dark:text-[#e4e6eb]"
+                      >
+                        {locale === 'bn' ? 'অর্জন ও সম্মাননা' : 'Achievements'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View className="flex-row items-center gap-1.5">
+                    {typeof user.points === 'number' ? (
+                      <Text className="text-[12.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
+                        {user.points} pts
+                      </Text>
+                    ) : null}
+                    <AppIcon
+                      android="chevron_right"
+                      size={17}
+                      color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
+                    />
+                  </View>
+                </Pressable>
               </View>
             ) : (
-              <View className="p-4 rounded-2xl  bg-[#e6e9ef]/70  dark:bg-[#3a3b3c]/40 mb-3.5">
-                <Text className="font-bold text-[16px] text-[#1e2329] dark:text-white">
-                  {locale === 'bn'
-                    ? 'PeaceTweet এ স্বাগতম'
-                    : 'Welcome to PeaceTweet'}
-                </Text>
-                <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-1 mb-3.5 leading-5">
-                  {locale === 'bn'
-                    ? 'দোয়া ও ইসলামিক চিন্তার প্ল্যাটফর্মে যুক্ত হন'
-                    : 'Join the peaceful Dua & Islamic platform'}
-                </Text>
+              <View className="mb-3.5 gap-2">
+                <View className="p-4 rounded-2xl bg-[#e6e9ef]/70 dark:bg-[#3a3b3c]/40">
+                  <Text className="font-bold text-[16px] text-[#1e2329] dark:text-white">
+                    {locale === 'bn'
+                      ? 'PeaceTweet এ স্বাগতম'
+                      : 'Welcome to PeaceTweet'}
+                  </Text>
+                  <Text className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-1 mb-3.5 leading-5">
+                    {locale === 'bn'
+                      ? 'দোয়া ও ইসলামিক চিন্তার প্ল্যাটফর্মে যুক্ত হন'
+                      : 'Join the peaceful Dua & Islamic platform'}
+                  </Text>
 
-                <View className="flex-row gap-2.5">
-                  <Pressable
-                    onPress={() => closeAndNavigate('/login')}
-                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-primary-500 py-2.5"
-                  >
-                    <AppIcon
-                      android="login"
-                      ios="arrow.right.square"
-                      size={16}
-                      color="#ffffff"
-                    />
-                    <Text className="text-[14px] font-bold text-white">
-                      {locale === 'bn' ? 'লগইন' : 'Log In'}
-                    </Text>
-                  </Pressable>
+                  <View className="flex-row gap-2.5">
+                    <Pressable
+                      onPress={() => closeAndNavigate('/login')}
+                      className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl bg-primary-500 py-2.5"
+                    >
+                      <AppIcon
+                        android="login"
+                        ios="arrow.right.square"
+                        size={16}
+                        color="#ffffff"
+                      />
+                      <Text className="text-[14px] font-bold text-white">
+                        {locale === 'bn' ? 'লগইন' : 'Log In'}
+                      </Text>
+                    </Pressable>
 
-                  <Pressable
-                    onPress={() => closeAndNavigate('/register')}
-                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-[#d9dde4] bg-white py-2.5 dark:border-[#393a3b] dark:bg-[#242526]"
-                  >
-                    <AppIcon
-                      android="person_add"
-                      ios="person.badge.plus"
-                      size={16}
-                      color={theme === 'dark' ? '#e4e6eb' : '#1e2329'}
-                    />
-                    <Text className="text-[14px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
-                      {locale === 'bn' ? 'যোগ দিন' : 'Join'}
-                    </Text>
-                  </Pressable>
+                    <Pressable
+                      onPress={() => closeAndNavigate('/register')}
+                      className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-[#d9dde4] bg-white py-2.5 dark:border-[#393a3b] dark:bg-[#242526]"
+                    >
+                      <AppIcon
+                        android="person_add"
+                        ios="person.badge.plus"
+                        size={16}
+                        color={theme === 'dark' ? '#e4e6eb' : '#1e2329'}
+                      />
+                      <Text className="text-[14px] font-bold text-[#1e2329] dark:text-[#e4e6eb]">
+                        {locale === 'bn' ? 'যোগ দিন' : 'Join'}
+                      </Text>
+                    </Pressable>
+                  </View>
                 </View>
+
+                <Pressable
+                  onPress={() => closeAndNavigate('/points')}
+                  className={`flex-row items-center justify-between rounded-xl px-3 py-2 ${
+                    pathname.startsWith('/points')
+                      ? 'bg-[#dee2e8] dark:bg-[#3a3b3c]'
+                      : 'active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]/60'
+                  }`}
+                >
+                  <View className="flex-row items-center gap-2.5">
+                    <View className="h-8 w-8 rounded-full bg-amber-500 items-center justify-center">
+                      <AppIcon android="auto_awesome" size={16} color="#ffffff" />
+                    </View>
+                    <Text className="text-[14.5px] font-semibold text-[#050505] dark:text-[#e4e6eb]">
+                      {locale === 'bn' ? 'অর্জন ও সম্মাননা' : 'Achievements'}
+                    </Text>
+                  </View>
+                  <AppIcon
+                    android="chevron_right"
+                    size={17}
+                    color={theme === 'dark' ? '#b0b3b8' : '#65676b'}
+                  />
+                </Pressable>
               </View>
             )}
 

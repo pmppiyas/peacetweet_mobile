@@ -358,6 +358,7 @@ export function FeedPostCard({
                   post.author?.avatar || (post.author as any)?.avatarUrl
                 }
                 name={authorName}
+                frameCode={(post.author as any)?.activeAvatarFrame}
                 size="md"
               />
             </Pressable>

@@ -5,6 +5,8 @@ import {
   LeaderboardEntry,
   PointsDashboard,
   PointTransactionItem,
+  RedeemResult,
+  RedeemStoreData,
 } from '../types/points.types';
 
 export const pointsApi = {
@@ -29,6 +31,38 @@ export const pointsApi = {
 
   checkIn: async (): Promise<CheckInResult> => {
     const res = await apiClient.post<any>(API_ENDPOINTS.POINTS.CHECK_IN);
+    return res?.data?.data ?? res?.data;
+  },
+
+  getRedeemStore: async (): Promise<RedeemStoreData> => {
+    const res = await apiClient.get<any>(API_ENDPOINTS.POINTS.REDEEM);
+    return res?.data?.data ?? res?.data;
+  },
+
+  redeemReward: async (
+    code: string,
+    deliveryInfo?: {
+      recipientName: string;
+      phone: string;
+      address: string;
+      note?: string;
+    },
+  ): Promise<RedeemResult> => {
+    const res = await apiClient.post<any>(API_ENDPOINTS.POINTS.REDEEM, {
+      code,
+      ...(deliveryInfo ? { deliveryInfo } : {}),
+    });
+    return res?.data?.data ?? res?.data;
+  },
+
+  toggleEquipCosmetic: async (
+    code: string,
+    equip: boolean,
+  ): Promise<{ rewardCode: string; equipped: boolean; user?: any }> => {
+    const res = await apiClient.post<any>(API_ENDPOINTS.POINTS.REDEEM_EQUIP, {
+      code,
+      equip,
+    });
     return res?.data?.data ?? res?.data;
   },
 
