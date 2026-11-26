@@ -97,10 +97,9 @@ export function useGoogleAuth() {
     });
   }, []);
 
-  const promptGoogleSignIn = useCallback(async () => {
+  const promptGoogleTokens = useCallback(async () => {
     setGoogleError(null);
     const clientId = getValidatedGoogleClientId();
-
     const redirectUri = getRedirectUri();
     const nonce = generateNonce();
 
@@ -138,29 +137,36 @@ export function useGoogleAuth() {
           throw new Error(err);
         }
 
-        await loginWithGoogle({
+        return {
           idToken: parsed.idToken,
           accessToken: parsed.accessToken,
           code: parsed.code,
           redirectUri,
-        });
-      } else if (result.type === 'cancel' || result.type === 'dismiss') {
-        // User closed or cancelled OAuth flow
+        };
       }
+      return null;
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
-        'Google sign-in failed.';
+        'Google authentication failed.';
       setGoogleError(msg);
       throw err;
     } finally {
       setIsPrompting(false);
     }
-  }, [getRedirectUri, loginWithGoogle]);
+  }, [getRedirectUri]);
+
+  const promptGoogleSignIn = useCallback(async () => {
+    const tokens = await promptGoogleTokens();
+    if (tokens) {
+      await loginWithGoogle(tokens);
+    }
+  }, [promptGoogleTokens, loginWithGoogle]);
 
   return {
     promptGoogleSignIn,
+    promptGoogleTokens,
     isLoading: isPrompting || isGoogleLoggingIn,
     googleError,
     setGoogleError,

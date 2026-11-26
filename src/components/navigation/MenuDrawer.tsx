@@ -77,6 +77,14 @@ const MENU_ITEMS: MenuItem[] = [
     iconBg: 'bg-emerald-600',
   },
   {
+    id: 'menu-points',
+    labelBn: 'পয়েন্ট ও টাস্ক',
+    labelEn: 'Points & Tasks',
+    href: '/points',
+    icon: 'auto_awesome',
+    iconBg: 'bg-amber-500',
+  },
+  {
     id: 'menu-bookmarks',
     labelBn: 'সংরক্ষিত আইটেম',
     labelEn: 'Saved',
@@ -299,6 +307,9 @@ export function MenuDrawer() {
                       className="text-[13.5px] text-[#65676b] dark:text-[#b0b3b8] mt-0.5"
                     >
                       {user.username ? `@${user.username}` : user.email}
+                      {typeof user.points === 'number'
+                        ? ` • ${user.points} pts`
+                        : ''}
                     </Text>
                   </View>
                   <AppIcon

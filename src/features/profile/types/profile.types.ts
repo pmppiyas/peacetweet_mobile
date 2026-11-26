@@ -17,6 +17,8 @@ export interface UserProfileResponse {
   name: string;
   username: string;
   email?: string;
+  emailVerified?: boolean;
+  emailVerifiedAt?: string | null;
   role?: UserRole;
   userStatus?: UserStatus;
   badge?: string;
@@ -32,6 +34,10 @@ export interface UserProfileResponse {
   bloodGroup?: BloodGroup | null;
   isDonor?: boolean;
   donationCount?: number;
+  points?: number;
+  lifetimePoints?: number;
+  referralCode?: string | null;
+  currentStreak?: number;
   createdAt: string;
   updatedAt?: string;
   friendship?: FriendshipStatusResponse;

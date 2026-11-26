@@ -836,12 +836,19 @@ export default function PostPhotoViewerScreen() {
                         {authorName}
                       </Text>
                     </Pressable>
-                    <AppIcon
-                      android="verified"
-                      ios="checkmark.seal.fill"
-                      size={14}
-                      color="#0866FF"
-                    />
+                    {effectivePost.author?.userStatus === 'VERIFIED' ||
+                    effectivePost.author?.userStatus === 'PREMIUM' ? (
+                      <AppIcon
+                        android="verified"
+                        ios="checkmark.seal.fill"
+                        size={14}
+                        color={
+                          effectivePost.author?.userStatus === 'PREMIUM'
+                            ? '#d97706'
+                            : '#22c55e'
+                        }
+                      />
+                    ) : null}
                     <Text
                       style={[{ color: dotColor }, textShadowStyle] as any}
                       className="text-[11px]">

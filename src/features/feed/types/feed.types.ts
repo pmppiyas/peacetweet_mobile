@@ -1,3 +1,5 @@
+import { UserStatus } from '@/types/user.types';
+
 export type PostType =
   | 'TEXT'
   | 'DUA'
@@ -12,6 +14,7 @@ export interface FeedAuthor {
   name: string;
   username: string;
   avatar: string | null;
+  userStatus?: UserStatus;
 }
 
 export interface DuaReferenceItem {

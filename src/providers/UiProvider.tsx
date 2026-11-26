@@ -541,7 +541,14 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
         bottomNavTranslateY,
       }}>
       {children}
-      <GlobalToast toast={toast} onDismiss={hideToast} />
+      <GlobalToast
+        toast={toast}
+        onDismiss={hideToast}
+        theme={theme}
+        isProfileActive={isProfileActive}
+        isSearchOpen={isSearchOpen}
+        activeConversationId={activeConversationId}
+      />
     </UiContext.Provider>
   );
 }

@@ -15,6 +15,8 @@ import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
 import { AppIcon } from '@/components/ui/Icon';
+import { GoogleIcon } from '@/components/ui/GoogleIcon';
+import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
 import { profileApi } from '@/features/profile/api/profile.api';
 import {
   uploadsApi,
@@ -43,7 +45,7 @@ const BLOOD_GROUPS: { value: BloodGroup | 'NONE'; label: string }[] = [
 ];
 
 export default function EditProfileScreen() {
-  const { locale, theme, setIsProfileActive } = useUi();
+  const { locale, theme, setIsProfileActive, showToast } = useUi();
   const {
     user,
     setUser,
@@ -52,6 +54,7 @@ export default function EditProfileScreen() {
     isLoading: isAuthLoading,
   } = useAuth();
   const { refreshFeed } = useFeed();
+  const { promptGoogleTokens } = useGoogleAuth();
 
   useEffect(() => {
     setIsProfileActive(true);
@@ -63,6 +66,13 @@ export default function EditProfileScreen() {
   // Form States
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isConfirmingOtp, setIsConfirmingOtp] = useState(false);
+  const [isVerifyingGoogle, setIsVerifyingGoogle] = useState(false);
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
@@ -89,6 +99,7 @@ export default function EditProfileScreen() {
     if (user) {
       setName(user.name || '');
       setUsername(user.username || '');
+      setEmailInput(user.email || '');
       setBio(user.bio || '');
       if (user.avatarUrl) {
         setAvatarUrl(normalizeMediaUrl(user.avatarUrl));
@@ -354,6 +365,169 @@ export default function EditProfileScreen() {
     }
   };
 
+  const handleSendEmailOtp = async () => {
+    const cleanEmail = emailInput.trim().toLowerCase();
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage(
+        locale === 'bn'
+          ? 'অনুগ্রহ করে একটি সঠিক জিমেইল বা ইমেইল লিখুন।'
+          : 'Please enter a valid Gmail or email address.'
+      );
+      return;
+    }
+
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setIsSendingOtp(true);
+    try {
+      const res = await profileApi.requestEmailVerification(cleanEmail);
+      if (res.alreadyVerified) {
+        await refreshUser?.();
+        showToast({
+          type: 'success',
+          message:
+            locale === 'bn'
+              ? 'আপনার ইমেইল ইতিমধ্যেই ভেরিফাইড!'
+              : 'Your email is already verified!',
+        });
+        return;
+      }
+      setOtpSent(true);
+      setDevOtpHint(res.devCode || null);
+      showToast({
+        type: 'success',
+        message:
+          res.deliveryMode === 'dev' && res.devCode
+            ? locale === 'bn'
+              ? `ভেরিফিকেশন কোড তৈরি হয়েছে: ${res.devCode}`
+              : `Verification code ready: ${res.devCode}`
+            : locale === 'bn'
+              ? `${res.email} এ ৬-সংখ্যার কোড পাঠানো হয়েছে।`
+              : `A 6-digit verification code was sent to ${res.email}.`,
+      });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        (locale === 'bn'
+          ? 'কোড পাঠাতে সমস্যা হয়েছে।'
+          : 'Failed to send verification code.');
+      setErrorMessage(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleConfirmEmailOtp = async () => {
+    const cleanCode = otpCode.trim();
+    if (!/^\d{6}$/.test(cleanCode)) {
+      setErrorMessage(
+        locale === 'bn'
+          ? '৬-সংখ্যার সঠিক ভেরিফিকেশন কোড দিন।'
+          : 'Please enter the 6-digit verification code.'
+      );
+      return;
+    }
+
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setIsConfirmingOtp(true);
+    try {
+      const res = await profileApi.confirmEmailVerification(
+        cleanCode,
+        emailInput.trim().toLowerCase()
+      );
+      if (res?.user) {
+        setUser(res.user);
+      } else {
+        await refreshUser?.();
+      }
+      setOtpSent(false);
+      setOtpCode('');
+      setDevOtpHint(null);
+      const ptsNote =
+        res.pointsAwarded > 0
+          ? locale === 'bn'
+            ? ` (+${res.pointsAwarded} পয়েন্ট!)`
+            : ` (+${res.pointsAwarded} pts!)`
+          : '';
+      const badgeNote =
+        res.userStatus === 'VERIFIED'
+          ? locale === 'bn'
+            ? ' গ্রীন ভেরিফাইড আইকন আনলক হয়েছে!'
+            : ' Green Verified Icon unlocked!'
+          : '';
+      const msg =
+        (locale === 'bn'
+          ? 'জিমেইল সফলভাবে ভেরিফাই হয়েছে'
+          : 'Gmail verified successfully') +
+        ptsNote +
+        badgeNote;
+      setSuccessMessage(msg);
+      showToast({ type: 'success', message: msg });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        (locale === 'bn'
+          ? 'ভেরিফিকেশন কোড সঠিক নয়।'
+          : 'Invalid verification code.');
+      setErrorMessage(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    } finally {
+      setIsConfirmingOtp(false);
+    }
+  };
+
+  const handleVerifyEmailWithGoogle = async () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setIsVerifyingGoogle(true);
+    try {
+      const tokens = await promptGoogleTokens();
+      if (!tokens) return;
+      const res = await profileApi.verifyEmailWithGoogle(tokens);
+      if (res?.user) {
+        setUser(res.user);
+        setEmailInput(res.user.email || '');
+      } else {
+        await refreshUser?.();
+      }
+      setOtpSent(false);
+      setOtpCode('');
+      setDevOtpHint(null);
+      const ptsNote =
+        res.pointsAwarded > 0
+          ? locale === 'bn'
+            ? ` (+${res.pointsAwarded} পয়েন্ট!)`
+            : ` (+${res.pointsAwarded} pts!)`
+          : '';
+      const badgeNote =
+        res.userStatus === 'VERIFIED'
+          ? locale === 'bn'
+            ? ' গ্রীন ভেরিফাইড আইকন আনলক হয়েছে!'
+            : ' Green Verified Icon unlocked!'
+          : '';
+      const msg =
+        (locale === 'bn'
+          ? 'Google দিয়ে জিমেইল ভেরিফাই সম্পন্ন হয়েছে'
+          : 'Gmail verified with Google') +
+        ptsNote +
+        badgeNote;
+      setSuccessMessage(msg);
+      showToast({ type: 'success', message: msg });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        (locale === 'bn'
+          ? 'Google দিয়ে ভেরিফাই করতে সমস্যা হয়েছে।'
+          : 'Google verification failed.');
+      setErrorMessage(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    } finally {
+      setIsVerifyingGoogle(false);
+    }
+  };
+
   // Handle Save
   const handleSave = async () => {
     if (isSaving || isUploadingAvatar || isUploadingCover) return;
@@ -398,36 +572,104 @@ export default function EditProfileScreen() {
 
     setIsSaving(true);
     try {
-      const payload: Partial<User> = {
-        name: trimmedName,
-        bio: bio.trim() || null,
-        avatarUrl: avatarUrl.trim() || null,
-        coverUrl: coverUrl.trim() || null,
-        country: locationValue.country || 'Bangladesh',
-        countryCode: locationValue.countryCode || 'BD',
-        state: locationValue.state || null,
-        city: locationValue.city || null,
-        location: locationValue.location ? locationValue.location.trim() : null,
-        bloodGroup: bloodGroup === 'NONE' ? null : bloodGroup,
-        isDonor,
-        donationCount: Math.max(0, parseInt(donationCount, 10) || 0),
-      };
+      const payload: Partial<User> = {};
 
-      if (trimmedUsername && trimmedUsername !== user?.username) {
+      if (trimmedName !== (user?.name || '').trim()) {
+        payload.name = trimmedName;
+      }
+
+      if (trimmedUsername && trimmedUsername !== (user?.username || '')) {
         payload.username = trimmedUsername;
+      }
+
+      const trimmedEmail = emailInput.trim().toLowerCase();
+      if (trimmedEmail && trimmedEmail !== (user?.email || '').trim().toLowerCase()) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+          setErrorMessage(
+            locale === 'bn'
+              ? 'সঠিক ইমেইল অ্যাড্রেস লিখুন।'
+              : 'Please enter a valid email address.'
+          );
+          setIsSaving(false);
+          return;
+        }
+        payload.email = trimmedEmail;
+      }
+
+      const nextBio = bio.trim() || null;
+      const prevBio = user?.bio?.trim() || null;
+      if (nextBio !== prevBio) {
+        payload.bio = nextBio;
+      }
+
+      const nextAvatar = avatarUrl.trim() || null;
+      const prevAvatar = user?.avatarUrl ? normalizeMediaUrl(user.avatarUrl).trim() : null;
+      if (nextAvatar !== prevAvatar && nextAvatar !== (user?.avatarUrl || null)) {
+        payload.avatarUrl = nextAvatar;
+      }
+
+      const nextCover = coverUrl.trim() || null;
+      const prevCover = user?.coverUrl ? normalizeMediaUrl(user.coverUrl).trim() : null;
+      if (nextCover !== prevCover && nextCover !== (user?.coverUrl || null)) {
+        payload.coverUrl = nextCover;
+      }
+
+      const nextCountry = locationValue.country || 'Bangladesh';
+      const nextCountryCode = locationValue.countryCode || 'BD';
+      const nextState = locationValue.state || null;
+      const nextCity = locationValue.city || null;
+      const nextLocation = locationValue.location ? locationValue.location.trim() : null;
+
+      if (nextCountry !== (user?.country || null)) payload.country = nextCountry;
+      if (nextCountryCode !== (user?.countryCode || null)) payload.countryCode = nextCountryCode;
+      if (nextState !== (user?.state || null)) payload.state = nextState;
+      if (nextCity !== (user?.city || null)) payload.city = nextCity;
+      if (nextLocation !== (user?.location?.trim() || null)) payload.location = nextLocation;
+
+      const nextBloodGroup = bloodGroup === 'NONE' ? null : bloodGroup;
+      if (nextBloodGroup !== (user?.bloodGroup || null)) {
+        payload.bloodGroup = nextBloodGroup;
+      }
+
+      if (isDonor !== Boolean(user?.isDonor)) {
+        payload.isDonor = isDonor;
+      }
+
+      const nextDonationCount = Math.max(0, parseInt(donationCount, 10) || 0);
+      if (nextDonationCount !== (user?.donationCount || 0)) {
+        payload.donationCount = nextDonationCount;
+      }
+
+      if (Object.keys(payload).length === 0) {
+        setSuccessMessage(
+          locale === 'bn'
+            ? 'কোনো পরিবর্তন করা হয়নি।'
+            : 'No changes to save.'
+        );
+        setTimeout(() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace('/profile');
+          }
+        }, 400);
+        return;
       }
 
       const updatedUser = await profileApi.updateProfile(payload);
       if (updatedUser) {
-        const merged = {
+        setUser({
           ...(user || {}),
           ...updatedUser,
-          avatarUrl: payload.avatarUrl || avatarUrl,
-          coverUrl: payload.coverUrl || coverUrl,
-        };
-        setUser(merged as User);
+        } as User);
       }
-      await Promise.all([refreshUser(), refreshFeed()]);
+      if (
+        payload.name !== undefined ||
+        payload.username !== undefined ||
+        payload.avatarUrl !== undefined
+      ) {
+        refreshFeed().catch(() => {});
+      }
 
       setSuccessMessage(
         locale === 'bn'
@@ -441,7 +683,7 @@ export default function EditProfileScreen() {
         } else {
           router.replace('/profile');
         }
-      }, 800);
+      }, 600);
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
@@ -743,16 +985,171 @@ export default function EditProfileScreen() {
               />
             </View>
 
-            {/* Email (Readonly) */}
-            <View className="gap-1.5">
-              <Text className="text-[14.5px] font-semibold text-[#65676b] dark:text-[#b0b3b8]">
-                {locale === 'bn' ? 'ইমেইল (অপরিবর্তনীয়)' : 'Email (Read only)'}
-              </Text>
+            {/* Email & Gmail Verification (+50 pts, Mandatory for Green Verified Icon) */}
+            <View className="gap-2.5 pt-1">
+              <View className="flex-row items-center justify-between flex-wrap gap-1.5">
+                <Text className="text-[14.5px] font-semibold text-[#1c1e21] dark:text-[#e4e6eb]">
+                  {locale === 'bn' ? 'জিমেইল / ইমেইল' : 'Gmail / Email'}
+                </Text>
+                {user?.emailVerified &&
+                emailInput.trim().toLowerCase() ===
+                  (user?.email || '').trim().toLowerCase() ? (
+                  <View className="flex-row items-center gap-1 rounded-full bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 px-2.5 py-0.5">
+                    <AppIcon android="verified_user" size={13} color="#16a34a" />
+                    <Text className="text-[12px] font-bold text-green-700 dark:text-green-400">
+                      {locale === 'bn' ? 'ভেরিফাইড' : 'Verified'}
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="flex-row items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2.5 py-0.5">
+                    <AppIcon android="auto_awesome" size={12} color="#d97706" />
+                    <Text className="text-[11.5px] font-bold text-amber-700 dark:text-amber-300">
+                      {locale === 'bn'
+                        ? '+৫০ পয়েন্ট • গ্রীন ব্যাজে বাধ্যতামূলক'
+                        : '+50 pts • Mandatory for Green Badge'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
               <TextInput
-                value={user?.email || ''}
-                editable={false}
-                className="w-full h-12 rounded-2xl border border-transparent bg-[#e4e6eb]/50 dark:bg-[#3a3b3c]/30 px-3.5 text-base text-[#65676b] dark:text-[#b0b3b8]"
+                value={emailInput}
+                onChangeText={(val) => {
+                  setEmailInput(val);
+                  if (otpSent) {
+                    setOtpSent(false);
+                    setOtpCode('');
+                    setDevOtpHint(null);
+                  }
+                }}
+                editable={!user?.emailVerified}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                placeholder="example@gmail.com"
+                placeholderTextColor="#8a8d91"
+                className={`w-full h-12 rounded-2xl border px-3.5 text-base font-medium ${
+                  user?.emailVerified
+                    ? 'border-green-200 dark:border-green-900/60 bg-green-50/40 dark:bg-green-950/20 text-[#050505] dark:text-[#e4e6eb]'
+                    : 'border-transparent focus:border-primary-500 bg-[#f0f2f5] dark:bg-[#3a3b3c]/60 text-[#050505] dark:text-[#e4e6eb]'
+                }`}
               />
+
+              {!user?.emailVerified ||
+              emailInput.trim().toLowerCase() !==
+                (user?.email || '').trim().toLowerCase() ? (
+                <View className="gap-2.5 rounded-2xl border border-[#e4e6eb] dark:border-[#393a3b] bg-[#f8fafc] dark:bg-[#1e1f21] p-3">
+                  <Text className="text-[12.5px] text-[#65676b] dark:text-[#b0b3b8] leading-4">
+                    {locale === 'bn'
+                      ? 'প্রোফাইলে গ্রীন ভেরিফাইড আইকন পেতে ও +৫০ পয়েন্ট অর্জন করতে আপনার জিমেইল ভেরিফাই করা বাধ্যতামূলক।'
+                      : 'Verifying your Gmail/email is mandatory to unlock the green verified icon and awards +50 points.'}
+                  </Text>
+
+                  <View className="flex-row flex-wrap gap-2">
+                    <Pressable
+                      onPress={handleVerifyEmailWithGoogle}
+                      disabled={isVerifyingGoogle || isSendingOtp || isConfirmingOtp}
+                      className="flex-1 min-w-[140px] h-10 flex-row items-center justify-center gap-2 rounded-xl border border-[#e4e6eb] dark:border-[#4a4b4d] bg-white dark:bg-[#2a2b2d] px-3 active:opacity-80 disabled:opacity-60"
+                    >
+                      {isVerifyingGoogle ? (
+                        <ActivityIndicator size="small" color="#16a34a" />
+                      ) : (
+                        <>
+                          <GoogleIcon size={16} />
+                          <Text className="text-[13px] font-bold text-[#050505] dark:text-[#e4e6eb]">
+                            {locale === 'bn'
+                              ? 'Google দিয়ে ভেরিফাই'
+                              : 'Verify Gmail'}
+                          </Text>
+                        </>
+                      )}
+                    </Pressable>
+
+                    <Pressable
+                      onPress={handleSendEmailOtp}
+                      disabled={isSendingOtp || isConfirmingOtp || isVerifyingGoogle}
+                      className="flex-1 min-w-[140px] h-10 flex-row items-center justify-center gap-1.5 rounded-xl bg-green-600 px-3 active:opacity-85 disabled:opacity-60"
+                    >
+                      {isSendingOtp ? (
+                        <ActivityIndicator size="small" color="#ffffff" />
+                      ) : (
+                        <>
+                          <AppIcon android="mail" size={15} color="#ffffff" />
+                          <Text className="text-[13px] font-bold text-white">
+                            {otpSent
+                              ? locale === 'bn'
+                                ? 'আবার কোড পাঠান'
+                                : 'Resend Code'
+                              : locale === 'bn'
+                                ? 'কোড পাঠান (OTP)'
+                                : 'Send Code (OTP)'}
+                          </Text>
+                        </>
+                      )}
+                    </Pressable>
+                  </View>
+
+                  {otpSent ? (
+                    <View className="gap-2 pt-1">
+                      {devOtpHint ? (
+                        <Text className="text-[12px] font-semibold text-emerald-700 dark:text-emerald-300">
+                          {locale === 'bn'
+                            ? `ডেভ ভেরিফিকেশন কোড: ${devOtpHint}`
+                            : `Verification Code: ${devOtpHint}`}
+                        </Text>
+                      ) : null}
+                      <View className="flex-row items-center gap-2">
+                        <TextInput
+                          value={otpCode}
+                          onChangeText={(v) =>
+                            setOtpCode(v.replace(/\D/g, '').slice(0, 6))
+                          }
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          placeholder={
+                            locale === 'bn'
+                              ? '৬-সংখ্যার কোড লিখুন'
+                              : 'Enter 6-digit code'
+                          }
+                          placeholderTextColor="#8a8d91"
+                          className="flex-1 h-11 rounded-xl border border-[#d0d5dd] dark:border-[#4a4b4d] bg-white dark:bg-[#242526] px-3 text-base font-bold tracking-widest text-center text-[#050505] dark:text-[#e4e6eb]"
+                        />
+                        <Pressable
+                          onPress={handleConfirmEmailOtp}
+                          disabled={isConfirmingOtp || otpCode.trim().length !== 6}
+                          className="h-11 px-4 rounded-xl bg-emerald-600 items-center justify-center active:opacity-85 disabled:opacity-60"
+                        >
+                          {isConfirmingOtp ? (
+                            <ActivityIndicator size="small" color="#ffffff" />
+                          ) : (
+                            <Text className="text-[13.5px] font-bold text-white">
+                              {locale === 'bn' ? 'নিশ্চিত করুন' : 'Confirm'}
+                            </Text>
+                          )}
+                        </Pressable>
+                      </View>
+                    </View>
+                  ) : null}
+                </View>
+              ) : (
+                <View className="flex-row items-center gap-2 px-1">
+                  <AppIcon
+                    android="verified_user"
+                    size={15}
+                    color={
+                      user?.userStatus === 'VERIFIED' ? '#16a34a' : '#059669'
+                    }
+                  />
+                  <Text className="text-[12.5px] font-semibold text-green-700 dark:text-green-400 flex-1">
+                    {user?.userStatus === 'VERIFIED'
+                      ? locale === 'bn'
+                        ? 'গ্রীন ভেরিফাইড আইকন সক্রিয় আছে!'
+                        : 'Green Verified Icon is active on your profile!'
+                      : locale === 'bn'
+                        ? 'জিমেইল ভেরিফাইড ✓ গ্রীন আইকন পেতে প্রোফাইল ছবি, কভার, বায়ো ও ঠিকানা সম্পূর্ণ করুন।'
+                        : 'Gmail verified ✓ Complete photo, cover, bio & location for the Green Verified Icon.'}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 

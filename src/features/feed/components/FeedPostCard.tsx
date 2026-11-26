@@ -377,12 +377,19 @@ export function FeedPostCard({
                     {authorName}
                   </Text>
                 </Pressable>
-                <AppIcon
-                  android="verified"
-                  ios="checkmark.seal.fill"
-                  size={15}
-                  color="#0866FF"
-                />
+                {post.author?.userStatus === 'VERIFIED' ||
+                post.author?.userStatus === 'PREMIUM' ? (
+                  <AppIcon
+                    android="verified"
+                    ios="checkmark.seal.fill"
+                    size={15}
+                    color={
+                      post.author?.userStatus === 'PREMIUM'
+                        ? '#d97706'
+                        : '#16a34a'
+                    }
+                  />
+                ) : null}
                 {feelingItem && (
                   <Text
                     selectable={false}

@@ -19,6 +19,7 @@ import {
   Platform,
   Animated,
   StatusBar,
+  StyleSheet,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,6 +27,8 @@ import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { useFeed } from '@/providers/FeedProvider';
 import { feedApi } from '@/features/feed/api/feed.api';
+
+const DEFAULT_PROFILE_COVER = require('@/assets/images/post-bg-warm-vintage.jpg');
 import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -191,9 +194,18 @@ export function ProfileView({
   const [isPhotoEditorOpen, setIsPhotoEditorOpen] = useState(false);
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
   const [isManagementDrawerOpen, setIsManagementDrawerOpen] = useState(false);
+  const [coverLoaded, setCoverLoaded] = useState(false);
+  const [coverLoadFailed, setCoverLoadFailed] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(380)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
+
+  // External pinned tab switcher tracking (eliminates Android stickyHeaderIndices jitter)
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [tabsBarOffsetY, setTabsBarOffsetY] = useState(0);
+  const [scrollViewportHeight, setScrollViewportHeight] = useState(0);
+  const [isTabsPinned, setIsTabsPinned] = useState(false);
+  const isTabsPinnedRef = useRef(false);
 
   useEffect(() => {
     if (isManagementDrawerOpen) {
@@ -761,53 +773,198 @@ export function ProfileView({
   }
 
   const bloodGroupLabel = formatBloodGroup(displayUser.bloodGroup);
-  const resolvedCoverUrl = normalizeMediaUrl(displayUser.coverUrl);
+  const resolvedCoverUrl = normalizeMediaUrl(displayUser.coverUrl).trim();
+  const hasCustomCoverUrl = Boolean(
+    resolvedCoverUrl &&
+      resolvedCoverUrl !== 'null' &&
+      resolvedCoverUrl !== 'undefined'
+  );
+  const showCustomCover = hasCustomCoverUrl && !coverLoadFailed;
   const resolvedAvatarUrl = normalizeMediaUrl(displayUser.avatarUrl);
+  const isDark = theme === 'dark';
+
+  useEffect(() => {
+    setCoverLoaded(false);
+    setCoverLoadFailed(false);
+  }, [resolvedCoverUrl]);
+
+  const profileTabs: { key: ProfileTab; label: string }[] = [
+    { key: 'overview', label: locale === 'bn' ? 'এক নজরে' : 'Overview' },
+    { key: 'posts', label: locale === 'bn' ? 'পোস্ট' : 'Posts' },
+    {
+      key: 'friends',
+      label:
+        locale === 'bn'
+          ? `বন্ধু ${totalFriends > 0 ? `(${totalFriends})` : ''}`
+          : `Friends ${totalFriends > 0 ? `(${totalFriends})` : ''}`,
+    },
+    { key: 'groups', label: locale === 'bn' ? 'গ্রুপ' : 'Groups' },
+    ...(isOwner
+      ? [{ key: 'saved' as ProfileTab, label: locale === 'bn' ? 'সংরক্ষিত' : 'Saved' }]
+      : []),
+  ];
+
+  const renderTabSwitcherBar = (isStickyOverlay = false) => (
+    <View
+      style={{
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? '#393a3b' : '#e4e6eb',
+        ...(Platform.OS === 'web' && !isStickyOverlay
+          ? ({ position: 'sticky', top: 0, zIndex: 40 } as any)
+          : undefined),
+      }}
+      className="bg-white dark:bg-[#18191a] py-2.5"
+    >
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          gap: 8,
+          alignItems: 'center',
+        }}
+        className="w-full max-w-[768px] mx-auto"
+      >
+        {profileTabs.map((tab) => {
+          const isSelected = activeTab === tab.key;
+          return (
+            <Pressable
+              key={`${isStickyOverlay ? 'sticky' : 'inline'}-profile-tab-${tab.key}`}
+              onPress={() => setActiveTab(tab.key)}
+              className={`px-4 py-1.5 rounded-full active:opacity-80 ${
+                isSelected ? 'bg-[#E7F3FF] dark:bg-[#1A3860]' : 'bg-transparent'
+              }`}
+            >
+              <Text
+                className={`text-[14px] font-bold ${
+                  isSelected
+                    ? 'text-[#0064E0] dark:text-[#2D88FF]'
+                    : 'text-[#65676B] dark:text-[#B0B3B8]'
+                }`}
+              >
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
 
   return (
-    <ScrollView
-      className="flex-1 bg-white dark:bg-[#18191a]"
-      contentContainerStyle={{ flexGrow: 1 }}
-      stickyHeaderIndices={Platform.OS === 'web' ? undefined : [2]}
-      scrollEventThrottle={16}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      nestedScrollEnabled={true}
-      overScrollMode="always"
-      bounces={true}
-      style={
-        Platform.OS === 'web'
-          ? ({
-              scrollBehavior: 'smooth',
-              WebkitOverflowScrolling: 'touch',
-              overscrollBehaviorY: 'contain',
-            } as any)
-          : undefined
-      }
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          tintColor="#0866FF"
-          colors={['#0866FF']}
-        />
-      }
-    >
+    <View className="flex-1 bg-white dark:bg-[#18191a] relative">
+      {/* Pinned external tab switcher when scrolled past Cover + Header (zero ScrollView jitter) */}
+      {Platform.OS !== 'web' && tabsBarOffsetY > 0 && (
+        <Animated.View
+          pointerEvents={isTabsPinned ? 'auto' : 'none'}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 40,
+            opacity: scrollY.interpolate({
+              inputRange: [tabsBarOffsetY - 1, tabsBarOffsetY],
+              outputRange: [0, 1],
+              extrapolate: 'clamp',
+            }),
+          }}
+        >
+          {renderTabSwitcherBar(true)}
+        </Animated.View>
+      )}
+
+      <Animated.ScrollView
+        className="flex-1 bg-white dark:bg-[#18191a]"
+        contentContainerStyle={{ flexGrow: 1 }}
+        onLayout={(e) => {
+          const h = Math.round(e.nativeEvent.layout.height);
+          if (h > 0 && h !== scrollViewportHeight) {
+            setScrollViewportHeight(h);
+          }
+        }}
+        onContentSizeChange={(_, contentHeight) => {
+          if (
+            Platform.OS !== 'web' &&
+            scrollViewportHeight > 0 &&
+            tabsBarOffsetY > 0 &&
+            contentHeight - scrollViewportHeight < tabsBarOffsetY &&
+            isTabsPinnedRef.current
+          ) {
+            const clampedY = Math.max(0, contentHeight - scrollViewportHeight);
+            scrollY.setValue(clampedY);
+            isTabsPinnedRef.current = false;
+            setIsTabsPinned(false);
+          }
+        }}
+        onScroll={
+          Platform.OS !== 'web'
+            ? Animated.event(
+                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                {
+                  useNativeDriver: true,
+                  listener: (e: any) => {
+                    const y = e?.nativeEvent?.contentOffset?.y ?? 0;
+                    const nextPinned = tabsBarOffsetY > 0 && y >= tabsBarOffsetY;
+                    if (nextPinned !== isTabsPinnedRef.current) {
+                      isTabsPinnedRef.current = nextPinned;
+                      setIsTabsPinned(nextPinned);
+                    }
+                  },
+                }
+              )
+            : undefined
+        }
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
+        overScrollMode="always"
+        bounces={true}
+        style={
+          Platform.OS === 'web'
+            ? ({
+                scrollBehavior: 'smooth',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehaviorY: 'contain',
+              } as any)
+            : undefined
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor="#0866FF"
+            colors={['#0866FF']}
+          />
+        }
+      >
       {/* 1. Cover Photo Banner */}
-      <View className="relative w-full h-44 sm:h-52 bg-gradient-to-r from-emerald-800 via-teal-700 to-primary-800 overflow-hidden">
-        {resolvedCoverUrl ? (
+      <View
+        style={{ height: Platform.OS === 'web' ? undefined : 176 }}
+        className="relative w-full h-44 sm:h-52 bg-[#e8dfd1] dark:bg-[#242526] overflow-hidden"
+      >
+        {(!showCustomCover || !coverLoaded) && (
+          <Image
+            source={DEFAULT_PROFILE_COVER}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+          />
+        )}
+        {showCustomCover && (
           <Pressable
             onPress={() => handleOpenPhotoPost('cover')}
-            className="w-full h-full active:opacity-95"
+            style={StyleSheet.absoluteFill}
+            className="active:opacity-95"
           >
             <Image
               source={{ uri: resolvedCoverUrl }}
-              className="w-full h-full"
+              style={StyleSheet.absoluteFill}
               resizeMode="cover"
+              onLoad={() => setCoverLoaded(true)}
+              onError={() => setCoverLoadFailed(true)}
             />
           </Pressable>
-        ) : (
-          <View className="absolute inset-0 bg-black/10" />
         )}
 
         {/* Back Button (if requested or viewing someone else) */}
@@ -843,7 +1000,7 @@ export function ProfileView({
             onPress={() => triggerPhotoPicker('cover')}
             disabled={isSavingPhoto}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            className="absolute bottom-3 right-3 z-30 p-1 items-center justify-center active:scale-90 active:opacity-75"
+            className="absolute bottom-3 right-3 z-30 h-9 w-9 rounded-full bg-black/35 items-center justify-center active:scale-90 active:opacity-75"
             accessibilityLabel={
               locale === 'bn' ? 'কভার ছবি পরিবর্তন' : 'Change cover photo'
             }
@@ -851,7 +1008,7 @@ export function ProfileView({
             {isSavingPhoto && photoEditorMode === 'cover' ? (
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
-              <AppIcon android="photo_camera" size={22} color="#ffffff" />
+              <AppIcon android="photo_camera" size={20} color="#ffffff" />
             )}
           </Pressable>
         ) : null}
@@ -912,7 +1069,9 @@ export function ProfileView({
               size={18}
               color={
                 displayUser.userStatus === 'VERIFIED'
-                  ? '#0866FF'
+                  ? theme === 'dark'
+                    ? '#22c55e'
+                    : '#16a34a'
                   : displayUser.userStatus === 'PREMIUM'
                     ? '#d97706'
                     : theme === 'dark'
@@ -927,6 +1086,56 @@ export function ProfileView({
         <Text className="text-[14.5px] sm:text-[15px] font-semibold text-primary-600 dark:text-primary-400 mt-1">
           @{displayUser.username || 'user'}
         </Text>
+
+        {/* Mandatory Gmail Verify Shortcut Pill for Owner */}
+        {isOwner && !displayUser.emailVerified ? (
+          <Pressable
+            onPress={() => router.push('/settings/profile' as any)}
+            style={{
+              backgroundColor: isDark
+                ? 'rgba(22, 163, 74, 0.14)'
+                : '#f0fdf4',
+              borderColor: isDark
+                ? 'rgba(34, 197, 94, 0.35)'
+                : '#bbf7d0',
+            }}
+            className="mt-2 px-3 py-1 rounded-full border flex-row items-center gap-1.5 active:opacity-80"
+          >
+            <AppIcon
+              android="mail"
+              size={13}
+              color={isDark ? '#4ade80' : '#16a34a'}
+            />
+            <Text className="text-[12.5px] font-bold text-green-700 dark:text-green-400">
+              {locale === 'bn'
+                ? 'জিমেইল ভেরিফাই করুন (+৫০ পয়েন্ট • গ্রীন ব্যাজ)'
+                : 'Verify Gmail (+50 pts • Green Badge)'}
+            </Text>
+          </Pressable>
+        ) : null}
+
+        {/* Points Pill */}
+        {typeof (displayUser as any).points === 'number' ? (
+          <Pressable
+            onPress={() => {
+              if (isOwner) router.push('/points' as any);
+            }}
+            style={{
+              backgroundColor: isDark
+                ? 'rgba(245, 158, 11, 0.16)'
+                : '#fffbeb',
+              borderColor: isDark
+                ? 'rgba(245, 158, 11, 0.35)'
+                : '#fde68a',
+            }}
+            className="mt-2 px-3 py-1 rounded-full border flex-row items-center gap-1.5 active:opacity-80"
+          >
+            <AppIcon android="auto_awesome" size={14} color="#d97706" />
+            <Text className="text-[13px] font-bold text-amber-700 dark:text-amber-300">
+              {(displayUser as any).points} {locale === 'bn' ? 'পয়েন্ট' : 'pts'}
+            </Text>
+          </Pressable>
+        ) : null}
 
         {/* Badges Row (Special Badges only) */}
         {displayUser.badges &&
@@ -1137,145 +1346,23 @@ export function ProfileView({
         )}
       </View>
 
-      {/* 3. Sticky Segmented Tab Switcher */}
+      {/* 3. Segmented Tab Switcher (measured in-flow for seamless pinned overlay) */}
       <View
-        style={
-          Platform.OS === 'web'
-            ? ({
-                position: 'sticky',
-                top: 0,
-                zIndex: 40,
-              } as any)
-            : undefined
-        }
-        className="bg-white dark:bg-[#18191a] border-b border-[#e4e6eb]/70 dark:border-[#393a3b]/70 py-2.5"
+        onLayout={(e) => {
+          const y = Math.round(e.nativeEvent.layout.y);
+          if (y > 0 && Math.abs(y - tabsBarOffsetY) > 1) {
+            setTabsBarOffsetY(y);
+          }
+        }}
       >
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            gap: 8,
-            alignItems: 'center',
-          }}
-          className="w-full max-w-[768px] mx-auto"
-        >
-          {/* Overview Tab */}
-          <Pressable
-            key="profile-tab-overview"
-            onPress={() => setActiveTab('overview')}
-            className={`px-4 py-1.5 rounded-full active:opacity-80 ${
-              activeTab === 'overview'
-                ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
-                : 'bg-transparent'
-            }`}
-          >
-            <Text
-              className={`text-[14px] font-bold ${
-                activeTab === 'overview'
-                  ? 'text-[#0064E0] dark:text-[#2D88FF]'
-                  : 'text-[#65676B] dark:text-[#B0B3B8]'
-              }`}
-            >
-              {locale === 'bn' ? 'এক নজরে' : 'Overview'}
-            </Text>
-          </Pressable>
-
-          {/* Posts Tab */}
-          <Pressable
-            key="profile-tab-posts"
-            onPress={() => setActiveTab('posts')}
-            className={`px-4 py-1.5 rounded-full active:opacity-80 ${
-              activeTab === 'posts'
-                ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
-                : 'bg-transparent'
-            }`}
-          >
-            <Text
-              className={`text-[14px] font-bold ${
-                activeTab === 'posts'
-                  ? 'text-[#0064E0] dark:text-[#2D88FF]'
-                  : 'text-[#65676B] dark:text-[#B0B3B8]'
-              }`}
-            >
-              {locale === 'bn' ? 'পোস্ট' : 'Posts'}
-            </Text>
-          </Pressable>
-
-          {/* Friends Tab */}
-          <Pressable
-            key="profile-tab-friends"
-            onPress={() => setActiveTab('friends')}
-            className={`px-4 py-1.5 rounded-full active:opacity-80 ${
-              activeTab === 'friends'
-                ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
-                : 'bg-transparent'
-            }`}
-          >
-            <Text
-              className={`text-[14px] font-bold ${
-                activeTab === 'friends'
-                  ? 'text-[#0064E0] dark:text-[#2D88FF]'
-                  : 'text-[#65676B] dark:text-[#B0B3B8]'
-              }`}
-            >
-              {locale === 'bn'
-                ? `বন্ধু ${totalFriends > 0 ? `(${totalFriends})` : ''}`
-                : `Friends ${totalFriends > 0 ? `(${totalFriends})` : ''}`}
-            </Text>
-          </Pressable>
-
-          {/* Groups Tab */}
-          <Pressable
-            key="profile-tab-groups"
-            onPress={() => setActiveTab('groups')}
-            className={`px-4 py-1.5 rounded-full active:opacity-80 ${
-              activeTab === 'groups'
-                ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
-                : 'bg-transparent'
-            }`}
-          >
-            <Text
-              className={`text-[14px] font-bold ${
-                activeTab === 'groups'
-                  ? 'text-[#0064E0] dark:text-[#2D88FF]'
-                  : 'text-[#65676B] dark:text-[#B0B3B8]'
-              }`}
-            >
-              {locale === 'bn' ? 'গ্রুপ' : 'Groups'}
-            </Text>
-          </Pressable>
-
-          {/* Saved Tab (Only visible to Owner) */}
-          {isOwner && (
-            <Pressable
-              key="profile-tab-saved"
-              onPress={() => setActiveTab('saved')}
-              className={`px-4 py-1.5 rounded-full active:opacity-80 ${
-                activeTab === 'saved'
-                  ? 'bg-[#E7F3FF] dark:bg-[#1A3860]'
-                  : 'bg-transparent'
-              }`}
-            >
-              <Text
-                className={`text-[14px] font-bold ${
-                  activeTab === 'saved'
-                    ? 'text-[#0064E0] dark:text-[#2D88FF]'
-                    : 'text-[#65676B] dark:text-[#B0B3B8]'
-                }`}
-              >
-                {locale === 'bn' ? 'সংরক্ষিত' : 'Saved'}
-              </Text>
-            </Pressable>
-          )}
-        </ScrollView>
+        {renderTabSwitcherBar(false)}
       </View>
 
       {/* 4. Tab Contents */}
-      <View className="w-full max-w-[768px] mx-auto px-0 pb-3 mt-1 flex-1">
+      <View className="w-full max-w-[768px] mx-auto px-0 pb-0 mt-1 flex-1">
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
-          <View className="bg-white dark:bg-[#18191a] pb-6">
+          <View className="bg-white dark:bg-[#18191a]">
             {/* 1. At a glance / Intro */}
             <View className="px-4 py-4">
               <View className="flex-row items-center justify-between mb-3.5">
@@ -1636,7 +1723,7 @@ export function ProfileView({
                 </Text>
               </View>
             ) : (
-              <View className="p-4 sm:p-5">
+              <View className="px-4 pt-4 pb-1 sm:px-5 sm:pt-5 sm:pb-1">
                 <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
                   <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                     {locale === 'bn' ? 'সকল বন্ধু' : 'All Friends'} (
@@ -1721,7 +1808,7 @@ export function ProfileView({
                 </Text>
               </View>
             ) : (
-              <View className="p-4 sm:p-5">
+              <View className="px-4 pt-4 pb-1 sm:px-5 sm:pt-5 sm:pb-1">
                 <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
                   <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                     {locale === 'bn' ? 'গ্রুপসমূহ' : 'Groups'} ({groups.length})
@@ -1814,7 +1901,7 @@ export function ProfileView({
                 </Text>
               </View>
             ) : (
-              <View className="p-4 sm:p-5">
+              <View className="px-4 pt-4 pb-1 sm:px-5 sm:pt-5 sm:pb-1">
                 <View className="flex-row items-center justify-between pb-3 mb-2.5 border-b border-[#e6e9ef] dark:border-[#393a3b]">
                   <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
                     {locale === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved Items'} (
@@ -1874,6 +1961,7 @@ export function ProfileView({
           </View>
         )}
       </View>
+      </Animated.ScrollView>
 
       {/* Unfriend Confirm Dialog */}
       <ConfirmDialog
@@ -2242,6 +2330,6 @@ export function ProfileView({
           ) : null}
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }

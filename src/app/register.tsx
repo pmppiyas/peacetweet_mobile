@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
@@ -39,13 +39,23 @@ export default function RegisterScreen() {
   const { locale, theme } = useUi();
   const { register, isRegistering } = useAuth();
   const { promptGoogleSignIn, isLoading: isGoogleLoading } = useGoogleAuth();
+  const params = useLocalSearchParams<{ invitedBy?: string; ref?: string }>();
 
   // 5-Step Flow matching peacetweet_frontend RegisterView.tsx
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
-  // Step 1: Name & Email
+  // Step 1: Name & Email & Optional Inviter Username
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [invitedBy, setInvitedBy] = useState(() => {
+    const raw =
+      typeof params.invitedBy === 'string'
+        ? params.invitedBy
+        : typeof params.ref === 'string'
+          ? params.ref
+          : '';
+    return raw.trim();
+  });
 
   // Step 2: Password
   const [password, setPassword] = useState('');
@@ -361,6 +371,7 @@ export default function RegisterScreen() {
         city: city.trim() || undefined,
         location: formattedLocation || undefined,
         bloodGroup: includeBloodGroup ? bloodGroup : undefined,
+        invitedBy: invitedBy.trim().replace(/^@+/, '') || undefined,
       });
     } catch (err: any) {
       setIsUploadingPhoto(false);
@@ -570,6 +581,48 @@ export default function RegisterScreen() {
                     className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
                     autoCapitalize="none"
                     keyboardType="email-address"
+                  />
+                </View>
+              </View>
+
+              {/* Optional Inviter Username */}
+              <View>
+                <Text className="text-[12.5px] font-bold text-[#65676b] dark:text-[#b0b3b8] mb-1.5 ml-1">
+                  {locale === 'bn'
+                    ? 'কে ইনভাইট করেছে? (ইউজারনেম - ঐচ্ছিক)'
+                    : 'Invited By (Username - Optional)'}
+                </Text>
+                <View
+                  className={`h-12 rounded-2xl px-4 flex-row items-center gap-3 transition-all ${
+                    focusedField === 'invitedBy'
+                      ? 'bg-[#edf5ff] dark:bg-[#1a2744]'
+                      : 'bg-[#f0f2f5] dark:bg-[#242526]'
+                  }`}
+                >
+                  <AppIcon
+                    android="person_add"
+                    size={19}
+                    color={
+                      focusedField === 'invitedBy' ? '#0866FF' : '#8a8d91'
+                    }
+                  />
+                  <TextInput
+                    value={invitedBy}
+                    onChangeText={setInvitedBy}
+                    onFocus={() => setFocusedField('invitedBy')}
+                    onBlur={() =>
+                      setFocusedField((prev) =>
+                        prev === 'invitedBy' ? null : prev
+                      )
+                    }
+                    placeholder={
+                      locale === 'bn'
+                        ? 'যেমন: @username'
+                        : 'e.g. @username'
+                    }
+                    placeholderTextColor={isDark ? '#73767a' : '#8a8d91'}
+                    className="flex-1 text-[14.5px] text-[#1e2329] dark:text-[#e4e6eb] py-0"
+                    autoCapitalize="none"
                   />
                 </View>
               </View>

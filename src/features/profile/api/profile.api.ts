@@ -19,6 +19,60 @@ export const profileApi = {
     return res?.data?.data || res?.data;
   },
 
+  // Request 6-digit email verification OTP
+  requestEmailVerification: async (email?: string): Promise<{
+    alreadyVerified?: boolean;
+    sent?: boolean;
+    email: string;
+    deliveryMode?: 'resend' | 'smtp' | 'dev';
+    devCode?: string;
+    expiresInSeconds?: number;
+  }> => {
+    const res = await apiClient.post<any>(
+      API_ENDPOINTS.USERS.VERIFY_EMAIL_REQUEST,
+      email ? { email } : {}
+    );
+    return res?.data?.data || res?.data;
+  },
+
+  // Confirm 6-digit OTP to verify email & earn +50 pts
+  confirmEmailVerification: async (
+    code: string,
+    email?: string
+  ): Promise<{
+    user: User;
+    emailVerified: boolean;
+    pointsAwarded: number;
+    alreadyAwarded?: boolean;
+    userStatus?: string;
+  }> => {
+    const res = await apiClient.post<any>(
+      API_ENDPOINTS.USERS.VERIFY_EMAIL_CONFIRM,
+      email ? { code, email } : { code }
+    );
+    return res?.data?.data || res?.data;
+  },
+
+  // Verify Gmail via Google OAuth tokens
+  verifyEmailWithGoogle: async (payload: {
+    accessToken?: string;
+    idToken?: string;
+    code?: string;
+    redirectUri?: string;
+  }): Promise<{
+    user: User;
+    emailVerified: boolean;
+    pointsAwarded: number;
+    alreadyAwarded?: boolean;
+    userStatus?: string;
+  }> => {
+    const res = await apiClient.post<any>(
+      API_ENDPOINTS.USERS.VERIFY_EMAIL_GOOGLE,
+      payload
+    );
+    return res?.data?.data || res?.data;
+  },
+
   // Get user's feed posts
   getUserPosts: async (authorId: string): Promise<FeedItem[]> => {
     try {

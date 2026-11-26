@@ -9,8 +9,10 @@ import { queryCache, CACHE_KEYS } from '@/lib/cache/queryCache';
 import { sessionStorage } from '@/lib/storage/secureStorage';
 
 export function useUnreadBadgeSync() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, setUser } = useAuth();
   const {
+    locale,
+    showToast,
     activeConversationId,
     setUnreadNotificationsCount,
     setUnreadMessagesCount,
@@ -198,6 +200,34 @@ export function useUnreadBadgeSync() {
         scheduleFetchMessagesUnread();
       };
 
+      const handlePointsEarned = (payload: any) => {
+        if (!payload || typeof payload.pointsDelta !== 'number') return;
+        queryCache.invalidate('points:dashboard');
+        queryCache.invalidate('points:leaderboard');
+        const current = sessionStorage.getUser();
+        if (current) {
+          setUser({
+            ...current,
+            points:
+              typeof payload.totalPoints === 'number'
+                ? payload.totalPoints
+                : (current.points ?? 0) + payload.pointsDelta,
+            lifetimePoints:
+              typeof payload.lifetimePoints === 'number'
+                ? payload.lifetimePoints
+                : (current.lifetimePoints ?? 0) + payload.pointsDelta,
+          });
+        }
+        showToast({
+          type: 'success',
+          title: `+${payload.pointsDelta} ${locale === 'bn' ? 'পয়েন্ট!' : 'Points!'}`,
+          message:
+            locale === 'bn'
+              ? payload.titleBn || 'টাস্ক সম্পন্ন হয়েছে'
+              : payload.titleEn || 'Task completed',
+        });
+      };
+
       s.on('connect', handleConnect);
       s.on('users:online_list', handleOnlineList);
       s.on('user:status', handleUserStatus);
@@ -209,6 +239,7 @@ export function useUnreadBadgeSync() {
       s.on('conversation:updated', handleConversationUpdated);
       s.on('message:seen', handleMessageSeenOrRead);
       s.on('message:read', handleMessageSeenOrRead);
+      s.on('points:earned', handlePointsEarned);
 
       return () => {
         clearInterval(timer);
@@ -227,6 +258,7 @@ export function useUnreadBadgeSync() {
         s.off('conversation:updated', handleConversationUpdated);
         s.off('message:seen', handleMessageSeenOrRead);
         s.off('message:read', handleMessageSeenOrRead);
+        s.off('points:earned', handlePointsEarned);
       };
     }
 
