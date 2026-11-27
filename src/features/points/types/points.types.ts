@@ -172,6 +172,8 @@ export interface RedeemStoreData {
   lifetimePoints: number;
   emailVerified: boolean;
   userStatus?: string;
+  activeAvatarFrame?: string | null;
+  activeProfileTheme?: string | null;
   items: RedeemItem[];
   redemptions: RedeemRecordItem[];
 }

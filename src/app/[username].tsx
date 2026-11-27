@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ActivityIndicator, Pressable, ScrollView } from 'react-native';
-import { useLocalSearchParams, router, Redirect } from 'expo-router';
+import { useLocalSearchParams, router, Redirect, useFocusEffect } from 'expo-router';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon } from '@/components/ui/Icon';
@@ -135,6 +135,17 @@ export default function UserProfileScreen() {
       Boolean(authUser && authUser.username?.toLowerCase() === lowerUsername);
     fetchProfile(hasCache);
   }, [fetchProfile, cacheKey, authUser, lowerUsername]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const hasCache =
+        queryCache.has(cacheKey) ||
+        Boolean(authUser && authUser.username?.toLowerCase() === lowerUsername);
+      if (hasCache) {
+        fetchProfile(true);
+      }
+    }, [fetchProfile, cacheKey, authUser, lowerUsername])
+  );
 
   const tabParam = params.tab?.toLowerCase();
   const initialTab: ProfileTab =

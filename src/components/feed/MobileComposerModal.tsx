@@ -752,17 +752,15 @@ export function MobileComposerModal() {
 
         // Trigger success animation on bottom nav bar
         triggerPostSuccess();
-        showToast({
-          message:
-            locale === 'bn'
-              ? pIsEditing
+        if (pIsEditing) {
+          showToast({
+            message:
+              locale === 'bn'
                 ? 'পোস্টটি সফলভাবে আপডেট করা হয়েছে!'
-                : 'পোস্টটি সফলভাবে তৈরি হয়েছে!'
-              : pIsEditing
-              ? 'Post updated successfully!'
-              : 'Post created successfully!',
-          type: 'success',
-        });
+                : 'Post updated successfully!',
+            type: 'success',
+          });
+        }
       } catch (err: any) {
         setIsUploadingPost(false);
         const msg = formatUserFacingError(

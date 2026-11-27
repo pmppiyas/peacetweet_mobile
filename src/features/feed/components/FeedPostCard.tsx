@@ -126,7 +126,8 @@ export function FeedPostCard({
   defaultShowArabic = false,
   defaultShowComments = false,
 }: FeedPostCardProps) {
-  const { locale, theme, openPhotoViewer, openComposer } = useUi();
+  const { locale, theme, openPhotoViewer, openComposer, isUserOnline } =
+    useUi();
   const { user, isAuthenticated } = useAuth();
   const {
     toggleReaction,
@@ -359,7 +360,11 @@ export function FeedPostCard({
                 }
                 name={authorName}
                 frameCode={(post.author as any)?.activeAvatarFrame}
+                isOnline={isUserOnline(
+                  post.author?.id || (post as any).authorId
+                )}
                 size="md"
+                sizePx={43}
               />
             </Pressable>
 
@@ -452,7 +457,7 @@ export function FeedPostCard({
       </View>
 
       {/* 2. Main Post Content Body – px-0 on outer wrapper so photos go edge-to-edge */}
-      <View style={{ width: '100%' }} className="w-full mt-1.5 pb-1.5 gap-3">
+      <View style={{ width: '100%' }} className="w-full mt-1.5 gap-3">
         <PostBody
           post={currentPost}
           defaultShowArabic={defaultShowArabic}
@@ -500,7 +505,7 @@ export function FeedPostCard({
       </View>
 
       {/* 3. Action Bar with icons & counts, aligned to start */}
-      <View className="flex-row items-center justify-start gap-3 sm:gap-5 px-3.5 py-2 mt-1.5 border-t border-[#f0f2f5] dark:border-[#2e2f30] select-none">
+      <View className="flex-row items-center justify-start gap-3 sm:gap-5 px-3 pt-0 pb-1 border-t border-[#f0f2f5] dark:border-[#2e2f30] select-none">
         {/* Reaction (Ameen / Like) */}
         <Pressable
           onPress={handleToggleReaction}

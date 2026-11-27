@@ -21,8 +21,19 @@ export function resolvePrimaryApiUrl(): string {
     return configuredUrl;
   }
 
-  // Web browsers access PC localhost directly
+  // Web browsers: use PC localhost directly, or match the LAN hostname when opened from another device
   if (Platform.OS === 'web') {
+    if (
+      typeof window !== 'undefined' &&
+      window.location?.hostname &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1'
+    ) {
+      return configuredUrl.replace(
+        /localhost|127\.0\.0\.1/,
+        window.location.hostname
+      );
+    }
     return configuredUrl;
   }
 

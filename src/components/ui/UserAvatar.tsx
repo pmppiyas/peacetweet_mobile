@@ -8,6 +8,7 @@ export interface UserAvatarProps {
   name?: string | null;
   avatarUrl?: string | null;
   size?: AvatarSize;
+  sizePx?: number;
   isOnline?: boolean;
   showOnlineBadge?: boolean;
   frameCode?: string | null;
@@ -49,6 +50,7 @@ export function UserAvatar({
   name,
   avatarUrl,
   size = 'md',
+  sizePx,
   isOnline = false,
   showOnlineBadge = false,
   frameCode,
@@ -64,11 +66,13 @@ export function UserAvatar({
   }, [resolvedAvatarUrl]);
 
   const showImage = Boolean(resolvedAvatarUrl && !imageFailed);
-  const hasEmeraldFrame = frameCode === 'EMERALD_AVATAR_FRAME';
+  const hasEmeraldFrame =
+    frameCode === 'EMERALD_AVATAR_FRAME' && Boolean(isOnline);
 
   return (
     <View
-      style={
+      style={[
+        sizePx ? { width: sizePx, height: sizePx } : undefined,
         hasEmeraldFrame
           ? {
               borderWidth: 2,
@@ -76,9 +80,9 @@ export function UserAvatar({
               borderRadius: 999,
               padding: 1.5,
             }
-          : undefined
-      }
-      className={`relative shrink-0 select-none ${sizeConfig.container} ${className}`}
+          : undefined,
+      ]}
+      className={`relative shrink-0 select-none ${sizePx ? '' : sizeConfig.container} ${className}`}
       pointerEvents="none">
       {showImage ? (
         <Image

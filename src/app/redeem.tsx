@@ -14,6 +14,7 @@ import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { AppIcon, type AndroidSymbol } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { NoorThemeAura } from '@/components/ui/NoorThemeAura';
 import { AuthPromptCard } from '@/components/ui/AuthPromptCard';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
@@ -343,8 +344,8 @@ export default function RedeemScreen() {
                       backgroundColor:
                         previewItem.previewType === 'PROFILE_THEME'
                           ? isDark
-                            ? 'rgba(124, 58, 237, 0.14)'
-                            : '#f5f3ff'
+                            ? '#211c2d'
+                            : '#f8f5ff'
                           : isDark
                             ? '#18191a'
                             : '#f8fafc',
@@ -355,8 +356,11 @@ export default function RedeemScreen() {
                             ? '#3a3b3c'
                             : '#e4e6eb',
                     }}
-                    className="rounded-2xl border p-3.5 flex-row items-center gap-3"
+                    className="rounded-2xl border p-3.5 flex-row items-center gap-3 relative overflow-hidden"
                   >
+                    {previewItem.previewType === 'PROFILE_THEME' ? (
+                      <NoorThemeAura isDark={isDark} />
+                    ) : null}
                     <View
                       style={
                         previewItem.previewType === 'AVATAR_FRAME'
@@ -646,6 +650,21 @@ export default function RedeemScreen() {
                                 </Text>
                               </Pressable>
                             )}
+                          </View>
+                        ) : null}
+
+                        {item.code === 'EMERALD_AVATAR_FRAME' ? (
+                          <View className="flex-row items-center gap-2">
+                            <AppIcon
+                              android="auto_awesome"
+                              size={16}
+                              color="#10b981"
+                            />
+                            <Text className="text-[13px] font-semibold text-emerald-700 dark:text-emerald-300 flex-1">
+                              {locale === 'bn'
+                                ? 'শুধুমাত্র অনলাইনে থাকলে দৃশ্যমান (অফলাইনে লুকানো)'
+                                : 'Visible only while online (hidden when offline)'}
+                            </Text>
                           </View>
                         ) : null}
 

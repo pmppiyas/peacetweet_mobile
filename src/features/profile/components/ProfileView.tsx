@@ -31,7 +31,9 @@ import { feedApi } from '@/features/feed/api/feed.api';
 const DEFAULT_PROFILE_COVER = require('@/assets/images/post-bg-warm-vintage.jpg');
 import { AppIcon } from '@/components/ui/Icon';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { NoorThemeAura } from '@/components/ui/NoorThemeAura';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ProfileCustomizeModal } from './ProfileCustomizeModal';
 import { FeedPostCard } from '@/features/feed/components/FeedPostCard';
 import { FeedItem } from '@/features/feed/types/feed.types';
 import { FriendItem } from '@/features/friends/types/friends.types';
@@ -129,7 +131,7 @@ export function ProfileView({
   onRefreshProfile,
   showBackButton = false,
 }: ProfileViewProps) {
-  const { locale, theme } = useUi();
+  const { locale, theme, isUserOnline } = useUi();
   const insets = useSafeAreaInsets();
   const appTopStart = Math.max(
     insets.top || 0,
@@ -194,6 +196,7 @@ export function ProfileView({
   const [isPhotoEditorOpen, setIsPhotoEditorOpen] = useState(false);
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
   const [isManagementDrawerOpen, setIsManagementDrawerOpen] = useState(false);
+  const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [coverLoaded, setCoverLoaded] = useState(false);
   const [coverLoadFailed, setCoverLoadFailed] = useState(false);
 
@@ -964,6 +967,7 @@ export function ProfileView({
               className="active:opacity-95"
             >
               <Image
+                key={resolvedCoverUrl}
                 source={{ uri: resolvedCoverUrl }}
                 style={StyleSheet.absoluteFill}
                 resizeMode="cover"
@@ -1030,12 +1034,23 @@ export function ProfileView({
           style={
             (displayUser as any).activeProfileTheme === 'NOOR_PROFILE_THEME'
               ? {
-                  backgroundColor: isDark ? '#211c2d' : '#f8f5ff',
+                  backgroundColor: isDark ? '#211c2d' : '#f5f0ff',
+                  borderTopWidth: 2,
+                  borderTopColor: isDark
+                    ? 'rgba(167, 139, 250, 0.45)'
+                    : 'rgba(139, 92, 246, 0.35)',
                 }
               : undefined
           }
-          className="w-full max-w-[768px] mx-auto bg-white dark:bg-[#18191a] px-4 pb-4 border-b border-[#e4e6eb]/70 dark:border-[#393a3b]/70 items-center relative z-20"
+          className={`w-full max-w-[768px] mx-auto px-4 pb-4 border-b border-[#e4e6eb]/70 dark:border-[#393a3b]/70 items-center relative z-20 ${
+            (displayUser as any).activeProfileTheme === 'NOOR_PROFILE_THEME'
+              ? ''
+              : 'bg-white dark:bg-[#18191a]'
+          }`}
         >
+          {(displayUser as any).activeProfileTheme === 'NOOR_PROFILE_THEME' ? (
+            <NoorThemeAura isDark={isDark} />
+          ) : null}
           {/* Centered Avatar overlapping Cover Banner with Symmetric Water-Level Green/White Ring */}
           {(() => {
             const completedSteps = [
@@ -1053,7 +1068,8 @@ export function ProfileView({
             ].filter(Boolean).length;
             const profileCompletionPct = Math.round((completedSteps / 6) * 100);
             const hasEmeraldFrame =
-              (displayUser as any).activeAvatarFrame === 'EMERALD_AVATAR_FRAME';
+              (displayUser as any).activeAvatarFrame ===
+                'EMERALD_AVATAR_FRAME' && isUserOnline(displayUser.id);
             const ringSize = 120;
 
             return (
@@ -1466,7 +1482,7 @@ export function ProfileView({
               <View className="px-4 py-4">
                 <View className="flex-row items-center justify-between mb-3.5">
                   <Text className="text-[18px] sm:text-[19px] font-bold text-[#050505] dark:text-white tracking-tight">
-                    {locale === 'bn' ? 'এক নজরে' : 'At a glance'}
+                    {locale === 'bn' ? 'এক নজরে' : 'Intro'}
                   </Text>
                   {isOwner ? (
                     <Pressable
@@ -1588,13 +1604,13 @@ export function ProfileView({
                       <View
                         key={i}
                         className="items-center space-y-1.5 gap-1.5"
-                        style={{ width: 78 }}
+                        style={{ width: 68 }}
                       >
                         <Skeleton
-                          style={{ width: 68, height: 68, borderRadius: 34 }}
+                          style={{ width: 56, height: 56, borderRadius: 28 }}
                         />
-                        <Skeleton className="h-3 w-16 rounded-md" />
-                        <Skeleton className="h-2.5 w-12 rounded-md" />
+                        <Skeleton className="h-3 w-14 rounded-md" />
+                        <Skeleton className="h-2.5 w-11 rounded-md" />
                       </View>
                     ))}
                   </View>
@@ -1621,10 +1637,10 @@ export function ProfileView({
                           router.push(`/${f.user.username}` as any)
                         }
                         className="items-center active:opacity-80"
-                        style={{ width: 78 }}
+                        style={{ width: 68 }}
                       >
                         <View
-                          style={{ width: 68, height: 68, borderRadius: 34 }}
+                          style={{ width: 56, height: 56, borderRadius: 28 }}
                           className="bg-primary-100 dark:bg-primary-900/40 border border-[#e4e6eb] dark:border-[#393a3b] overflow-hidden items-center justify-center shadow-xs"
                         >
                           {f.user.avatar || (f.user as any).avatarUrl ? (
@@ -1635,14 +1651,14 @@ export function ProfileView({
                                 ),
                               }}
                               style={{
-                                width: 68,
-                                height: 68,
-                                borderRadius: 34,
+                                width: 56,
+                                height: 56,
+                                borderRadius: 28,
                               }}
                               resizeMode="cover"
                             />
                           ) : (
-                            <Text className="text-primary-700 dark:text-primary-300 font-bold text-2xl">
+                            <Text className="text-primary-700 dark:text-primary-300 font-bold text-xl">
                               {f.user.name?.charAt(0)?.toUpperCase() || 'U'}
                             </Text>
                           )}
@@ -2234,6 +2250,31 @@ export function ProfileView({
                         </View>
                       </Pressable>
 
+                      {/* 2. Option: Profile Customize (Redeemed Cosmetics Equip / Unequip) */}
+                      <Pressable
+                        onPress={() => {
+                          closeManagementDrawer();
+                          setIsCustomizeModalOpen(true);
+                        }}
+                        className="flex-row items-center justify-between rounded-xl px-3 py-2.5 active:bg-[#e6e9ef] dark:active:bg-[#3a3b3c]/60"
+                      >
+                        <View className="flex-row items-center gap-3.5 flex-1">
+                          <View className="h-9 w-9 items-center justify-center rounded-full shrink-0 bg-violet-600">
+                            <AppIcon
+                              android="auto_awesome"
+                              size={19}
+                              weight="bold"
+                              color="#ffffff"
+                            />
+                          </View>
+                          <Text className="text-[15px] font-semibold text-[#1e2329] dark:text-[#e4e6eb] leading-snug flex-1">
+                            {locale === 'bn'
+                              ? 'প্রোফাইল কাস্টমাইজ'
+                              : 'Profile Customize'}
+                          </Text>
+                        </View>
+                      </Pressable>
+
                       {/* 2. Option: Saved Posts & Duas */}
                       <Pressable
                         onPress={() => {
@@ -2459,6 +2500,14 @@ export function ProfileView({
           ) : null}
         </View>
       </Modal>
+
+      {/* Profile Customize Modal (Equip / Unequip Redeemed Assets) */}
+      {isOwner ? (
+        <ProfileCustomizeModal
+          visible={isCustomizeModalOpen}
+          onClose={() => setIsCustomizeModalOpen(false)}
+        />
+      ) : null}
     </View>
   );
 }

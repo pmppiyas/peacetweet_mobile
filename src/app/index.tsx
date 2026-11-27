@@ -18,8 +18,13 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { BOTTOM_NAV_CLEARANCE } from '@/components/navigation/navMetrics';
 
 export default function HomeScreen() {
-  const { locale, setComposerModalOpen, openComposer, handleFeedScroll } =
-    useUi();
+  const {
+    locale,
+    setComposerModalOpen,
+    openComposer,
+    handleFeedScroll,
+    isUserOnline,
+  } = useUi();
   const { user, isAuthenticated } = useAuth();
   const { items, isLoading, isRefreshing, error, refreshFeed } = useFeed();
 
@@ -51,7 +56,7 @@ export default function HomeScreen() {
     >
       <View className="w-full max-w-[720px] mx-auto">
         {/* 1. Post Composer Card (Clean, borderless, relaxed) */}
-        <View className="w-full bg-white dark:bg-[#242526] px-4 pt-3 pb-2.5">
+        <View className="w-full bg-white dark:bg-[#242526] px-3 pt-3 pb-2.5">
           {!isAuthenticated ? (
             <View className="flex-row items-center justify-between gap-3 py-1">
               <View className="flex-row items-center gap-3 flex-1">
@@ -85,7 +90,9 @@ export default function HomeScreen() {
                     avatarUrl={user?.avatarUrl || (user as any)?.avatar}
                     name={user?.name || 'User'}
                     frameCode={(user as any)?.activeAvatarFrame}
+                    isOnline={isUserOnline(user?.id)}
                     size="md"
+                    sizePx={43}
                   />
                 </Pressable>
 

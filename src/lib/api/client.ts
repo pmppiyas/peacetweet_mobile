@@ -62,6 +62,7 @@ async function rawFetch(
     const response = await fetch(buildUrl(baseUrl, endpoint, options?.params), {
       method,
       headers,
+      ...(method.toUpperCase() === 'GET' ? { cache: 'no-store' as const } : {}),
       body: isFormData ? (body as any) : body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });

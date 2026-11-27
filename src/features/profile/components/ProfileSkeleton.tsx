@@ -143,10 +143,10 @@ export function ProfileSkeleton() {
           </View>
           <View className="flex-row gap-3.5 pt-1">
             {[1, 2, 3, 4].map((i) => (
-              <View key={i} className="items-center space-y-1.5 gap-1.5" style={{ width: 78 }}>
-                <Skeleton style={{ width: 68, height: 68, borderRadius: 34 }} />
-                <Skeleton className="h-3 w-16 rounded-md" />
-                <Skeleton className="h-2.5 w-12 rounded-md" />
+              <View key={i} className="items-center space-y-1.5 gap-1.5" style={{ width: 68 }}>
+                <Skeleton style={{ width: 56, height: 56, borderRadius: 28 }} />
+                <Skeleton className="h-3 w-14 rounded-md" />
+                <Skeleton className="h-2.5 w-11 rounded-md" />
               </View>
             ))}
           </View>

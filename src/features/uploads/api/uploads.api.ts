@@ -18,19 +18,33 @@ export interface NativeUploadFile {
 
 export type UploadableImage = File | Blob | NativeUploadFile;
 
+const PRIVATE_OR_LOCAL_UPLOAD_URL_RE =
+  /^https?:\/\/(?:localhost|127\.0\.0\.1|10\.0\.2\.2|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(?::\d+)?(\/uploads\/.*)$/i;
+
 export function normalizeMediaUrl(url?: string | null): string {
   if (!url) return '';
-  if (
-    url.startsWith('http://') ||
-    url.startsWith('https://') ||
-    url.startsWith('data:') ||
-    url.startsWith('blob:')
-  ) {
-    return url;
-  }
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+
   const origin = resolvePrimaryApiUrl().replace(/\/api\/v1\/?$/, '');
-  const cleanPath = url.startsWith('/') ? url : `/${url}`;
-  return `${origin}${cleanPath}`;
+
+  // Rewrite stale localhost / emulator / DHCP-changed LAN IP upload URLs to the current reachable backend origin
+  const localMatch = trimmed.match(PRIVATE_OR_LOCAL_UPLOAD_URL_RE);
+  if (localMatch && origin) {
+    return `${origin}${localMatch[1]}`;
+  }
+
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:')
+  ) {
+    return trimmed;
+  }
+
+  const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return origin ? `${origin}${cleanPath}` : trimmed;
 }
 
 export const uploadsApi = {

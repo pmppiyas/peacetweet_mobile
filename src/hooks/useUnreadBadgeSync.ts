@@ -91,8 +91,12 @@ export function useUnreadBadgeSync() {
           fetchNotificationsUnread();
           fetchMessagesUnread();
           const s = getAppSocket() || initAppSocket();
-          if (s && s.disconnected) {
-            s.connect();
+          if (s) {
+            if (s.disconnected) {
+              s.connect();
+            } else if (s.connected) {
+              s.emit('users:get_online');
+            }
           }
         }
       }
