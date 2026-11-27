@@ -669,7 +669,7 @@ export function GlobalPhotoViewerModal() {
   const handleAddComment = async (parentId?: string | null, textToSend?: string) => {
     const trimmed = (textToSend ?? commentText).trim();
     if (!currentPost || !trimmed || !isAuthenticated) return;
-    const tempId = `temp-${Date.now()}`;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const optimistic: PostComment = {
       id: tempId,
       postId: currentPost.id,
@@ -693,20 +693,18 @@ export function GlobalPhotoViewerModal() {
     setCommentCount(nextCount);
     updateCommentCount(currentPost.id, nextCount);
 
-    try {
-      const res = await feedApi.createComment(
-        currentPost.id,
-        trimmed,
-        parentId
-      );
-      const payload = (res as any)?.data ?? res;
-      setComments((prev) =>
-        resolveOptimisticComment(prev, tempId, payload?.comment)
-      );
-    } catch {
-      setComments((prev) => removeOptimisticComment(prev, tempId));
-      setCommentCount((prev) => Math.max(0, prev - 1));
-    }
+    feedApi
+      .createComment(currentPost.id, trimmed, parentId)
+      .then((res) => {
+        const payload = (res as any)?.data ?? res;
+        setComments((prev) =>
+          resolveOptimisticComment(prev, tempId, payload?.comment)
+        );
+      })
+      .catch(() => {
+        setComments((prev) => removeOptimisticComment(prev, tempId));
+        setCommentCount((prev) => Math.max(0, prev - 1));
+      });
   };
 
   const handleCopyLink = async () => {

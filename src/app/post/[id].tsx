@@ -482,20 +482,22 @@ export default function PostPhotoViewerScreen() {
     setCommentCount(optimisticCount);
     updateCommentCount(targetId, optimisticCount);
 
-    try {
-      const res = await feedApi.createComment(targetId, trimmed, parentId);
-      const payload = (res as any)?.data ?? res;
-      setComments((prev) =>
-        resolveOptimisticComment(prev, tempId, payload?.comment)
-      );
-      if (typeof payload?.commentCount === 'number') {
-        setCommentCount(payload.commentCount);
-        updateCommentCount(targetId, payload.commentCount);
-      }
-    } catch {
-      setComments((prev) => removeOptimisticComment(prev, tempId));
-      setCommentCount((prev) => Math.max(0, prev - 1));
-    }
+    feedApi
+      .createComment(targetId, trimmed, parentId)
+      .then((res) => {
+        const payload = (res as any)?.data ?? res;
+        setComments((prev) =>
+          resolveOptimisticComment(prev, tempId, payload?.comment)
+        );
+        if (typeof payload?.commentCount === 'number') {
+          setCommentCount((prev) => Math.max(prev, payload.commentCount));
+          updateCommentCount(targetId, payload.commentCount);
+        }
+      })
+      .catch(() => {
+        setComments((prev) => removeOptimisticComment(prev, tempId));
+        setCommentCount((prev) => Math.max(0, prev - 1));
+      });
   };
 
   // Share post

@@ -34,6 +34,7 @@ import { MenuDrawer } from '@/components/navigation/MenuDrawer';
 import { MobileComposerModal } from '@/components/feed/MobileComposerModal';
 import { GlobalPhotoViewerModal } from '@/components/feed/GlobalPhotoViewerModal';
 import { AppSplashLoader } from '@/components/ui/AppSplashLoader';
+import { RootOverlayPortalHost } from '@/components/ui/RootOverlayPortal';
 import { SearchPageView } from '@/features/search/components/SearchPageView';
 import { useUnreadBadgeSync } from '@/hooks/useUnreadBadgeSync';
 import HomeScreen from './index';
@@ -664,6 +665,8 @@ function AppShell() {
           }}
         />
       ) : null}
+
+      <RootOverlayPortalHost />
     </View>
   );
 }

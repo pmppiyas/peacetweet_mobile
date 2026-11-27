@@ -1,13 +1,13 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   Pressable,
-  TouchableOpacity,
   TextInput,
-  Modal,
+  BackHandler,
   Animated,
+  Easing,
   PanResponder,
   NativeSyntheticEvent,
   NativeScrollEvent,
@@ -16,12 +16,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUi } from '@/providers/UiProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { PostComment } from '@/features/feed/types/feed.types';
 import { AppIcon } from '@/components/ui/Icon';
+import { RootOverlayPortal } from '@/components/ui/RootOverlayPortal';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { normalizeMediaUrl } from '@/features/uploads/api/uploads.api';
@@ -129,7 +131,7 @@ function formatCommentTimeAgo(dateStr?: string, locale: 'bn' | 'en' = 'en'): str
   return `${Math.floor(diffDays / 365)}y`;
 }
 
-function CommentTreeItem({
+const CommentTreeItem = memo(function CommentTreeItem({
   comment,
   locale,
   isDark,
@@ -259,9 +261,13 @@ function CommentTreeItem({
       )}
     </View>
   );
-}
+});
 
-function EmptyCommentsIllustration({ isDark }: { isDark: boolean }) {
+const EmptyCommentsIllustration = memo(function EmptyCommentsIllustration({
+  isDark,
+}: {
+  isDark: boolean;
+}) {
   return (
     <View className="relative items-center justify-center mb-4">
       {/* Soft circular background badge */}
@@ -296,7 +302,9 @@ function EmptyCommentsIllustration({ isDark }: { isDark: boolean }) {
       </View>
     </View>
   );
-}
+});
+
+const USE_NATIVE_ANIMATION = Platform.OS !== 'web';
 
 export function CommentsBottomSheetModal({
   visible,
@@ -314,27 +322,32 @@ export function CommentsBottomSheetModal({
   const { height: windowHeight } = useWindowDimensions();
   const isDark = theme === 'dark';
 
+  const [isRendered, setIsRendered] = useState(visible);
   const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
   const replyingToRef = useRef<PostComment | null>(null);
   const textRef = useRef(commentText);
-  textRef.current = commentText;
+  useEffect(() => {
+    textRef.current = commentText;
+  }, [commentText]);
   const inputRef = useRef<any>(null);
   const scrollViewRef = useRef<any>(null);
+  const keepFocusUntilRef = useRef<number>(0);
 
-  // Keyboard height tracker for Android / translucent modals
+  // Keyboard height tracker for Android / translucent modals (only active while visible)
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
+    if (!visible) {
+      setKeyboardHeight(0);
+      return;
+    }
+
     const showEvent =
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent =
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
     const showSub = Keyboard.addListener(showEvent, (e) => {
-      // The modal is translucent (draws under the nav bar), so measure the
-      // real distance from the keyboard's top edge to the physical screen bottom.
-      // `endCoordinates.height` excludes the Android navigation bar, which
-      // left the input partially hidden behind the keyboard.
       const screenHeight = Dimensions.get('screen').height;
       const fromScreenY =
         typeof e.endCoordinates.screenY === 'number' && e.endCoordinates.screenY > 0
@@ -345,9 +358,6 @@ export function CommentsBottomSheetModal({
         e.endCoordinates.height + (Platform.OS === 'android' ? insets.bottom : 0)
       );
       setKeyboardHeight(measured);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd?.({ animated: true });
-      }, 80);
     });
     const hideSub = Keyboard.addListener(hideEvent, () => {
       setKeyboardHeight(0);
@@ -357,7 +367,7 @@ export function CommentsBottomSheetModal({
       showSub.remove();
       hideSub.remove();
     };
-  }, [insets.bottom]);
+  }, [visible, insets.bottom]);
 
   const fullHeight = windowHeight || 700;
   const translateY = useRef(new Animated.Value(fullHeight)).current;
@@ -366,71 +376,91 @@ export function CommentsBottomSheetModal({
 
   const backdropOpacity = translateY.interpolate({
     inputRange: [0, fullHeight],
-    outputRange: [1, 0],
+    outputRange: [0.5, 0],
     extrapolate: 'clamp',
   });
 
+  const [containerHeight, setContainerHeight] = useState(0);
+  const [maxContainerHeight, setMaxContainerHeight] = useState(0);
+
+  const topSafe = Math.max(insets.top, Platform.OS === 'android' ? 24 : 12);
+  const bottomSafe =
+    Platform.OS === 'android'
+      ? Math.max(insets.bottom, 28)
+      : Math.max(insets.bottom, 14);
+  const alreadyShrunk =
+    Platform.OS === 'android' && maxContainerHeight > 0 && containerHeight > 0
+      ? Math.max(0, maxContainerHeight - containerHeight)
+      : 0;
+  // On Android adjustResize, AppShell already shrinks to the top of the IME, whereas Keyboard.height includes the bottom system nav bar (~45dp)
+  const effectiveKeyboardPad =
+    keyboardHeight > 0 ? (alreadyShrunk >= 40 ? 0 : keyboardHeight) : 0;
+
   useEffect(() => {
     if (visible) {
+      setIsRendered(true);
       isClosingRef.current = false;
       scrollOffsetY.current = 0;
       translateY.setValue(fullHeight);
-      Animated.timing(translateY, {
+      Animated.spring(translateY, {
         toValue: 0,
-        duration: 220,
-        useNativeDriver: false,
+        damping: 26,
+        stiffness: 280,
+        mass: 0.9,
+        useNativeDriver: USE_NATIVE_ANIMATION,
       }).start();
     } else {
       replyingToRef.current = null;
       setReplyingTo(null);
+      setIsRendered(false);
     }
     // Only run when `visible` changes so keyboard resize (`fullHeight`) never resets the sheet
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  const handleSelectReply = (target: PostComment) => {
+  const handleSelectReply = useCallback((target: PostComment) => {
     replyingToRef.current = target;
     setReplyingTo(target);
     setTimeout(() => {
       inputRef.current?.focus?.();
     }, 50);
-  };
+  }, []);
 
   const handleCancelReply = () => {
     replyingToRef.current = null;
     setReplyingTo(null);
   };
 
-  const isSendingRef = useRef(false);
-
   const handleSend = () => {
-    const textToSend = (textRef.current || commentText).trim();
+    const textToSend = textRef.current.trim();
     if (!textToSend) return;
-    if (isSendingRef.current) return;
-    isSendingRef.current = true;
-    setTimeout(() => {
-      isSendingRef.current = false;
-    }, 800);
+
+    const hadKeyboardOpen = keyboardHeight > 0 || Boolean(inputRef.current?.isFocused?.());
+    if (hadKeyboardOpen) {
+      keepFocusUntilRef.current = Date.now() + 500;
+    }
+
+    // Synchronously clear ref & controlled value (just like Chat/Messages) so rapid consecutive comments never wait
+    textRef.current = '';
+    onChangeCommentText('');
 
     const activeTarget = replyingToRef.current || replyingTo;
     const parentId = activeTarget?.id || null;
     replyingToRef.current = null;
     setReplyingTo(null);
 
-    // Call submit with both parentId and the explicit text to guarantee delivery on first tap
     onSubmitComment(parentId, textToSend);
-
-    // Immediately clear local text ref and parent commentText
-    textRef.current = '';
-    onChangeCommentText('');
-
-    Keyboard.dismiss();
-    setKeyboardHeight(0);
 
     if (!parentId) {
       setTimeout(() => {
         scrollViewRef.current?.scrollTo?.({ y: 0, animated: true });
       }, 50);
+    }
+
+    if (hadKeyboardOpen) {
+      requestAnimationFrame(() => {
+        inputRef.current?.focus?.();
+      });
     }
   };
 
@@ -442,9 +472,11 @@ export function CommentsBottomSheetModal({
 
     Animated.timing(translateY, {
       toValue: fullHeight,
-      duration: 180,
-      useNativeDriver: false,
+      duration: 165,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: USE_NATIVE_ANIMATION,
     }).start(() => {
+      setIsRendered(false);
       onClose();
     });
   };
@@ -453,8 +485,10 @@ export function CommentsBottomSheetModal({
     if (isClosingRef.current) return;
     Animated.spring(translateY, {
       toValue: 0,
-      bounciness: 4,
-      useNativeDriver: false,
+      damping: 26,
+      stiffness: 280,
+      mass: 0.9,
+      useNativeDriver: USE_NATIVE_ANIMATION,
     }).start();
   };
 
@@ -568,30 +602,65 @@ export function CommentsBottomSheetModal({
     scrollOffsetY.current = y <= 6 ? 0 : y;
   };
 
-  const topSafe = Math.max(insets.top, Platform.OS === 'android' ? 24 : 12);
-  const bottomSafe = Math.max(insets.bottom, 12);
+  const closeWithSlideDownRef = useRef(closeWithSlideDown);
+  useEffect(() => {
+    closeWithSlideDownRef.current = closeWithSlideDown;
+  });
+
+  useEffect(() => {
+    if (Platform.OS !== 'android' || !visible) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      closeWithSlideDownRef.current();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [visible]);
+
+  if (!visible && !isRendered) {
+    return null;
+  }
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      statusBarTranslucent
-      navigationBarTranslucent
-      animationType="none"
-      onRequestClose={closeWithSlideDown}>
+    <RootOverlayPortal>
       <View
-        style={{
-          flex: 1,
-          backgroundColor: isDark ? '#242526' : '#ffffff',
+        style={{ flex: 1 }}
+        onLayout={(e) => {
+          const h = Math.round(e.nativeEvent.layout.height);
+          if (h > 0) {
+            setContainerHeight((prev) => (Math.abs(prev - h) > 2 ? h : prev));
+            setMaxContainerHeight((prev) => (h > prev ? h : prev));
+          }
         }}>
-        {/* Full Screen Animated Container */}
+        {/* GPU-accelerated dimmed backdrop */}
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: '#000000',
+              opacity: backdropOpacity,
+            },
+          ]}
+        />
+
+        {/* Tap top dimmed area behind sheet to dismiss */}
+        <Pressable
+          onPress={closeWithSlideDown}
+          style={StyleSheet.absoluteFill}
+        />
+
+        {/* GPU-accelerated Facebook-style Bottom Sheet (native transform translateY -> 60/120fps) */}
         <Animated.View
           style={{
             flex: 1,
             width: '100%',
             maxWidth: 720,
             alignSelf: 'center',
+            marginTop: topSafe + 8,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
             backgroundColor: isDark ? '#242526' : '#ffffff',
+            overflow: 'hidden',
             transform: [{ translateY }],
           }}>
           <View
@@ -601,11 +670,11 @@ export function CommentsBottomSheetModal({
               backgroundColor: isDark ? '#242526' : '#ffffff',
               overflow: 'hidden',
             }}>
-            {/* 1. Full Screen Top Handle Bar + Header */}
+            {/* 1. Top Handle Bar + Header */}
             <View
               {...headerPanResponder.panHandlers}
               style={{
-                paddingTop: topSafe,
+                paddingTop: 6,
                 borderBottomWidth: 1,
                 borderBottomColor: isDark ? '#393a3b' : '#f0f2f5',
                 backgroundColor: isDark ? '#242526' : '#ffffff',
@@ -706,7 +775,7 @@ export function CommentsBottomSheetModal({
                   <View
                     {...emptyAreaPanResponder.panHandlers}
                     style={{ flex: 1 }}
-                    className="py-12 items-center justify-center px-6">
+                    className="py-6 items-center justify-center px-6">
                     <EmptyCommentsIllustration isDark={isDark} />
                     <Text className="text-[17px] font-bold text-[#050505] dark:text-[#e4e6eb] text-center">
                       {locale === 'bn'
@@ -762,7 +831,9 @@ export function CommentsBottomSheetModal({
                   paddingBottom:
                     Platform.OS === 'android'
                       ? keyboardHeight > 0
-                        ? keyboardHeight + 8
+                        ? effectiveKeyboardPad > 0
+                          ? effectiveKeyboardPad + 4
+                          : 4
                         : bottomSafe
                       : bottomSafe,
                 }}>
@@ -801,18 +872,50 @@ export function CommentsBottomSheetModal({
                     </View>
                   )}
 
-                  <View className="px-4 pt-2.5 pb-1 flex-row items-center gap-2.5">
-                    <UserAvatar
-                      avatarUrl={normalizeMediaUrl(
-                        user?.avatarUrl || (user as any)?.avatar
-                      )}
-                      name={user?.name || 'User'}
-                      size="sm"
-                    />
+                  <View
+                    style={{
+                      paddingHorizontal: 14,
+                      paddingTop: 10,
+                      paddingBottom: 6,
+                      flexDirection: 'row',
+                      alignItems: 'flex-end',
+                      gap: 10,
+                    }}>
+                    <View className="pb-0.5">
+                      <UserAvatar
+                        avatarUrl={normalizeMediaUrl(
+                          user?.avatarUrl || (user as any)?.avatar
+                        )}
+                        name={user?.name || 'User'}
+                        size="sm"
+                      />
+                    </View>
                     <TextInput
                       ref={inputRef}
                       value={commentText}
-                      onChangeText={onChangeCommentText}
+                      onChangeText={(val) => {
+                        textRef.current = val;
+                        onChangeCommentText(val);
+                      }}
+                      onBlur={() => {
+                        if (Date.now() < keepFocusUntilRef.current) {
+                          requestAnimationFrame(() => {
+                            inputRef.current?.focus?.();
+                          });
+                        }
+                      }}
+                      multiline
+                      maxLength={2000}
+                      onKeyPress={(e: any) => {
+                        if (
+                          Platform.OS === 'web' &&
+                          e.nativeEvent?.key === 'Enter' &&
+                          !e.nativeEvent?.shiftKey
+                        ) {
+                          e.preventDefault?.();
+                          handleSend();
+                        }
+                      }}
                       onSubmitEditing={handleSend}
                       returnKeyType="send"
                       enablesReturnKeyAutomatically={true}
@@ -827,53 +930,59 @@ export function CommentsBottomSheetModal({
                             : 'Write a comment...'
                       }
                       placeholderTextColor={isDark ? '#8a8d91' : '#8c9099'}
-                      className="flex-1 h-11 rounded-full bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#e4e6eb] dark:border-[#4e5052] px-4 text-[14px] text-[#050505] dark:text-[#e4e6eb]"
+                      className="flex-1 max-h-28 min-h-[42px] rounded-2xl bg-[#f0f2f5] dark:bg-[#3a3b3c] border border-[#e4e6eb] dark:border-[#4e5052] px-4 py-2.5 text-[14px] text-[#050505] dark:text-[#e4e6eb]"
                     />
-                    <View
-                      onTouchStart={() => {
-                        const text = (textRef.current || commentText).trim();
-                        if (text) {
-                          handleSend();
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        locale === 'bn' ? 'কমেন্ট পাঠান' : 'Send comment'
+                      }
+                      onPressIn={() => {
+                        if (keyboardHeight > 0 || inputRef.current?.isFocused?.()) {
+                          keepFocusUntilRef.current = Date.now() + 500;
                         }
-                      }}>
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        disabled={!commentText.trim()}
-                        onPressIn={handleSend}
-                        onPress={handleSend}
-                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 20,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: commentText.trim()
-                            ? '#0866FF'
-                            : isDark
-                              ? '#3a3b3c'
-                              : '#e4e6eb',
-                        }}>
-                        <AppIcon
-                          android="send"
-                          ios="paperplane.fill"
-                          size={17}
-                          color={
-                            commentText.trim()
-                              ? '#ffffff'
-                              : isDark
-                                ? '#707275'
-                                : '#9ca3af'
+                        inputRef.current?.focus?.();
+                      }}
+                      onPress={handleSend}
+                      {...(Platform.OS === 'web'
+                        ? {
+                            onMouseDown: (e: any) => {
+                              e?.preventDefault?.();
+                            },
                           }
-                        />
-                      </TouchableOpacity>
-                    </View>
+                        : {})}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: commentText.trim()
+                          ? '#0866FF'
+                          : isDark
+                            ? '#3a3b3c'
+                            : '#e4e6eb',
+                      }}>
+                      <AppIcon
+                        android="send"
+                        ios="paperplane.fill"
+                        size={17}
+                        color={
+                          commentText.trim()
+                            ? '#ffffff'
+                            : isDark
+                              ? '#707275'
+                              : '#9ca3af'
+                        }
+                      />
+                    </Pressable>
                   </View>
                 </View>
             </KeyboardAvoidingView>
           </View>
         </Animated.View>
       </View>
-    </Modal>
+    </RootOverlayPortal>
   );
 }
